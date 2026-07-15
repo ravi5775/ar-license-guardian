@@ -9,38 +9,199 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as GalleryRouteImport } from './routes/gallery'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ArSlugRouteImport } from './routes/ar.$slug'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
+import { Route as AuthenticatedDashboardLicensesRouteImport } from './routes/_authenticated/dashboard.licenses'
+import { Route as AuthenticatedDashboardExperiencesRouteImport } from './routes/_authenticated/dashboard.experiences'
+import { Route as AuthenticatedDashboardAuditRouteImport } from './routes/_authenticated/dashboard.audit'
+import { Route as AuthenticatedDashboardActivationsRouteImport } from './routes/_authenticated/dashboard.activations'
+import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
 
+const GalleryRoute = GalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ArSlugRoute = ArSlugRouteImport.update({
+  id: '/ar/$slug',
+  path: '/ar/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardIndexRoute =
+  AuthenticatedDashboardIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardLicensesRoute =
+  AuthenticatedDashboardLicensesRouteImport.update({
+    id: '/licenses',
+    path: '/licenses',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardExperiencesRoute =
+  AuthenticatedDashboardExperiencesRouteImport.update({
+    id: '/experiences',
+    path: '/experiences',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardAuditRoute =
+  AuthenticatedDashboardAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardActivationsRoute =
+  AuthenticatedDashboardActivationsRouteImport.update({
+    id: '/activations',
+    path: '/activations',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const ApiPublicLicenseActivateRoute =
+  ApiPublicLicenseActivateRouteImport.update({
+    id: '/api/public/license/activate',
+    path: '/api/public/license/activate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/gallery': typeof GalleryRoute
+  '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/ar/$slug': typeof ArSlugRoute
+  '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
+  '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
+  '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
+  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/gallery': typeof GalleryRoute
+  '/ar/$slug': typeof ArSlugRoute
+  '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
+  '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
+  '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
+  '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/gallery': typeof GalleryRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/ar/$slug': typeof ArSlugRoute
+  '/_authenticated/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
+  '/_authenticated/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/_authenticated/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
+  '/_authenticated/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
+  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/gallery'
+    | '/dashboard'
+    | '/ar/$slug'
+    | '/dashboard/activations'
+    | '/dashboard/audit'
+    | '/dashboard/experiences'
+    | '/dashboard/licenses'
+    | '/dashboard/'
+    | '/api/public/license/activate'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/gallery'
+    | '/ar/$slug'
+    | '/dashboard/activations'
+    | '/dashboard/audit'
+    | '/dashboard/experiences'
+    | '/dashboard/licenses'
+    | '/dashboard'
+    | '/api/public/license/activate'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/gallery'
+    | '/_authenticated/dashboard'
+    | '/ar/$slug'
+    | '/_authenticated/dashboard/activations'
+    | '/_authenticated/dashboard/audit'
+    | '/_authenticated/dashboard/experiences'
+    | '/_authenticated/dashboard/licenses'
+    | '/_authenticated/dashboard/'
+    | '/api/public/license/activate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  GalleryRoute: typeof GalleryRoute
+  ArSlugRoute: typeof ArSlugRoute
+  ApiPublicLicenseActivateRoute: typeof ApiPublicLicenseActivateRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/gallery': {
+      id: '/gallery'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof GalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +209,107 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ar/$slug': {
+      id: '/ar/$slug'
+      path: '/ar/$slug'
+      fullPath: '/ar/$slug'
+      preLoaderRoute: typeof ArSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard/': {
+      id: '/_authenticated/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/licenses': {
+      id: '/_authenticated/dashboard/licenses'
+      path: '/licenses'
+      fullPath: '/dashboard/licenses'
+      preLoaderRoute: typeof AuthenticatedDashboardLicensesRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/experiences': {
+      id: '/_authenticated/dashboard/experiences'
+      path: '/experiences'
+      fullPath: '/dashboard/experiences'
+      preLoaderRoute: typeof AuthenticatedDashboardExperiencesRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/audit': {
+      id: '/_authenticated/dashboard/audit'
+      path: '/audit'
+      fullPath: '/dashboard/audit'
+      preLoaderRoute: typeof AuthenticatedDashboardAuditRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/activations': {
+      id: '/_authenticated/dashboard/activations'
+      path: '/activations'
+      fullPath: '/dashboard/activations'
+      preLoaderRoute: typeof AuthenticatedDashboardActivationsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/api/public/license/activate': {
+      id: '/api/public/license/activate'
+      path: '/api/public/license/activate'
+      fullPath: '/api/public/license/activate'
+      preLoaderRoute: typeof ApiPublicLicenseActivateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedDashboardRouteChildren {
+  AuthenticatedDashboardActivationsRoute: typeof AuthenticatedDashboardActivationsRoute
+  AuthenticatedDashboardAuditRoute: typeof AuthenticatedDashboardAuditRoute
+  AuthenticatedDashboardExperiencesRoute: typeof AuthenticatedDashboardExperiencesRoute
+  AuthenticatedDashboardLicensesRoute: typeof AuthenticatedDashboardLicensesRoute
+  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+}
+
+const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
+  {
+    AuthenticatedDashboardActivationsRoute:
+      AuthenticatedDashboardActivationsRoute,
+    AuthenticatedDashboardAuditRoute: AuthenticatedDashboardAuditRoute,
+    AuthenticatedDashboardExperiencesRoute:
+      AuthenticatedDashboardExperiencesRoute,
+    AuthenticatedDashboardLicensesRoute: AuthenticatedDashboardLicensesRoute,
+    AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+  }
+
+const AuthenticatedDashboardRouteWithChildren =
+  AuthenticatedDashboardRoute._addFileChildren(
+    AuthenticatedDashboardRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  GalleryRoute: GalleryRoute,
+  ArSlugRoute: ArSlugRoute,
+  ApiPublicLicenseActivateRoute: ApiPublicLicenseActivateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
