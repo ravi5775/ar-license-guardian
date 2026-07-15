@@ -1,24 +1,454 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
+import {
+  QrCode,
+  Sparkles,
+  Shield,
+  Server,
+  Wand2,
+  ArrowUpRight,
+  Check,
+  Camera,
+  Cpu,
+} from "lucide-react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  component: LandingPage,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function LandingPage() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <Nav />
+      <Hero />
+      <LogoStrip />
+      <HowItWorks />
+      <Features />
+      <Pricing />
+      <FinalCTA />
+      <Footer />
     </div>
+  );
+}
+
+/* ------------------------------- Nav ------------------------------- */
+
+function Nav() {
+  return (
+    <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/60 border-b border-border/40">
+      <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-primary" />
+          </div>
+          <span className="font-display text-xl tracking-tight">Aether<span className="text-primary">.</span></span>
+        </Link>
+
+        <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
+          <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
+          <a href="#features" className="hover:text-foreground transition-colors">Features</a>
+          <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+        </nav>
+
+        <a
+          href="#pricing"
+          className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          Get a quote
+          <ArrowUpRight className="w-3.5 h-3.5" />
+        </a>
+      </div>
+    </header>
+  );
+}
+
+/* ------------------------------ Hero ------------------------------- */
+
+function Hero() {
+  return (
+    <section className="relative pt-40 pb-32 px-6">
+      {/* Ambient glow */}
+      <div
+        className="absolute top-20 left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full blur-3xl opacity-40 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle at center, oklch(0.83 0.14 78 / 0.35), transparent 60%)",
+        }}
+      />
+      {/* Grid */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, oklch(0.97 0.008 90) 1px, transparent 1px), linear-gradient(to bottom, oklch(0.97 0.008 90) 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+          maskImage:
+            "radial-gradient(ellipse at center, black 40%, transparent 75%)",
+        }}
+      />
+
+      <div className="relative mx-auto max-w-5xl text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted-foreground mb-8"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+          White-label AR platform · v1 shipping Q1
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="text-5xl sm:text-7xl lg:text-8xl leading-[0.95] tracking-tight"
+        >
+          Turn any photo <br />
+          into a <em className="text-primary not-italic font-display italic">portal</em>.
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-8 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+        >
+          Scan a printed QR, watch the photo come alive as video, 3D, or AR
+          overlay. Sold once. Deployed to your own Cloudflare + Supabase.
+          Owned by you, forever.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="mt-12 flex flex-wrap items-center justify-center gap-3"
+        >
+          <a
+            href="#pricing"
+            className="glow-ring inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Get a quote
+            <ArrowUpRight className="w-4 h-4" />
+          </a>
+          <a
+            href="#how"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-6 py-3 text-sm font-medium hover:bg-surface transition-colors"
+          >
+            See how it works
+          </a>
+        </motion.div>
+
+        {/* Preview card */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="mt-20 relative mx-auto max-w-4xl"
+        >
+          <div className="glow-ring rounded-2xl overflow-hidden border border-border bg-surface-elevated aspect-[16/9] relative">
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(circle at 30% 40%, oklch(0.83 0.14 78 / 0.15), transparent 50%), radial-gradient(circle at 70% 60%, oklch(0.62 0.18 32 / 0.15), transparent 50%)",
+              }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-background/80 border border-primary/30 mb-4">
+                  <QrCode className="w-12 h-12 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground font-mono">
+                  scan → play
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* --------------------------- Logo strip ---------------------------- */
+
+function LogoStrip() {
+  const uses = [
+    "Wedding studios",
+    "Print shops",
+    "Museums",
+    "Real estate",
+    "Event agencies",
+    "Photographers",
+  ];
+  return (
+    <section className="px-6 py-8 border-y border-border/40">
+      <div className="mx-auto max-w-7xl">
+        <p className="text-xs uppercase tracking-widest text-muted-foreground text-center mb-6">
+          Built for
+        </p>
+        <div className="flex flex-wrap justify-center gap-x-12 gap-y-4">
+          {uses.map((u) => (
+            <span key={u} className="text-sm text-muted-foreground/80 font-mono">
+              {u}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* --------------------------- How it works -------------------------- */
+
+function HowItWorks() {
+  const steps = [
+    {
+      n: "01",
+      icon: Wand2,
+      title: "Upload the moment",
+      body: "Your client drops in a photo, video, or 3D asset. The admin generates a printable QR bound to that scene.",
+    },
+    {
+      n: "02",
+      icon: QrCode,
+      title: "Print the trigger",
+      body: "The QR goes on the wedding invite, the museum plaque, the album page — anywhere physical.",
+    },
+    {
+      n: "03",
+      icon: Camera,
+      title: "Guest scans, AR plays",
+      body: "Phone camera opens the scene in the browser. No app install. Works on iOS Safari and Android Chrome.",
+    },
+  ];
+
+  return (
+    <section id="how" className="px-6 py-32">
+      <div className="mx-auto max-w-7xl">
+        <div className="max-w-2xl mb-20">
+          <p className="text-xs uppercase tracking-widest text-primary mb-4">
+            How it works
+          </p>
+          <h2 className="text-4xl sm:text-5xl leading-tight">
+            Three steps between paper and augmented reality.
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          {steps.map((s, i) => {
+            const Icon = s.icon;
+            return (
+              <motion.div
+                key={s.n}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="group relative rounded-2xl border border-border bg-surface p-8 hover:border-primary/40 transition-colors"
+              >
+                <div className="flex items-start justify-between mb-8">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-primary" />
+                  </div>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {s.n}
+                  </span>
+                </div>
+                <h3 className="text-2xl mb-3">{s.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {s.body}
+                </p>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------- Features ----------------------------- */
+
+function Features() {
+  const items = [
+    {
+      icon: Server,
+      title: "Your infrastructure",
+      body: "Deployed to your Cloudflare Pages, your Supabase, your R2. We hand over the keys. No vendor lock-in, no monthly platform fee to us.",
+    },
+    {
+      icon: Shield,
+      title: "License-locked",
+      body: "Each deploy is fingerprint-bound to prevent casual duplication. Legal contract is the enforcement layer; the code is the tripwire.",
+    },
+    {
+      icon: Cpu,
+      title: "No app install",
+      body: "WebAR via MindAR + AR.js. Runs in a mobile browser tab. Zero friction between scan and playback.",
+    },
+    {
+      icon: Sparkles,
+      title: "White-label ready",
+      body: "Your brand, your domain, your admin login. Ships with a customizable design system and a full RUNBOOK.",
+    },
+  ];
+
+  return (
+    <section id="features" className="px-6 py-32 border-t border-border/40">
+      <div className="mx-auto max-w-7xl">
+        <div className="max-w-2xl mb-20">
+          <p className="text-xs uppercase tracking-widest text-primary mb-4">
+            What you get
+          </p>
+          <h2 className="text-4xl sm:text-5xl leading-tight">
+            A platform you own — not a subscription you rent.
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {items.map((f, i) => {
+            const Icon = f.icon;
+            return (
+              <motion.div
+                key={f.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                className="rounded-2xl border border-border bg-surface p-8"
+              >
+                <Icon className="w-6 h-6 text-primary mb-6" />
+                <h3 className="text-2xl mb-3">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {f.body}
+                </p>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------- Pricing ----------------------------- */
+
+function Pricing() {
+  const included = [
+    "Full source code, transferred to your GitHub org",
+    "Deployed to your Cloudflare + Supabase Pro (~$25/mo, your account)",
+    "Admin dashboard with mandatory TOTP",
+    "License agreement + DPA + RUNBOOK",
+    "30-day post-handover bug-fix window",
+    "MindAR + AR.js WebAR runtime (no per-scan fees)",
+  ];
+
+  return (
+    <section id="pricing" className="px-6 py-32 border-t border-border/40">
+      <div className="mx-auto max-w-4xl">
+        <div className="text-center mb-16">
+          <p className="text-xs uppercase tracking-widest text-primary mb-4">
+            Pricing
+          </p>
+          <h2 className="text-4xl sm:text-5xl leading-tight">
+            One-time purchase.<br />
+            <span className="text-muted-foreground">No revenue share. Ever.</span>
+          </h2>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="glow-ring rounded-3xl border border-border bg-surface-elevated p-10 sm:p-14"
+        >
+          <div className="flex flex-wrap items-baseline gap-3 mb-2">
+            <span className="font-display text-6xl">$2,500</span>
+            <span className="text-muted-foreground text-lg">– $5,000</span>
+          </div>
+          <p className="text-sm text-muted-foreground mb-10">
+            One-time · scoped per client · optional $99–299/mo maintenance retainer
+          </p>
+
+          <ul className="space-y-4 mb-10">
+            {included.map((item) => (
+              <li key={item} className="flex items-start gap-3">
+                <span className="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center">
+                  <Check className="w-3 h-3 text-primary" />
+                </span>
+                <span className="text-sm text-foreground/90">{item}</span>
+              </li>
+            ))}
+          </ul>
+
+          <a
+            href="mailto:hello@aether.ar?subject=Aether%20AR%20quote%20request"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3.5 text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            Request a quote
+            <ArrowUpRight className="w-4 h-4" />
+          </a>
+          <p className="mt-4 text-xs text-muted-foreground text-center">
+            Typical delivery: 9–10 weeks from signed contract to handover.
+          </p>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------- Final CTA ---------------------------- */
+
+function FinalCTA() {
+  return (
+    <section className="px-6 py-32">
+      <div className="mx-auto max-w-4xl text-center relative">
+        <div
+          className="absolute inset-0 blur-3xl opacity-30 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle at center, oklch(0.83 0.14 78 / 0.5), transparent 60%)",
+          }}
+        />
+        <h2 className="relative text-4xl sm:text-6xl leading-tight">
+          Ship an AR product<br />without renting one.
+        </h2>
+        <p className="relative mt-6 text-muted-foreground max-w-xl mx-auto">
+          Talk to us about your first deployment. Real reply, usually within a
+          business day.
+        </p>
+        <a
+          href="mailto:hello@aether.ar"
+          className="relative mt-10 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          hello@aether.ar
+          <ArrowUpRight className="w-4 h-4" />
+        </a>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------------- Footer ------------------------------ */
+
+function Footer() {
+  return (
+    <footer className="px-6 py-10 border-t border-border/40">
+      <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center">
+            <Sparkles className="w-3 h-3 text-primary" />
+          </div>
+          <span className="font-display text-sm">Aether.</span>
+        </div>
+        <p className="text-xs text-muted-foreground font-mono">
+          © {new Date().getFullYear()} · Built for people who ship.
+        </p>
+      </div>
+    </footer>
   );
 }
