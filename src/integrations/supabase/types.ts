@@ -14,16 +14,250 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ar_experiences: {
+        Row: {
+          autoplay: boolean
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          loop_playback: boolean
+          marker_url: string | null
+          media_type: string
+          media_url: string | null
+          owner_id: string
+          published: boolean
+          slug: string
+          title: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          autoplay?: boolean
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          loop_playback?: boolean
+          marker_url?: string | null
+          media_type?: string
+          media_url?: string | null
+          owner_id: string
+          published?: boolean
+          slug: string
+          title: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          autoplay?: boolean
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          loop_playback?: boolean
+          marker_url?: string | null
+          media_type?: string
+          media_url?: string | null
+          owner_id?: string
+          published?: boolean
+          slug?: string
+          title?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
+      audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: number
+          ip_address: string | null
+          metadata: Json | null
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: number
+          ip_address?: string | null
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: number
+          ip_address?: string | null
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
+      license_activations: {
+        Row: {
+          activated_at: string
+          deployment_domain: string | null
+          deployment_platform: string | null
+          fingerprint: string
+          id: string
+          ip_address: string | null
+          last_seen_at: string
+          license_id: string
+          revoked_at: string | null
+          supabase_ref: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          activated_at?: string
+          deployment_domain?: string | null
+          deployment_platform?: string | null
+          fingerprint: string
+          id?: string
+          ip_address?: string | null
+          last_seen_at?: string
+          license_id: string
+          revoked_at?: string | null
+          supabase_ref?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          activated_at?: string
+          deployment_domain?: string | null
+          deployment_platform?: string | null
+          fingerprint?: string
+          id?: string
+          ip_address?: string | null
+          last_seen_at?: string
+          license_id?: string
+          revoked_at?: string | null
+          supabase_ref?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_activations_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "licenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      licenses: {
+        Row: {
+          client_email: string
+          client_name: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          issued_at: string
+          license_key: string
+          max_activations: number
+          notes: string | null
+          plan: Database["public"]["Enums"]["license_plan"]
+          status: Database["public"]["Enums"]["license_status"]
+          updated_at: string
+        }
+        Insert: {
+          client_email: string
+          client_name: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          issued_at?: string
+          license_key: string
+          max_activations?: number
+          notes?: string | null
+          plan?: Database["public"]["Enums"]["license_plan"]
+          status?: Database["public"]["Enums"]["license_status"]
+          updated_at?: string
+        }
+        Update: {
+          client_email?: string
+          client_name?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          issued_at?: string
+          license_key?: string
+          max_activations?: number
+          notes?: string | null
+          plan?: Database["public"]["Enums"]["license_plan"]
+          status?: Database["public"]["Enums"]["license_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "editor" | "viewer"
+      license_plan: "starter" | "pro" | "enterprise"
+      license_status: "active" | "suspended" | "revoked" | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +384,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "editor", "viewer"],
+      license_plan: ["starter", "pro", "enterprise"],
+      license_status: ["active", "suspended", "revoked", "expired"],
+    },
   },
 } as const
