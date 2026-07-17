@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ScanRouteImport } from './routes/scan'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -23,6 +24,11 @@ import { Route as AuthenticatedDashboardAuditRouteImport } from './routes/_authe
 import { Route as AuthenticatedDashboardActivationsRouteImport } from './routes/_authenticated/dashboard.activations'
 import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
 
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GalleryRoute = GalleryRouteImport.update({
   id: '/gallery',
   path: '/gallery',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
+  '/scan': typeof ScanRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
+  '/scan': typeof ScanRoute
   '/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
   '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
+  '/scan': typeof ScanRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/gallery'
+    | '/scan'
     | '/dashboard'
     | '/mfa'
     | '/ar/$slug'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/gallery'
+    | '/scan'
     | '/mfa'
     | '/ar/$slug'
     | '/dashboard/activations'
@@ -171,6 +182,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/gallery'
+    | '/scan'
     | '/_authenticated/dashboard'
     | '/_authenticated/mfa'
     | '/ar/$slug'
@@ -187,12 +199,20 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   GalleryRoute: typeof GalleryRoute
+  ScanRoute: typeof ScanRoute
   ArSlugRoute: typeof ArSlugRoute
   ApiPublicLicenseActivateRoute: typeof ApiPublicLicenseActivateRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/gallery': {
       id: '/gallery'
       path: '/gallery'
@@ -329,6 +349,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   GalleryRoute: GalleryRoute,
+  ScanRoute: ScanRoute,
   ArSlugRoute: ArSlugRoute,
   ApiPublicLicenseActivateRoute: ApiPublicLicenseActivateRoute,
 }

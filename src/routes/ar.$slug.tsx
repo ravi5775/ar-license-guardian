@@ -58,7 +58,16 @@ export const Route = createFileRoute("/ar/$slug")({
 function ARViewer() {
   const { experience } = Route.useLoaderData();
   const [started, setStarted] = useState(false);
-  const hasMarker = !!experience.marker_image_url;
+  const [forceFallback, setForceFallback] = useState(false);
+  const hasMarker = !!experience.marker_url && experience.marker_url.endsWith(".mind");
+
+  // Preload MindAR scripts while user reads the intro — makes "Launch AR" feel instant.
+  useEffect(() => {
+    if (!hasMarker) return;
+    MINDAR_SCRIPTS.forEach((src) => {
+      loadScript(src).catch(() => {});
+    });
+  }, [hasMarker]);
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
@@ -105,10 +114,20 @@ function ARViewer() {
                 ? "Point at the printed marker to see the AR content."
                 : "Preview mode — no marker uploaded yet."}
             </p>
+            {hasMarker && (
+              <button
+                onClick={() => { setForceFallback(true); setStarted(true); }}
+                className="block mx-auto mt-3 text-xs text-white/40 hover:text-white/70 underline"
+              >
+                Having trouble? Use plain camera mode
+              </button>
+            )}
           </div>
         </div>
       ) : (
-        <ARStage experience={experience} />
+        forceFallback
+          ? <PlainCameraFallback experience={experience} />
+          : <ARStage experience={experience} />
       )}
     </div>
   );
@@ -178,10 +197,10 @@ function ARStage({ experience }: { experience: any }) {
         const scenEl = document.createElement("a-scene");
         scenEl.setAttribute(
           "mindar-image",
-          `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: #scanning; uiLoading: #loading;`,
+          `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: #scanning; uiLoading: #loading; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5;`,
         );
         scenEl.setAttribute("color-space", "sRGB");
-        scenEl.setAttribute("renderer", "colorManagement: true, physicallyCorrectLights");
+        scenEl.setAttribute("renderer", "colorManagement: true, physicallyCorrectLights: true, antialias: false, precision: mediump");
         scenEl.setAttribute("vr-mode-ui", "enabled: false");
         scenEl.setAttribute("device-orientation-permission-ui", "enabled: false");
         scenEl.setAttribute("embedded", "");
@@ -189,17 +208,25 @@ function ARStage({ experience }: { experience: any }) {
         scenEl.style.height = "100vh";
 
         const assets = document.createElement("a-assets");
+        let videoEl: HTMLVideoElement | null = null;
         if (mediaUrl) {
           if (experience.media_type === "video") {
             const v = document.createElement("video");
             v.id = "ar-media";
             v.src = mediaUrl.href;
             v.preload = "auto";
-            v.loop = true;
+            v.loop = experience.loop_playback !== false;
+            v.muted = true; // required for mobile autoplay
+            v.defaultMuted = true;
+            v.autoplay = true;
+            v.playsInline = true;
             v.crossOrigin = "anonymous";
-            v.setAttribute("webkit-playsinline", "");
+            v.setAttribute("muted", "");
+            v.setAttribute("autoplay", "");
             v.setAttribute("playsinline", "");
+            v.setAttribute("webkit-playsinline", "");
             assets.appendChild(v);
+            videoEl = v;
           } else if (experience.media_type === "image") {
             const img = document.createElement("img");
             img.id = "ar-media";
