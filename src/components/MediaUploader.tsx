@@ -20,6 +20,14 @@ export function MediaUploader({ label, accept, currentPath, onUploaded, prefix }
   const [progress, setProgress] = useState(0);
 
   async function handleFile(file: File) {
+    // Soft warning — large overlay media is the #1 cause of laggy AR playback on mobile.
+    const MB = 1024 * 1024;
+    if (file.type.startsWith("video/") && file.size > 20 * MB) {
+      const proceed = window.confirm(
+        `This video is ${(file.size / MB).toFixed(1)} MB. For smooth AR playback, we recommend ≤720p H.264 under 20 MB. Upload anyway?`,
+      );
+      if (!proceed) return;
+    }
     setUploading(true);
     setProgress(0);
     try {

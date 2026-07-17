@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   QrCode,
+  ScanLine,
   Sparkles,
   Shield,
   Server,
@@ -72,6 +73,7 @@ function Nav() {
           <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
           <a href="#features" className="hover:text-foreground transition-colors">Features</a>
           <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+          <Link to="/scan" className="hover:text-foreground transition-colors inline-flex items-center gap-1"><ScanLine className="w-3.5 h-3.5" />Scan QR</Link>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -178,9 +180,16 @@ function Hero() {
             Get a quote
             <ArrowUpRight className="w-4 h-4" />
           </a>
+          <Link
+            to="/scan"
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-6 py-3 text-sm font-medium hover:bg-surface transition-colors"
+          >
+            <ScanLine className="w-4 h-4" />
+            Scan a QR
+          </Link>
           <a
             href="#how"
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-6 py-3 text-sm font-medium hover:bg-surface transition-colors"
+            className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             See how it works
           </a>
