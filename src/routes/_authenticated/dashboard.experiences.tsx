@@ -24,6 +24,7 @@ type Draft = {
   description: string;
   cover_image_url: string;
   marker_path: string;
+  marker_mind_path: string;
   media_path: string;
   media_type: "video" | "image" | "model";
   autoplay: boolean;
@@ -37,6 +38,7 @@ const empty: Draft = {
   description: "",
   cover_image_url: "",
   marker_path: "",
+  marker_mind_path: "",
   media_path: "",
   media_type: "video",
   autoplay: true,
@@ -139,6 +141,7 @@ function ExperiencesPage() {
                       description: e.description ?? "",
                       cover_image_url: e.cover_image_url ?? "",
                       marker_path: e.marker_path ?? "",
+                      marker_mind_path: e.marker_mind_path ?? "",
                       media_path: e.media_path ?? "",
                       media_type: (e.media_type as Draft["media_type"]) ?? "video",
                       autoplay: e.autoplay,
@@ -247,6 +250,28 @@ function ExperienceModal({
               onUploaded={(path) => set("media_path", path)}
             />
           </div>
+
+          <MediaUploader
+            label="Marker (.mind) — compiled tracker file for true AR tracking"
+            accept=".mind,application/octet-stream"
+            prefix="mind"
+            currentPath={value.marker_mind_path}
+            onUploaded={(path) => set("marker_mind_path", path)}
+          />
+          <p className="-mt-2 text-xs text-muted-foreground">
+            Compile your marker image at{" "}
+            <a
+              href="https://hiukim.github.io/mind-ar-js-doc/tools/compile"
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-foreground"
+            >
+              MindAR compiler
+            </a>{" "}
+            → download <code>targets.mind</code> → upload here. Without this, the viewer
+            falls back to plain camera + overlay (no image tracking).
+          </p>
+
 
           <div className="grid grid-cols-3 gap-4">
             <label className="text-sm">
