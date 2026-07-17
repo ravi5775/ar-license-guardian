@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ArSlugRouteImport } from './routes/ar.$slug'
+import { Route as AuthenticatedMfaRouteImport } from './routes/_authenticated/mfa'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as AuthenticatedDashboardLicensesRouteImport } from './routes/_authenticated/dashboard.licenses'
@@ -45,6 +46,11 @@ const ArSlugRoute = ArSlugRouteImport.update({
   id: '/ar/$slug',
   path: '/ar/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedMfaRoute = AuthenticatedMfaRouteImport.update({
+  id: '/mfa',
+  path: '/mfa',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
   '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
+  '/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
   '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
+  '/_authenticated/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
   '/_authenticated/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
   '/_authenticated/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/dashboard'
+    | '/mfa'
     | '/ar/$slug'
     | '/dashboard/activations'
     | '/dashboard/audit'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/gallery'
+    | '/mfa'
     | '/ar/$slug'
     | '/dashboard/activations'
     | '/dashboard/audit'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/_authenticated/dashboard'
+    | '/_authenticated/mfa'
     | '/ar/$slug'
     | '/_authenticated/dashboard/activations'
     | '/_authenticated/dashboard/audit'
@@ -215,6 +227,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/ar/$slug'
       preLoaderRoute: typeof ArSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/mfa': {
+      id: '/_authenticated/mfa'
+      path: '/mfa'
+      fullPath: '/mfa'
+      preLoaderRoute: typeof AuthenticatedMfaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
@@ -294,10 +313,12 @@ const AuthenticatedDashboardRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
+  AuthenticatedMfaRoute: typeof AuthenticatedMfaRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
+  AuthenticatedMfaRoute: AuthenticatedMfaRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
