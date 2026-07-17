@@ -141,6 +141,7 @@ function ExperiencesPage() {
                       description: e.description ?? "",
                       cover_image_url: e.cover_image_url ?? "",
                       marker_path: e.marker_path ?? "",
+                      marker_mind_path: e.marker_mind_path ?? "",
                       media_path: e.media_path ?? "",
                       media_type: (e.media_type as Draft["media_type"]) ?? "video",
                       autoplay: e.autoplay,
