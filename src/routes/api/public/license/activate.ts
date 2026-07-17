@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { notifyDuplicateFingerprint } from "@/lib/notify.functions";
 
 const ActivateSchema = z.object({
   license_key: z.string().min(10),
@@ -15,19 +16,43 @@ const VerifySchema = z.object({
   fingerprint: z.string().min(8),
 });
 
-function serverClient() {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
-  });
-}
-
 async function adminClient() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
 }
 
+function clientIp(request: Request) {
+  return (
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
+  );
+}
+
+async function rateLimit(request: Request, bucket: string, key: string, windowSec: number, max: number) {
+  const admin = await adminClient();
+  const { data, error } = await admin.rpc("check_and_record_hit", {
+    _bucket: bucket,
+    _key: key,
+    _window_seconds: windowSec,
+    _max: max,
+  });
+  if (error) {
+    console.error("[rate_limit] rpc error", error);
+    return true; // fail-open
+  }
+  return data === true;
+}
+
 async function handleActivate(request: Request) {
   const body = ActivateSchema.parse(await request.json());
+  const ip = clientIp(request);
+
+  // Rate limit per IP (10/min) + per license key (30/hour)
+  const ipOk = await rateLimit(request, "activate:ip", ip, 60, 10);
+  const keyOk = await rateLimit(request, "activate:key", body.license_key, 3600, 30);
+  if (!ipOk || !keyOk) return json({ ok: false, error: "rate_limited" }, 429);
+
   const admin = await adminClient();
 
   const { data: license } = await admin
@@ -37,7 +62,8 @@ async function handleActivate(request: Request) {
     .maybeSingle();
 
   if (!license) return json({ ok: false, error: "invalid_license" }, 404);
-  if (license.status !== "active") return json({ ok: false, error: `license_${license.status}` }, 403);
+  if (license.status !== "active")
+    return json({ ok: false, error: `license_${license.status}` }, 403);
   if (license.expires_at && new Date(license.expires_at) < new Date())
     return json({ ok: false, error: "license_expired" }, 403);
 
@@ -46,10 +72,33 @@ async function handleActivate(request: Request) {
     (a: any) => a.fingerprint === body.fingerprint && !a.revoked_at,
   );
 
-  if (!existing && activeCount >= license.max_activations)
+  if (!existing && activeCount >= license.max_activations) {
+    // Duplicate / over-limit → audit + notify
+    await admin.from("audit_log").insert({
+      action: "activation.rejected",
+      target_type: "license",
+      target_id: license.id,
+      metadata: {
+        reason: "duplicate_fingerprint_or_limit",
+        attempted_fingerprint: body.fingerprint,
+        attempted_domain: body.deployment_domain,
+        ip,
+      },
+    });
+    // Fire and forget — must not block response
+    notifyDuplicateFingerprint({
+      data: {
+        license_key: body.license_key,
+        client_name: license.client_name,
+        client_email: license.client_email,
+        attempted_fingerprint: body.fingerprint,
+        attempted_domain: body.deployment_domain,
+        ip,
+      },
+    }).catch((e) => console.error("[notify] failed", e));
     return json({ ok: false, error: "activation_limit_reached" }, 403);
+  }
 
-  const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || null;
   const ua = request.headers.get("user-agent") || null;
 
   if (existing) {
@@ -86,6 +135,11 @@ async function handleVerify(request: Request) {
           license_key: url.searchParams.get("license_key"),
           fingerprint: url.searchParams.get("fingerprint"),
         });
+
+  const ip = clientIp(request);
+  const ok = await rateLimit(request, "verify:ip", ip, 60, 30);
+  if (!ok) return json({ ok: false, error: "rate_limited" }, 429);
+
   const admin = await adminClient();
 
   const { data: license } = await admin
@@ -95,7 +149,8 @@ async function handleVerify(request: Request) {
     .maybeSingle();
 
   if (!license) return json({ ok: false, error: "invalid_license" }, 404);
-  if (license.status !== "active") return json({ ok: false, error: `license_${license.status}` }, 403);
+  if (license.status !== "active")
+    return json({ ok: false, error: `license_${license.status}` }, 403);
 
   const { data: activation } = await admin
     .from("license_activations")

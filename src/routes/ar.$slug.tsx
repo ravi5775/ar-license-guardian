@@ -1,28 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
-import { ArrowLeft, Camera, Play } from "lucide-react";
-
-const getExperienceBySlug = createServerFn({ method: "GET" })
-  .inputValidator((raw) => z.object({ slug: z.string() }).parse(raw))
-  .handler(async ({ data }) => {
-    const { createClient } = await import("@supabase/supabase-js");
-    const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-      auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
-    });
-    const { data: row } = await sb
-      .from("ar_experiences")
-      .select("*")
-      .eq("slug", data.slug)
-      .eq("published", true)
-      .maybeSingle();
-    return row;
-  });
+import { ArrowLeft, Camera } from "lucide-react";
+import { getPublicExperience } from "@/lib/experiences.functions";
 
 export const Route = createFileRoute("/ar/$slug")({
   loader: async ({ params }) => {
-    const row = await getExperienceBySlug({ data: { slug: params.slug } });
+    const row = await getPublicExperience({ data: { slug: params.slug } });
     if (!row) throw notFound();
     return { experience: row };
   },
@@ -30,7 +13,10 @@ export const Route = createFileRoute("/ar/$slug")({
     meta: loaderData
       ? [
           { title: `${loaderData.experience.title} — AR Experience` },
-          { name: "description", content: loaderData.experience.description ?? "View this AR experience" },
+          {
+            name: "description",
+            content: loaderData.experience.description ?? "View this AR experience",
+          },
           { property: "og:title", content: loaderData.experience.title },
           {
             property: "og:description",
@@ -57,8 +43,12 @@ export const Route = createFileRoute("/ar/$slug")({
     <div className="min-h-screen grid place-items-center bg-background text-foreground p-8 text-center">
       <div>
         <h1 className="text-3xl font-serif italic mb-2">Experience not found</h1>
-        <p className="text-sm text-muted-foreground mb-6">This AR link doesn't exist or isn't published.</p>
-        <Link to="/" className="text-primary hover:underline text-sm">← Back to home</Link>
+        <p className="text-sm text-muted-foreground mb-6">
+          This AR link doesn't exist or isn't published.
+        </p>
+        <Link to="/" className="text-primary hover:underline text-sm">
+          ← Back to home
+        </Link>
       </div>
     </div>
   ),
@@ -68,13 +58,7 @@ export const Route = createFileRoute("/ar/$slug")({
 function ARViewer() {
   const { experience } = Route.useLoaderData();
   const [started, setStarted] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!started) return;
-    // Placeholder: In production we'd load MindAR + A-Frame from CDN and mount the scene
-    // For now we render a live camera feed with the media overlaid, so the flow is testable.
-  }, [started]);
+  const hasMarker = !!experience.marker_image_url;
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
@@ -89,11 +73,25 @@ function ARViewer() {
         <div className="min-h-screen grid place-items-center p-6">
           <div className="max-w-md text-center">
             {experience.cover_image_url && (
-              <img src={experience.cover_image_url} alt="" className="w-full aspect-video object-cover rounded-2xl mb-6" />
+              <img
+                src={experience.cover_image_url}
+                alt=""
+                className="w-full aspect-video object-cover rounded-2xl mb-6"
+              />
             )}
             <h1 className="text-3xl font-serif italic mb-2">{experience.title}</h1>
             {experience.description && (
               <p className="text-sm text-white/70 mb-6">{experience.description}</p>
+            )}
+            {experience.marker_image_url && (
+              <div className="mb-6">
+                <p className="text-xs text-white/50 mb-2">Point your camera at this marker:</p>
+                <img
+                  src={experience.marker_image_url}
+                  alt="marker"
+                  className="w-32 h-32 mx-auto rounded-md bg-white p-2 object-contain"
+                />
+              </div>
             )}
             <button
               onClick={() => setStarted(true)}
@@ -103,20 +101,130 @@ function ARViewer() {
               Launch AR
             </button>
             <p className="text-xs text-white/40 mt-4">
-              Your camera stays on your device. Point at the printed marker to see the AR content.
+              Your camera stays on your device. {hasMarker
+                ? "Point at the printed marker to see the AR content."
+                : "Preview mode — no marker uploaded yet."}
             </p>
           </div>
         </div>
       ) : (
-        <div ref={containerRef} className="min-h-screen">
-          <ARStage experience={experience} />
-        </div>
+        <ARStage experience={experience} />
       )}
     </div>
   );
 }
 
+// MindAR loads via CDN (its npm package pulls native gyp deps we don't need).
+// We inject the A-Frame + MindAR scripts once, then mount the scene.
+const MINDAR_SCRIPTS = [
+  "https://aframe.io/releases/1.5.0/aframe.min.js",
+  "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js",
+];
+
+function loadScript(src: string) {
+  return new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) {
+      resolve();
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(s);
+  });
+}
+
 function ARStage({ experience }: { experience: any }) {
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "no-marker" | "error">("loading");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let scene: any = null;
+    let mounted = true;
+
+    (async () => {
+      try {
+        // Fall back to plain camera if no compiled .mind marker
+        if (!experience.marker_url || !experience.marker_url.endsWith(".mind")) {
+          setStatus("no-marker");
+          return;
+        }
+
+        for (const src of MINDAR_SCRIPTS) await loadScript(src);
+        if (!mounted || !sceneRef.current) return;
+
+        const overlayHtml =
+          experience.media_type === "video"
+            ? `<a-video src="#ar-media" webkit-playsinline playsinline autoplay="${experience.autoplay}" loop="${experience.loop_playback}" width="1" height="0.5625" position="0 0 0"></a-video>`
+            : experience.media_type === "image" && experience.media_url
+              ? `<a-image src="#ar-media" width="1" height="1" position="0 0 0"></a-image>`
+              : "";
+
+        const assetsHtml = experience.media_url
+          ? experience.media_type === "video"
+            ? `<video id="ar-media" src="${experience.media_url}" preload="auto" loop crossorigin="anonymous" webkit-playsinline playsinline></video>`
+            : `<img id="ar-media" src="${experience.media_url}" crossorigin="anonymous" />`
+          : "";
+
+        sceneRef.current.innerHTML = `
+          <a-scene mindar-image="imageTargetSrc: ${experience.marker_url}; autoStart: true; uiScanning: #scanning; uiLoading: #loading;"
+            color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights"
+            vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false"
+            embedded style="width:100%;height:100vh;">
+            <a-assets>${assetsHtml}</a-assets>
+            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+            <a-entity mindar-image-target="targetIndex: 0">${overlayHtml}</a-entity>
+            <div id="loading" style="display:none"></div>
+            <div id="scanning" style="display:none"></div>
+          </a-scene>`;
+
+        scene = sceneRef.current.querySelector("a-scene");
+        setStatus("ready");
+      } catch (e: any) {
+        setErrorMsg(e.message ?? "Failed to start AR");
+        setStatus("error");
+      }
+    })();
+
+    return () => {
+      mounted = false;
+      try {
+        scene?.systems?.["mindar-image-system"]?.stop?.();
+      } catch {}
+      if (sceneRef.current) sceneRef.current.innerHTML = "";
+    };
+  }, [experience]);
+
+  if (status === "error") {
+    return (
+      <div className="min-h-screen grid place-items-center text-center p-6">
+        <div>
+          <p className="text-lg mb-2">AR couldn't start</p>
+          <p className="text-sm text-white/60">{errorMsg}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "no-marker") return <PlainCameraFallback experience={experience} />;
+
+  return (
+    <>
+      {status === "loading" && (
+        <div className="absolute inset-0 z-20 grid place-items-center pointer-events-none">
+          <div className="text-sm text-white/70">Loading AR engine…</div>
+        </div>
+      )}
+      <div ref={sceneRef} className="absolute inset-0" />
+    </>
+  );
+}
+
+function PlainCameraFallback({ experience }: { experience: any }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -141,7 +249,7 @@ function ARStage({ experience }: { experience: any }) {
     };
   }, []);
 
-  if (error) {
+  if (error)
     return (
       <div className="min-h-screen grid place-items-center text-center p-6">
         <div>
@@ -150,18 +258,10 @@ function ARStage({ experience }: { experience: any }) {
         </div>
       </div>
     );
-  }
 
   return (
     <div className="relative min-h-screen">
       <video ref={videoRef} playsInline muted className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 grid place-items-center pointer-events-none">
-        <div className="w-64 h-64 border-2 border-white/60 rounded-2xl relative">
-          <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-white/10 backdrop-blur px-3 py-1 rounded-full whitespace-nowrap">
-            Point at the marker
-          </div>
-        </div>
-      </div>
       {experience.media_url && experience.media_type === "video" && (
         <video
           src={experience.media_url}
@@ -180,8 +280,7 @@ function ARStage({ experience }: { experience: any }) {
       )}
       <div className="absolute bottom-6 inset-x-0 text-center">
         <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-4 py-2 text-xs">
-          <Play className="h-3 w-3" />
-          {experience.title}
+          Preview mode — upload a compiled <code className="font-mono">.mind</code> marker for tracking
         </div>
       </div>
     </div>
