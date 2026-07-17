@@ -1,79 +1,62 @@
-## Scope: ship the remaining Blueprint v3 work
+## Goal
 
-Selling for ₹30k/client means every gap on that list must close before first handover. Splitting into what I can build in this app vs. what needs external setup or your action.
+Two problems to fix:
+1. **QR flow is broken** — scanning from Google Lens used to open the AR page and autoplay; now it doesn't. Users also want to scan the QR *from inside the site* instead of leaving to a camera app.
+2. **AR viewer is laggy** — MindAR + A-Frame is heavy on mid-range phones.
 
----
+## Part 1 — In-app QR scanner
 
-### A. Build in this app (I do it now, in one batch)
+Add a "Scan QR" entry point on the site so users never leave the browser.
 
-1. **Storage bucket + upload flow**
-   - Create private `ar-media` bucket (Lovable Cloud storage; R2 stays as a future swap).
-   - Add `media_path`, `marker_path`, `marker_type` columns to `ar_experiences`.
-   - New "Create / Edit Experience" UI: drag-drop marker image + overlay video/image, signed-URL upload, preview.
+- New route `src/routes/scan.tsx` with a full-screen camera view that decodes QR codes live.
+- Use **`@zxing/browser`** (pure JS, ~50KB gz, no WASM, works on iOS Safari + Android Chrome). Lighter and more reliable than `jsQR` for live video.
+- On decode: if the payload URL points to our own origin `/ar/<slug>`, navigate client-side (fast, no reload). Otherwise show the URL with an "Open" confirm button (safety — don't auto-follow arbitrary URLs).
+- Add a **"Scan QR"** button in the site header and on the landing hero so it's discoverable.
+- Handle camera permission denial, no-camera devices, and non-HTTPS contexts with a clear message.
 
-2. **Real MindAR marker tracking**
-   - Add `mind-ar` + `three` deps.
-   - Rewrite `/ar/$slug` to use MindAR image-tracking with the uploaded `.mind` marker (or auto-compile from uploaded JPG via MindAR's browser compiler on upload).
-   - Overlay plays video/image locked to marker; graceful fallback for no-camera / iOS Safari permission prompt.
+## Part 2 — Fix the "used to autoplay, now doesn't" regression
 
-3. **QR code per experience**
-   - `qrcode` dep; generate on demand in the dashboard, download as PNG/SVG, plus a "print sheet" view (marker + QR side-by-side).
+Likely cause: mobile browsers block `autoplay` on `<video>` without a user gesture, and our recent scene rebuild lost the `muted` + `playsinline` combo required for iOS autoplay. Also the `.mind` marker path may have changed the code branch.
 
-4. **Mandatory TOTP for admins**
-   - Enroll flow on first admin dashboard visit (Supabase MFA API).
-   - Block admin routes until `aal2`; keep viewers untouched.
+Fixes on `src/routes/ar.$slug.tsx`:
+- Ensure the `<video id="ar-media">` asset has `muted`, `playsinline`, `webkit-playsinline`, `autoplay` set as **attributes** (not just properties) before it's added to `<a-assets>`. iOS reads them at parse time.
+- In the "Launch AR" click handler (already a user gesture), pre-call `video.play().catch(()=>{})` so the browser records the gesture.
+- Fallback: if `play()` rejects, show a tap-to-play overlay on the video plane.
+- Fix the plain-camera fallback video the same way (currently missing `muted`, which is why iOS silently blocks autoplay).
 
-5. **Admin bootstrap**
-   - Migration: first user to sign up is auto-promoted to `admin` (one-shot trigger that no-ops after the first admin exists).
+## Part 3 — Reduce AR lag
 
-6. **Rate-limit `/api/public/license/activate`**
-   - Postgres-backed sliding window (10 req / IP / min, 30 req / license_key / hour). Documented as ad-hoc (no framework primitive yet).
+Cheap wins without swapping the engine:
 
-7. **Duplicate-fingerprint email alerts**
-   - Resend integration via server fn; email you + client contact on every rejected activation. Requires `RESEND_API_KEY` secret (I'll request it).
+- **Lower MindAR filter/tracking cost**: pass tuning params `maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5` — cuts per-frame CPU noticeably.
+- **Downscale the video source**: constrain `getUserMedia` to `{ width: 640, height: 480, frameRate: 30 }` before MindAR grabs it (MindAR reads from `<video>`; smaller frame = less work per frame).
+- **Compress the overlay media**: add a note in the upload UI recommending ≤720p H.264 for the video overlay; oversized 1080p/4K clips are the #1 lag source. (No transcoding server-side — just guidance + a soft warning if file >20 MB.)
+- **Compress the `.mind` marker input image** before compilation guidance updated (smaller marker → smaller `.mind` → faster warm start).
+- **Preload MindAR scripts** on the pre-launch screen (in parallel with the user reading the intro) instead of only after "Launch AR" is tapped — feels much snappier.
+- **Lazy-mount the scene** with `requestIdleCallback` fallback so the initial paint isn't blocked.
 
-8. **Handover docs in repo**
-   - `HANDOVER.md`, `RUNBOOK.md` (incl. re-activation SOP), `LICENSE_AGREEMENT.md` (placeholder for lawyer draft), `DPA.md` (placeholder), `SECURITY.md`.
+## Part 4 — Small UX polish
 
-9. **Sentry wiring**
-   - `@sentry/react` client init behind `VITE_SENTRY_DSN`; no-op when unset so it doesn't block your first deploy.
+- Add a "Having trouble? Tap here" link on the AR page that jumps straight to the plain-camera fallback (bypasses MindAR entirely for weak devices).
+- Show a subtle FPS/tracking indicator in dev only.
 
----
+## Files touched
 
-### B. Not built in this app — your action / external
+- **New**: `src/routes/scan.tsx` (in-app QR scanner)
+- **New**: `src/components/QRScannerButton.tsx` (header/hero entry)
+- **Edit**: `src/routes/ar.$slug.tsx` (autoplay fix, perf tuning, preloaded scripts, tap-to-play fallback)
+- **Edit**: `src/routes/index.tsx` (add "Scan QR" CTA in hero)
+- **Edit**: `src/routes/__root.tsx` or header component (nav link to `/scan`)
+- **Edit**: `src/routes/_authenticated/dashboard.experiences.tsx` (soft warning on oversized media)
+- **Package**: `bun add @zxing/browser @zxing/library`
 
-These belong on your Cloudflare account, not inside the client's app. I'll write the code + docs, you deploy once and reuse across all clients.
+## Out of scope (ask before doing)
 
-10. **External activation Worker + D1** — I'll create `/vendor-worker/` in this repo: `wrangler.toml`, Worker source, D1 schema, deploy script, ES256 keygen script. You run `wrangler deploy` on your own CF account. App gets a `VITE_ACTIVATION_URL` env pointing at it.
+- Replacing MindAR with a lighter engine (e.g. AR.js NFT, or a WebGPU tracker) — bigger project.
+- Server-side video transcoding to force ≤720p (needs a worker + ffmpeg-wasm; adds cost).
 
-11. **Vendor-unreachable 90-day fallback + GitHub Pages mirror** — included in `/vendor-worker/`: scheduled Worker cron publishes signed fallback tokens to a GH Pages repo you own. Setup steps in RUNBOOK.
+## Confirm before I build
 
-12. **Better Stack uptime** — 5-minute manual setup (I'll write the checklist; can't do it via API without your account).
-
-13. **Legal review (₹60–100k INR = your $700–1,200)** — placeholder docs shipped; you get them lawyer-reviewed once, reuse per client. Non-negotiable before first sale.
-
----
-
-### Order of operations
-
-1. You approve this plan.
-2. I run one Supabase migration (storage bucket columns, first-admin trigger, rate-limit table, activation attempts table).
-3. I install deps (`mind-ar`, `three`, `qrcode`, `@sentry/react`, `resend`) and ship sections A1–A9 in parallel file writes.
-4. I scaffold `/vendor-worker/` (section B10–B11) with a README you follow once.
-5. Sign up at `/auth` → first-admin trigger promotes you → enroll TOTP → you're in.
-
-### Technical notes
-
-- MindAR compile-on-upload runs client-side in the admin's browser (no server GPU needed).
-- Rate-limit uses `pg_cron`-free approach: a `rate_limit_hits` table + `check_and_record_hit(key, window_seconds, max)` SQL function returning `boolean`.
-- First-admin trigger: `BEFORE INSERT ON user_roles` — if `NOT EXISTS (SELECT 1 FROM user_roles WHERE role='admin')` and this insert is the current user's first row, override role to `admin`.
-- TOTP gate lives in `_authenticated/route.tsx` client-side check: if `has_role(admin)` and `session.aal !== 'aal2'`, redirect to `/mfa`.
-- Resend called from a server fn triggered inside `activate.ts`; failures logged, never block the activation response.
-
-### Not doing (out of scope for ₹30k tier)
-
-- Multi-tenant. One deploy per client, per blueprint §10.
-- End-user DRM, biometric AR, transfer UI, bulk client tooling.
-- Migrating to R2 now — Lovable Cloud storage works; swap later if a client's media bill demands it.
-
-Approve and I'll ship sections A1–A9 + scaffold B10–B11 in the next turn.
+1. OK to add `@zxing/browser` (~50KB) for in-app QR scanning?
+2. Should the scanner **auto-navigate** on any URL from our own domain, or always show a confirm step?
+3. Add a size warning at what threshold — **20 MB** for overlay video sounds right?
