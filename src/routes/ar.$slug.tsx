@@ -121,6 +121,17 @@ const MINDAR_SCRIPTS = [
   "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js",
 ];
 
+function safeHttpsUrl(raw: unknown): URL | null {
+  if (typeof raw !== "string" || !raw) return null;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:") return null;
+    return u;
+  } catch {
+    return null;
+  }
+}
+
 function loadScript(src: string) {
   return new Promise<void>((resolve, reject) => {
     const existing = document.querySelector(`script[src="${src}"]`);
@@ -148,41 +159,96 @@ function ARStage({ experience }: { experience: any }) {
 
     (async () => {
       try {
+        const markerUrl = safeHttpsUrl(experience.marker_url);
         // Fall back to plain camera if no compiled .mind marker
-        if (!experience.marker_url || !experience.marker_url.endsWith(".mind")) {
+        if (!markerUrl || !markerUrl.pathname.endsWith(".mind")) {
           setStatus("no-marker");
           return;
         }
+        const mediaUrl = safeHttpsUrl(experience.media_url);
 
         for (const src of MINDAR_SCRIPTS) await loadScript(src);
         if (!mounted || !sceneRef.current) return;
 
-        const overlayHtml =
-          experience.media_type === "video"
-            ? `<a-video src="#ar-media" webkit-playsinline playsinline autoplay="${experience.autoplay}" loop="${experience.loop_playback}" width="1" height="0.5625" position="0 0 0"></a-video>`
-            : experience.media_type === "image" && experience.media_url
-              ? `<a-image src="#ar-media" width="1" height="1" position="0 0 0"></a-image>`
-              : "";
+        // Build scene with DOM APIs so untrusted URLs are always treated as
+        // attribute values, never as HTML/script.
+        const root = sceneRef.current;
+        root.replaceChildren();
 
-        const assetsHtml = experience.media_url
-          ? experience.media_type === "video"
-            ? `<video id="ar-media" src="${experience.media_url}" preload="auto" loop crossorigin="anonymous" webkit-playsinline playsinline></video>`
-            : `<img id="ar-media" src="${experience.media_url}" crossorigin="anonymous" />`
-          : "";
+        const scenEl = document.createElement("a-scene");
+        scenEl.setAttribute(
+          "mindar-image",
+          `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: #scanning; uiLoading: #loading;`,
+        );
+        scenEl.setAttribute("color-space", "sRGB");
+        scenEl.setAttribute("renderer", "colorManagement: true, physicallyCorrectLights");
+        scenEl.setAttribute("vr-mode-ui", "enabled: false");
+        scenEl.setAttribute("device-orientation-permission-ui", "enabled: false");
+        scenEl.setAttribute("embedded", "");
+        scenEl.style.width = "100%";
+        scenEl.style.height = "100vh";
 
-        sceneRef.current.innerHTML = `
-          <a-scene mindar-image="imageTargetSrc: ${experience.marker_url}; autoStart: true; uiScanning: #scanning; uiLoading: #loading;"
-            color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights"
-            vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false"
-            embedded style="width:100%;height:100vh;">
-            <a-assets>${assetsHtml}</a-assets>
-            <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-            <a-entity mindar-image-target="targetIndex: 0">${overlayHtml}</a-entity>
-            <div id="loading" style="display:none"></div>
-            <div id="scanning" style="display:none"></div>
-          </a-scene>`;
+        const assets = document.createElement("a-assets");
+        if (mediaUrl) {
+          if (experience.media_type === "video") {
+            const v = document.createElement("video");
+            v.id = "ar-media";
+            v.src = mediaUrl.href;
+            v.preload = "auto";
+            v.loop = true;
+            v.crossOrigin = "anonymous";
+            v.setAttribute("webkit-playsinline", "");
+            v.setAttribute("playsinline", "");
+            assets.appendChild(v);
+          } else if (experience.media_type === "image") {
+            const img = document.createElement("img");
+            img.id = "ar-media";
+            img.src = mediaUrl.href;
+            img.crossOrigin = "anonymous";
+            assets.appendChild(img);
+          }
+        }
+        scenEl.appendChild(assets);
 
-        scene = sceneRef.current.querySelector("a-scene");
+        const cam = document.createElement("a-camera");
+        cam.setAttribute("position", "0 0 0");
+        cam.setAttribute("look-controls", "enabled: false");
+        scenEl.appendChild(cam);
+
+        const target = document.createElement("a-entity");
+        target.setAttribute("mindar-image-target", "targetIndex: 0");
+        if (mediaUrl) {
+          if (experience.media_type === "video") {
+            const av = document.createElement("a-video");
+            av.setAttribute("src", "#ar-media");
+            av.setAttribute("webkit-playsinline", "");
+            av.setAttribute("playsinline", "");
+            av.setAttribute("autoplay", String(!!experience.autoplay));
+            av.setAttribute("loop", String(!!experience.loop_playback));
+            av.setAttribute("width", "1");
+            av.setAttribute("height", "0.5625");
+            av.setAttribute("position", "0 0 0");
+            target.appendChild(av);
+          } else if (experience.media_type === "image") {
+            const ai = document.createElement("a-image");
+            ai.setAttribute("src", "#ar-media");
+            ai.setAttribute("width", "1");
+            ai.setAttribute("height", "1");
+            ai.setAttribute("position", "0 0 0");
+            target.appendChild(ai);
+          }
+        }
+        scenEl.appendChild(target);
+
+        for (const id of ["loading", "scanning"]) {
+          const d = document.createElement("div");
+          d.id = id;
+          d.style.display = "none";
+          scenEl.appendChild(d);
+        }
+
+        root.appendChild(scenEl);
+        scene = scenEl;
         setStatus("ready");
       } catch (e: any) {
         setErrorMsg(e.message ?? "Failed to start AR");
