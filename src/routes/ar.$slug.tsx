@@ -276,6 +276,16 @@ function ARStage({ experience }: { experience: any }) {
 
         root.appendChild(scenEl);
         scene = scenEl;
+
+        // Kick playback from the launch gesture so iOS/Android honor autoplay
+        // when the marker locks. Muted + playsinline above satisfies the policy.
+        if (videoEl) {
+          const kick = () => videoEl!.play().catch(() => {});
+          kick();
+          scenEl.addEventListener("targetFound", kick);
+          scenEl.addEventListener("loaded", kick);
+        }
+
         setStatus("ready");
       } catch (e: any) {
         setErrorMsg(e.message ?? "Failed to start AR");
