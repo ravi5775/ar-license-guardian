@@ -251,6 +251,28 @@ function ExperienceModal({
             />
           </div>
 
+          <MediaUploader
+            label="Marker (.mind) — compiled tracker file for true AR tracking"
+            accept=".mind,application/octet-stream"
+            prefix="mind"
+            currentPath={value.marker_mind_path}
+            onUploaded={(path) => set("marker_mind_path", path)}
+          />
+          <p className="-mt-2 text-xs text-muted-foreground">
+            Compile your marker image at{" "}
+            <a
+              href="https://hiukim.github.io/mind-ar-js-doc/tools/compile"
+              target="_blank"
+              rel="noreferrer"
+              className="underline hover:text-foreground"
+            >
+              MindAR compiler
+            </a>{" "}
+            → download <code>targets.mind</code> → upload here. Without this, the viewer
+            falls back to plain camera + overlay (no image tracking).
+          </p>
+
+
           <div className="grid grid-cols-3 gap-4">
             <label className="text-sm">
               <span className="text-muted-foreground">Media type</span>
