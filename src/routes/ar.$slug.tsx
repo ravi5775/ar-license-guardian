@@ -336,7 +336,12 @@ function PlainCameraFallback({ experience }: { experience: any }) {
     (async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
+          video: {
+            facingMode: "environment",
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            frameRate: { ideal: 30, max: 30 },
+          },
           audio: false,
         });
         if (videoRef.current) {
@@ -368,8 +373,9 @@ function PlainCameraFallback({ experience }: { experience: any }) {
       {experience.media_url && experience.media_type === "video" && (
         <video
           src={experience.media_url}
-          autoPlay={experience.autoplay}
-          loop={experience.loop_playback}
+          autoPlay={experience.autoplay !== false}
+          loop={experience.loop_playback !== false}
+          muted
           playsInline
           className="absolute inset-x-8 bottom-20 max-w-md mx-auto rounded-2xl shadow-2xl opacity-95"
         />
