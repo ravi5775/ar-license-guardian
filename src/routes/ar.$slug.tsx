@@ -121,6 +121,17 @@ const MINDAR_SCRIPTS = [
   "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js",
 ];
 
+function safeHttpsUrl(raw: unknown): URL | null {
+  if (typeof raw !== "string" || !raw) return null;
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:") return null;
+    return u;
+  } catch {
+    return null;
+  }
+}
+
 function loadScript(src: string) {
   return new Promise<void>((resolve, reject) => {
     const existing = document.querySelector(`script[src="${src}"]`);
