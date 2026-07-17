@@ -9,7 +9,9 @@ import {
 } from "@/lib/experiences.functions";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, ExternalLink, Trash2, Pencil, X } from "lucide-react";
+import { Plus, ExternalLink, Trash2, Pencil, X, QrCode } from "lucide-react";
+import { MediaUploader } from "@/components/MediaUploader";
+import { QRCodeDialog } from "@/components/QRCodeDialog";
 
 export const Route = createFileRoute("/_authenticated/dashboard/experiences")({
   component: ExperiencesPage,
@@ -21,8 +23,8 @@ type Draft = {
   slug: string;
   description: string;
   cover_image_url: string;
-  marker_url: string;
-  media_url: string;
+  marker_path: string;
+  media_path: string;
   media_type: "video" | "image" | "model";
   autoplay: boolean;
   loop_playback: boolean;
@@ -34,8 +36,8 @@ const empty: Draft = {
   slug: "",
   description: "",
   cover_image_url: "",
-  marker_url: "",
-  media_url: "",
+  marker_path: "",
+  media_path: "",
   media_type: "video",
   autoplay: true,
   loop_playback: true,
@@ -51,6 +53,7 @@ function ExperiencesPage() {
 
   const { data: items = [] } = useQuery({ queryKey: ["experiences"], queryFn: () => listFn() });
   const [editing, setEditing] = useState<Draft | null>(null);
+  const [qrFor, setQrFor] = useState<{ slug: string; title: string } | null>(null);
 
   const saveMut = useMutation({
     mutationFn: async (d: Draft) => {
@@ -79,7 +82,9 @@ function ExperiencesPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-serif italic">AR Experiences</h1>
-          <p className="text-sm text-muted-foreground">Create marker-based augmented reality pieces.</p>
+          <p className="text-sm text-muted-foreground">
+            Upload a marker image + overlay media. Print the QR to launch.
+          </p>
         </div>
         <button
           onClick={() => setEditing({ ...empty })}
@@ -90,7 +95,7 @@ function ExperiencesPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {items.map((e) => (
+        {items.map((e: any) => (
           <div key={e.id} className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden group">
             <div className="aspect-video bg-muted relative">
               {e.cover_image_url ? (
@@ -111,7 +116,7 @@ function ExperiencesPage() {
             <div className="p-4">
               <div className="font-semibold">{e.title}</div>
               <div className="text-xs text-muted-foreground mb-3">/ar/{e.slug}</div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Link
                   to="/ar/$slug"
                   params={{ slug: e.slug }}
@@ -120,6 +125,12 @@ function ExperiencesPage() {
                   <ExternalLink className="h-3 w-3" /> View
                 </Link>
                 <button
+                  onClick={() => setQrFor({ slug: e.slug, title: e.title })}
+                  className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent"
+                >
+                  <QrCode className="h-3 w-3" /> QR
+                </button>
+                <button
                   onClick={() =>
                     setEditing({
                       id: e.id,
@@ -127,8 +138,8 @@ function ExperiencesPage() {
                       slug: e.slug,
                       description: e.description ?? "",
                       cover_image_url: e.cover_image_url ?? "",
-                      marker_url: e.marker_url ?? "",
-                      media_url: e.media_url ?? "",
+                      marker_path: e.marker_path ?? "",
+                      media_path: e.media_path ?? "",
                       media_type: (e.media_type as Draft["media_type"]) ?? "video",
                       autoplay: e.autoplay,
                       loop_playback: e.loop_playback,
@@ -165,6 +176,8 @@ function ExperiencesPage() {
           saving={saveMut.isPending}
         />
       )}
+
+      {qrFor && <QRCodeDialog slug={qrFor.slug} title={qrFor.title} onClose={() => setQrFor(null)} />}
     </div>
   );
 }
@@ -214,26 +227,33 @@ function ExperienceModal({
             <textarea rows={2} value={value.description} onChange={(e) => set("description", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
           </label>
           <label className="text-sm block">
-            <span className="text-muted-foreground">Cover image URL</span>
+            <span className="text-muted-foreground">Cover image URL (optional, for OG preview)</span>
             <input type="url" value={value.cover_image_url} onChange={(e) => set("cover_image_url", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
           </label>
+
           <div className="grid grid-cols-2 gap-4">
-            <label className="text-sm">
-              <span className="text-muted-foreground">Marker (.mind) URL</span>
-              <input type="url" value={value.marker_url} onChange={(e) => set("marker_url", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
-            </label>
-            <label className="text-sm">
-              <span className="text-muted-foreground">Media URL</span>
-              <input type="url" value={value.media_url} onChange={(e) => set("media_url", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
-            </label>
+            <MediaUploader
+              label="Marker image (JPG/PNG — printable target)"
+              accept="image/*"
+              prefix="markers"
+              currentPath={value.marker_path}
+              onUploaded={(path) => set("marker_path", path)}
+            />
+            <MediaUploader
+              label="Overlay media (video or image)"
+              accept="video/*,image/*"
+              prefix="media"
+              currentPath={value.media_path}
+              onUploaded={(path) => set("media_path", path)}
+            />
           </div>
+
           <div className="grid grid-cols-3 gap-4">
             <label className="text-sm">
               <span className="text-muted-foreground">Media type</span>
               <select value={value.media_type} onChange={(e) => set("media_type", e.target.value as Draft["media_type"])} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2">
                 <option value="video">Video</option>
                 <option value="image">Image</option>
-                <option value="model">3D Model</option>
               </select>
             </label>
             <label className="text-sm flex items-center gap-2 mt-6">
