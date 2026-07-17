@@ -1,5 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   QrCode,
   Sparkles,
@@ -10,11 +12,14 @@ import {
   Check,
   Camera,
   Cpu,
+  LayoutDashboard,
+  LogIn,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
 });
+
 
 function LandingPage() {
   return (
@@ -34,6 +39,25 @@ function LandingPage() {
 /* ------------------------------- Nav ------------------------------- */
 
 function Nav() {
+  const navigate = useNavigate();
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    // Handle OAuth callback tokens left in the URL hash after redirect.
+    // supabase-js will auto-detect and set the session; then route to /dashboard.
+    supabase.auth.getSession().then(({ data }) => {
+      setSignedIn(!!data.session);
+      if (data.session && window.location.hash.includes("access_token")) {
+        window.history.replaceState(null, "", window.location.pathname);
+        navigate({ to: "/dashboard" });
+      }
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setSignedIn(!!session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [navigate]);
+
   return (
     <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/60 border-b border-border/40">
       <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
@@ -50,17 +74,39 @@ function Nav() {
           <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
         </nav>
 
-        <a
-          href="#pricing"
-          className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
-        >
-          Get a quote
-          <ArrowUpRight className="w-3.5 h-3.5" />
-        </a>
+        <div className="flex items-center gap-2">
+          {signedIn ? (
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/auth"
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-accent transition-colors"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                Sign in
+              </Link>
+              <a
+                href="#pricing"
+                className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
+              >
+                Get a quote
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </a>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );
 }
+
 
 /* ------------------------------ Hero ------------------------------- */
 
