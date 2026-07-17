@@ -24,6 +24,7 @@ type Draft = {
   description: string;
   cover_image_url: string;
   marker_path: string;
+  marker_mind_path: string;
   media_path: string;
   media_type: "video" | "image" | "model";
   autoplay: boolean;
@@ -37,6 +38,7 @@ const empty: Draft = {
   description: "",
   cover_image_url: "",
   marker_path: "",
+  marker_mind_path: "",
   media_path: "",
   media_type: "video",
   autoplay: true,
