@@ -1,0 +1,13 @@
+name = "aether-activation"
+main = "src/worker.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aether-licenses"
+database_id = "REPLACE_WITH_D1_ID_FROM_WRANGLER_CREATE"
+
+# Cron: publish heartbeat + rotate fallback tokens every hour
+[triggers]
+crons = ["0 * * * *"]
