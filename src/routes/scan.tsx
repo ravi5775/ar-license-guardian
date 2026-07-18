@@ -67,11 +67,17 @@ function ScanPage() {
       return;
     }
 
-    // Same-origin AR link — navigate instantly
-    if (url.origin === window.location.origin && url.pathname.startsWith("/ar/")) {
+    // Any Aether AR link — route locally so scanning never pauses for confirmation.
+    const isAetherHost = [
+      window.location.hostname,
+      "aetherphoto.shop",
+      "www.aetherphoto.shop",
+      "ar-license-guardian.lovable.app",
+    ].includes(url.hostname);
+    if (isAetherHost && url.pathname.startsWith("/ar/")) {
       ctl.stop();
       const slug = url.pathname.replace(/^\/ar\//, "").split("/")[0];
-      navigate({ to: "/ar/$slug", params: { slug } });
+      navigate({ to: "/ar/$slug", params: { slug }, search: { start: true } });
       return;
     }
 

@@ -10,8 +10,9 @@ interface Props {
 
 export function QRCodeDialog({ slug, title, onClose }: Props) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
-  const url =
-    typeof window !== "undefined" ? `${window.location.origin}/ar/${slug}` : `/ar/${slug}`;
+  const url = typeof window !== "undefined"
+    ? `${getPublicOrigin()}/ar/${slug}?start=1`
+    : `/ar/${slug}?start=1`;
 
   useEffect(() => {
     QRCode.toDataURL(url, { width: 640, margin: 2, errorCorrectionLevel: "H" }).then(setDataUrl);
@@ -81,4 +82,19 @@ export function QRCodeDialog({ slug, title, onClose }: Props) {
       </div>
     </div>
   );
+}
+
+function getPublicOrigin() {
+  const configured = import.meta.env.VITE_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (configured) return configured;
+
+  const { hostname, origin } = window.location;
+  if (
+    hostname === "localhost" ||
+    hostname.includes("lovable.app") ||
+    hostname.includes("lovableproject.com")
+  ) {
+    return "https://aetherphoto.shop";
+  }
+  return origin;
 }

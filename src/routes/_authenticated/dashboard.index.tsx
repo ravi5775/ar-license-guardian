@@ -10,7 +10,11 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
 
 function Overview() {
   const fn = useServerFn(listMyExperiences);
-  const { data: experiences = [] } = useQuery({ queryKey: ["experiences"], queryFn: () => fn() });
+  const { data: experiences = [] } = useQuery({
+    queryKey: ["experiences"],
+    queryFn: () => fn(),
+    staleTime: 60_000,
+  });
 
   const total = experiences.length;
   const published = experiences.filter((e) => e.published).length;
@@ -23,11 +27,11 @@ function Overview() {
   ];
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-4 md:p-8 max-w-6xl">
       <h1 className="text-3xl font-serif italic mb-1">Overview</h1>
       <p className="text-sm text-muted-foreground mb-8">Welcome back to your AR command center.</p>
 
-      <div className="grid grid-cols-3 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         {stats.map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-2xl border border-border/60 bg-card/40 p-6">
             <div className="flex items-center justify-between mb-3">
