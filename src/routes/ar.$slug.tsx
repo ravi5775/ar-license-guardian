@@ -14,6 +14,9 @@ import {
 import { getPublicExperience } from "@/lib/experiences.functions";
 
 export const Route = createFileRoute("/ar/$slug")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    start: search.start === true || search.start === "1" || search.start === "true",
+  }),
   loader: async ({ params }) => {
     const row = await getPublicExperience({ data: { slug: params.slug } });
     if (!row) throw notFound();
@@ -67,16 +70,18 @@ export const Route = createFileRoute("/ar/$slug")({
 
 function ARViewer() {
   const { experience } = Route.useLoaderData();
-  const [started, setStarted] = useState(false);
+  const { start: autoStart } = Route.useSearch();
+  const [started, setStarted] = useState(autoStart);
   const [forceFallback, setForceFallback] = useState(false);
   const hasMarker = !!experience.marker_url && experience.marker_url.endsWith(".mind");
 
   // Preload MindAR scripts while user reads the intro — makes "Launch AR" feel instant.
   useEffect(() => {
     if (!hasMarker) return;
-    MINDAR_SCRIPTS.forEach((src) => {
-      loadScript(src).catch(() => {});
-    });
+    // A-Frame must finish before MindAR evaluates and registers its component.
+    void (async () => {
+      for (const src of MINDAR_SCRIPTS) await loadScript(src);
+    })().catch(() => {});
   }, [hasMarker]);
 
   return (
@@ -193,6 +198,7 @@ function loadScript(src: string) {
     document.head.appendChild(s);
   });
   scriptPromises.set(src, p);
+  p.catch(() => scriptPromises.delete(src));
   return p;
 }
 
@@ -247,6 +253,9 @@ function ARStage({ experience }: { experience: any }) {
       if (!sceneRef.current) return;
 
       const root = sceneRef.current;
+      try {
+        sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
+      } catch {}
       root.replaceChildren();
 
       const scenEl = document.createElement("a-scene");
@@ -276,7 +285,7 @@ function ARStage({ experience }: { experience: any }) {
           v.loop = experience.loop_playback !== false;
           v.muted = true;
           v.defaultMuted = true;
-          v.autoplay = true;
+          v.autoplay = experience.autoplay !== false;
           v.playsInline = true;
           v.crossOrigin = "anonymous";
           v.setAttribute("muted", "");
@@ -308,7 +317,7 @@ function ARStage({ experience }: { experience: any }) {
           av.setAttribute("src", "#ar-media");
           av.setAttribute("webkit-playsinline", "");
           av.setAttribute("playsinline", "");
-          av.setAttribute("autoplay", "true");
+          av.setAttribute("autoplay", String(experience.autoplay !== false));
           av.setAttribute("loop", String(experience.loop_playback !== false));
           av.setAttribute("width", "1");
           av.setAttribute("height", "0.5625");
@@ -326,9 +335,12 @@ function ARStage({ experience }: { experience: any }) {
 
       const onFound = () => {
         setTracking(true);
-        videoEl?.play().catch(() => {});
+        if (experience.autoplay !== false) videoEl?.play().catch(() => {});
       };
-      const onLost = () => setTracking(false);
+      const onLost = () => {
+        setTracking(false);
+        videoEl?.pause();
+      };
       target.addEventListener("targetFound", onFound);
       target.addEventListener("targetLost", onLost);
       scenEl.appendChild(target);
@@ -343,9 +355,10 @@ function ARStage({ experience }: { experience: any }) {
         videoEl.addEventListener("volumechange", () =>
           setMuted(videoEl!.muted),
         );
-        const kick = () => videoEl!.play().catch(() => {});
-        kick();
-        scenEl.addEventListener("renderstart", kick);
+        const kick = () => {
+          if (experience.autoplay !== false) videoEl!.play().catch(() => {});
+        };
+        scenEl.addEventListener("renderstart", kick, { once: true });
       }
 
       // Recover from lost WebGL context (common on backgrounded tabs).
