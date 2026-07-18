@@ -77,7 +77,8 @@ function ScanPage() {
     if (isAetherHost && url.pathname.startsWith("/ar/")) {
       ctl.stop();
       const slug = url.pathname.replace(/^\/ar\//, "").split("/")[0];
-      navigate({ to: "/ar/$slug", params: { slug }, search: { start: true } });
+      // A full navigation releases the scanner camera before MindAR requests it.
+      window.location.assign(`/ar/${encodeURIComponent(slug)}?start=1`);
       return;
     }
 
