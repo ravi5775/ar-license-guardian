@@ -11,8 +11,8 @@ interface Props {
 export function QRCodeDialog({ slug, title, onClose }: Props) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const url = typeof window !== "undefined"
-    ? `${getPublicOrigin()}/ar/${slug}?start=1`
-    : `/ar/${slug}?start=1`;
+    ? `${getPublicOrigin()}/ar/${slug}?launch=ar`
+    : `/ar/${slug}?launch=ar`;
 
   useEffect(() => {
     QRCode.toDataURL(url, { width: 640, margin: 2, errorCorrectionLevel: "H" }).then(setDataUrl);

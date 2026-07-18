@@ -15,7 +15,7 @@ import { getPublicExperience } from "@/lib/experiences.functions";
 
 export const Route = createFileRoute("/ar/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
-    start: search.start === undefined ? undefined : String(search.start),
+    launch: search.launch === undefined ? undefined : String(search.launch),
   }),
   loader: async ({ params }) => {
     const row = await getPublicExperience({ data: { slug: params.slug } });
@@ -70,8 +70,8 @@ export const Route = createFileRoute("/ar/$slug")({
 
 function ARViewer() {
   const { experience } = Route.useLoaderData();
-  const { start: startParam } = Route.useSearch();
-  const [started, setStarted] = useState(startParam === "1" || startParam === "true");
+  const { launch } = Route.useSearch();
+  const [started, setStarted] = useState(launch === "ar");
   const [forceFallback, setForceFallback] = useState(false);
   const hasMarker = !!experience.marker_url;
 
