@@ -151,19 +151,51 @@ function safeHttpsUrl(raw: unknown): URL | null {
   }
 }
 
+const scriptPromises = new Map<string, Promise<void>>();
 function loadScript(src: string) {
-  return new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${src}"]`);
+  const cached = scriptPromises.get(src);
+  if (cached) return cached;
+  const p = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector(
+      `script[src="${src}"]`,
+    ) as HTMLScriptElement | null;
     if (existing) {
-      resolve();
+      if (existing.dataset.loaded === "true") return resolve();
+      existing.addEventListener("load", () => {
+        existing.dataset.loaded = "true";
+        resolve();
+      }, { once: true });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error(`Failed to load ${src}`)),
+        { once: true },
+      );
       return;
     }
     const s = document.createElement("script");
     s.src = src;
     s.async = true;
-    s.onload = () => resolve();
+    s.onload = () => {
+      s.dataset.loaded = "true";
+      resolve();
+    };
     s.onerror = () => reject(new Error(`Failed to load ${src}`));
     document.head.appendChild(s);
+  });
+  scriptPromises.set(src, p);
+  return p;
+}
+
+function waitFor(check: () => boolean, timeoutMs = 10000, intervalMs = 50) {
+  return new Promise<void>((resolve, reject) => {
+    const start = Date.now();
+    const tick = () => {
+      if (check()) return resolve();
+      if (Date.now() - start > timeoutMs)
+        return reject(new Error("Timed out waiting for AR engine"));
+      setTimeout(tick, intervalMs);
+    };
+    tick();
   });
 }
 
@@ -186,7 +218,15 @@ function ARStage({ experience }: { experience: any }) {
         }
         const mediaUrl = safeHttpsUrl(experience.media_url);
 
+        // Load sequentially: A-Frame must fully register custom elements before
+        // MindAR's aframe component registers against it.
         for (const src of MINDAR_SCRIPTS) await loadScript(src);
+        // Wait until AFRAME + the mindar-image component are actually available.
+        await waitFor(
+          () =>
+            typeof (window as any).AFRAME !== "undefined" &&
+            !!(window as any).AFRAME?.components?.["mindar-image"],
+        );
         if (!mounted || !sceneRef.current) return;
 
         // Build scene with DOM APIs so untrusted URLs are always treated as
@@ -305,9 +345,23 @@ function ARStage({ experience }: { experience: any }) {
   if (status === "error") {
     return (
       <div className="min-h-screen grid place-items-center text-center p-6">
-        <div>
+        <div className="max-w-sm">
           <p className="text-lg mb-2">AR couldn't start</p>
-          <p className="text-sm text-white/60">{errorMsg}</p>
+          <p className="text-sm text-white/60 mb-6">{errorMsg}</p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium"
+            >
+              Reload &amp; try again
+            </button>
+            <button
+              onClick={() => setStatus("no-marker")}
+              className="text-xs text-white/60 underline"
+            >
+              Use plain camera mode instead
+            </button>
+          </div>
         </div>
       </div>
     );
