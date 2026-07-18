@@ -167,6 +167,7 @@ function QRMediaPlayer({ experience }: { experience: any }) {
           autoPlay={experience.autoplay !== false}
           loop={experience.loop_playback !== false}
           playsInline
+          muted
           controls
           preload="auto"
           className="h-full w-full object-contain"
