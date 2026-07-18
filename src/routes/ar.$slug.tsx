@@ -345,9 +345,23 @@ function ARStage({ experience }: { experience: any }) {
   if (status === "error") {
     return (
       <div className="min-h-screen grid place-items-center text-center p-6">
-        <div>
+        <div className="max-w-sm">
           <p className="text-lg mb-2">AR couldn't start</p>
-          <p className="text-sm text-white/60">{errorMsg}</p>
+          <p className="text-sm text-white/60 mb-6">{errorMsg}</p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium"
+            >
+              Reload &amp; try again
+            </button>
+            <button
+              onClick={() => setStatus("no-marker")}
+              className="text-xs text-white/60 underline"
+            >
+              Use plain camera mode instead
+            </button>
+          </div>
         </div>
       </div>
     );
