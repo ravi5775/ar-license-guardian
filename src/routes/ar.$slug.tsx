@@ -15,7 +15,7 @@ import { getPublicExperience } from "@/lib/experiences.functions";
 
 export const Route = createFileRoute("/ar/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
-    start: search.start === true || search.start === "1" || search.start === "true",
+    start: search.start === true || search.start === 1 || search.start === "1" || search.start === "true",
   }),
   loader: async ({ params }) => {
     const row = await getPublicExperience({ data: { slug: params.slug } });
@@ -73,7 +73,7 @@ function ARViewer() {
   const { start: autoStart } = Route.useSearch();
   const [started, setStarted] = useState(autoStart);
   const [forceFallback, setForceFallback] = useState(false);
-  const hasMarker = !!experience.marker_url && experience.marker_url.endsWith(".mind");
+  const hasMarker = safeHttpsUrl(experience.marker_url)?.pathname.endsWith(".mind") === true;
 
   // Preload MindAR scripts while user reads the intro — makes "Launch AR" feel instant.
   useEffect(() => {
