@@ -424,6 +424,16 @@ function ARStage({ experience }: { experience: any }) {
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
       } catch {}
+      document.querySelectorAll("video").forEach((video) => {
+        const stream = video.srcObject;
+        if (stream instanceof MediaStream) {
+          stream.getTracks().forEach((track) => track.stop());
+          video.srcObject = null;
+        }
+      });
+      document
+        .querySelectorAll("[data-mindar-image-camera], .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning, .mindar-ui-compatibility")
+        .forEach((element) => element.remove());
       if (sceneRef.current) sceneRef.current.replaceChildren();
     };
   }, [start]);

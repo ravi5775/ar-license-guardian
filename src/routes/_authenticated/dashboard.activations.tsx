@@ -13,7 +13,11 @@ function ActivationsPage() {
   const qc = useQueryClient();
   const listFn = useServerFn(listActivations);
   const revokeFn = useServerFn(revokeActivation);
-  const { data: activations = [] } = useQuery({ queryKey: ["activations"], queryFn: () => listFn() });
+  const { data: activations = [] } = useQuery({
+    queryKey: ["activations"],
+    queryFn: () => listFn(),
+    staleTime: 30_000,
+  });
 
   const revokeMut = useMutation({
     mutationFn: (id: string) => revokeFn({ data: { id } }),
