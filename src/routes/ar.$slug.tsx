@@ -71,9 +71,15 @@ export const Route = createFileRoute("/ar/$slug")({
 function ARViewer() {
   const { experience } = Route.useLoaderData();
   const { launch } = Route.useSearch();
-  const [started, setStarted] = useState(launch === "ar");
+  const [started, setStarted] = useState(false);
   const [forceFallback, setForceFallback] = useState(false);
   const hasMarker = !!experience.marker_url;
+
+  useEffect(() => {
+    if (launch === "ar" || new URLSearchParams(window.location.search).get("launch") === "ar") {
+      setStarted(true);
+    }
+  }, [launch]);
 
   // Preload MindAR scripts while user reads the intro — makes "Launch AR" feel instant.
   useEffect(() => {
