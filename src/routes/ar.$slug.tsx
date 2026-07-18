@@ -15,7 +15,7 @@ import { getPublicExperience } from "@/lib/experiences.functions";
 
 export const Route = createFileRoute("/ar/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
-    start: search.start === true || search.start === 1 || search.start === "1" || search.start === "true",
+    start: search.start !== undefined && search.start !== null && search.start !== false && search.start !== "false",
   }),
   loader: async ({ params }) => {
     const row = await getPublicExperience({ data: { slug: params.slug } });
