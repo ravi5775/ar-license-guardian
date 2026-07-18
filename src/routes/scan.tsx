@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
 import { ArrowLeft, Camera, ExternalLink, RotateCcw } from "lucide-react";
@@ -17,7 +17,6 @@ export const Route = createFileRoute("/scan")({
 function ScanPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
-  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
 
