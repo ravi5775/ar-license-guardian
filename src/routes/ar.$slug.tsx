@@ -151,19 +151,51 @@ function safeHttpsUrl(raw: unknown): URL | null {
   }
 }
 
+const scriptPromises = new Map<string, Promise<void>>();
 function loadScript(src: string) {
-  return new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector(`script[src="${src}"]`);
+  const cached = scriptPromises.get(src);
+  if (cached) return cached;
+  const p = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector(
+      `script[src="${src}"]`,
+    ) as HTMLScriptElement | null;
     if (existing) {
-      resolve();
+      if (existing.dataset.loaded === "true") return resolve();
+      existing.addEventListener("load", () => {
+        existing.dataset.loaded = "true";
+        resolve();
+      }, { once: true });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error(`Failed to load ${src}`)),
+        { once: true },
+      );
       return;
     }
     const s = document.createElement("script");
     s.src = src;
     s.async = true;
-    s.onload = () => resolve();
+    s.onload = () => {
+      s.dataset.loaded = "true";
+      resolve();
+    };
     s.onerror = () => reject(new Error(`Failed to load ${src}`));
     document.head.appendChild(s);
+  });
+  scriptPromises.set(src, p);
+  return p;
+}
+
+function waitFor(check: () => boolean, timeoutMs = 10000, intervalMs = 50) {
+  return new Promise<void>((resolve, reject) => {
+    const start = Date.now();
+    const tick = () => {
+      if (check()) return resolve();
+      if (Date.now() - start > timeoutMs)
+        return reject(new Error("Timed out waiting for AR engine"));
+      setTimeout(tick, intervalMs);
+    };
+    tick();
   });
 }
 
