@@ -15,7 +15,7 @@ import { getPublicExperience } from "@/lib/experiences.functions";
 
 export const Route = createFileRoute("/ar/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
-    launch: search.launch === undefined ? undefined : String(search.launch),
+    mode: search.mode === "video" ? "video" as const : undefined,
   }),
   loader: async ({ params }) => {
     const row = await getPublicExperience({ data: { slug: params.slug } });
@@ -70,16 +70,14 @@ export const Route = createFileRoute("/ar/$slug")({
 
 function ARViewer() {
   const { experience } = Route.useLoaderData();
-  const { launch } = Route.useSearch();
+  const { mode } = Route.useSearch();
   const [started, setStarted] = useState(false);
   const [forceFallback, setForceFallback] = useState(false);
   const hasMarker = !!experience.marker_url;
 
-  useEffect(() => {
-    if (launch === "ar" || new URLSearchParams(window.location.search).get("launch") === "ar") {
-      setStarted(true);
-    }
-  }, [launch]);
+  if (mode === "video" && experience.media_url) {
+    return <QRMediaPlayer experience={experience} />;
+  }
 
   // Preload MindAR scripts while user reads the intro — makes "Launch AR" feel instant.
   useEffect(() => {
@@ -150,6 +148,39 @@ function ARViewer() {
           ? <PlainCameraFallback experience={experience} />
           : <ARStage experience={experience} />
       )}
+    </div>
+  );
+}
+
+function QRMediaPlayer({ experience }: { experience: any }) {
+  return (
+    <div className="fixed inset-0 bg-black text-white grid place-items-center">
+      <Link
+        to="/"
+        className="absolute top-4 left-4 z-20 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-xs hover:bg-white/20"
+      >
+        <ArrowLeft className="h-3 w-3" /> Home
+      </Link>
+      {experience.media_type === "video" ? (
+        <video
+          src={experience.media_url}
+          autoPlay={experience.autoplay !== false}
+          loop={experience.loop_playback !== false}
+          playsInline
+          controls
+          preload="auto"
+          className="h-full w-full object-contain"
+        />
+      ) : (
+        <img src={experience.media_url} alt={experience.title} className="h-full w-full object-contain" />
+      )}
+      <Link
+        to="/ar/$slug"
+        params={{ slug: experience.slug }}
+        className="absolute bottom-5 z-20 inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2.5 text-sm font-medium shadow-xl"
+      >
+        <Camera className="h-4 w-4" /> Open image-tracking AR
+      </Link>
     </div>
   );
 }

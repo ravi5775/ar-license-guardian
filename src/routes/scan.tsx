@@ -77,7 +77,7 @@ function ScanPage() {
       ctl.stop();
       const slug = url.pathname.replace(/^\/ar\//, "").split("/")[0];
       // A full navigation releases the scanner camera before MindAR requests it.
-      window.location.assign(`/ar/${encodeURIComponent(slug)}?launch=ar`);
+      window.location.assign(`/ar/${encodeURIComponent(slug)}?mode=video`);
       return;
     }
 
