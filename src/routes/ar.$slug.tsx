@@ -14,6 +14,9 @@ import {
 import { getPublicExperience } from "@/lib/experiences.functions";
 
 export const Route = createFileRoute("/ar/$slug")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    mode: search.mode === "video" ? "video" as const : undefined,
+  }),
   loader: async ({ params }) => {
     const row = await getPublicExperience({ data: { slug: params.slug } });
     if (!row) throw notFound();
@@ -67,16 +70,22 @@ export const Route = createFileRoute("/ar/$slug")({
 
 function ARViewer() {
   const { experience } = Route.useLoaderData();
+  const { mode } = Route.useSearch();
   const [started, setStarted] = useState(false);
   const [forceFallback, setForceFallback] = useState(false);
-  const hasMarker = !!experience.marker_url && experience.marker_url.endsWith(".mind");
+  const hasMarker = !!experience.marker_url;
+
+  if (mode === "video" && experience.media_url) {
+    return <QRMediaPlayer experience={experience} />;
+  }
 
   // Preload MindAR scripts while user reads the intro — makes "Launch AR" feel instant.
   useEffect(() => {
     if (!hasMarker) return;
-    MINDAR_SCRIPTS.forEach((src) => {
-      loadScript(src).catch(() => {});
-    });
+    // A-Frame must finish before MindAR evaluates and registers its component.
+    void (async () => {
+      for (const src of MINDAR_SCRIPTS) await loadScript(src);
+    })().catch(() => {});
   }, [hasMarker]);
 
   return (
@@ -143,6 +152,40 @@ function ARViewer() {
   );
 }
 
+function QRMediaPlayer({ experience }: { experience: any }) {
+  return (
+    <div className="fixed inset-0 bg-black text-white grid place-items-center">
+      <Link
+        to="/"
+        className="absolute top-4 left-4 z-20 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-xs hover:bg-white/20"
+      >
+        <ArrowLeft className="h-3 w-3" /> Home
+      </Link>
+      {experience.media_type === "video" ? (
+        <video
+          src={experience.media_url}
+          autoPlay={experience.autoplay !== false}
+          loop={experience.loop_playback !== false}
+          playsInline
+          muted
+          controls
+          preload="auto"
+          className="h-full w-full object-contain"
+        />
+      ) : (
+        <img src={experience.media_url} alt={experience.title} className="h-full w-full object-contain" />
+      )}
+      <Link
+        to="/ar/$slug"
+        params={{ slug: experience.slug }}
+        className="absolute bottom-5 z-20 inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2.5 text-sm font-medium shadow-xl"
+      >
+        <Camera className="h-4 w-4" /> Open image-tracking AR
+      </Link>
+    </div>
+  );
+}
+
 // MindAR loads via CDN (its npm package pulls native gyp deps we don't need).
 // We inject the A-Frame + MindAR scripts once, then mount the scene.
 const MINDAR_SCRIPTS = [
@@ -193,6 +236,7 @@ function loadScript(src: string) {
     document.head.appendChild(s);
   });
   scriptPromises.set(src, p);
+  p.catch(() => scriptPromises.delete(src));
   return p;
 }
 
@@ -247,6 +291,9 @@ function ARStage({ experience }: { experience: any }) {
       if (!sceneRef.current) return;
 
       const root = sceneRef.current;
+      try {
+        sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
+      } catch {}
       root.replaceChildren();
 
       const scenEl = document.createElement("a-scene");
@@ -276,7 +323,7 @@ function ARStage({ experience }: { experience: any }) {
           v.loop = experience.loop_playback !== false;
           v.muted = true;
           v.defaultMuted = true;
-          v.autoplay = true;
+          v.autoplay = experience.autoplay !== false;
           v.playsInline = true;
           v.crossOrigin = "anonymous";
           v.setAttribute("muted", "");
@@ -308,7 +355,7 @@ function ARStage({ experience }: { experience: any }) {
           av.setAttribute("src", "#ar-media");
           av.setAttribute("webkit-playsinline", "");
           av.setAttribute("playsinline", "");
-          av.setAttribute("autoplay", "true");
+          av.setAttribute("autoplay", String(experience.autoplay !== false));
           av.setAttribute("loop", String(experience.loop_playback !== false));
           av.setAttribute("width", "1");
           av.setAttribute("height", "0.5625");
@@ -326,9 +373,12 @@ function ARStage({ experience }: { experience: any }) {
 
       const onFound = () => {
         setTracking(true);
-        videoEl?.play().catch(() => {});
+        if (experience.autoplay !== false) videoEl?.play().catch(() => {});
       };
-      const onLost = () => setTracking(false);
+      const onLost = () => {
+        setTracking(false);
+        videoEl?.pause();
+      };
       target.addEventListener("targetFound", onFound);
       target.addEventListener("targetLost", onLost);
       scenEl.appendChild(target);
@@ -343,9 +393,10 @@ function ARStage({ experience }: { experience: any }) {
         videoEl.addEventListener("volumechange", () =>
           setMuted(videoEl!.muted),
         );
-        const kick = () => videoEl!.play().catch(() => {});
-        kick();
-        scenEl.addEventListener("renderstart", kick);
+        const kick = () => {
+          if (experience.autoplay !== false) videoEl!.play().catch(() => {});
+        };
+        scenEl.addEventListener("renderstart", kick, { once: true });
       }
 
       // Recover from lost WebGL context (common on backgrounded tabs).
@@ -373,6 +424,16 @@ function ARStage({ experience }: { experience: any }) {
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
       } catch {}
+      document.querySelectorAll("video").forEach((video) => {
+        const stream = video.srcObject;
+        if (stream instanceof MediaStream) {
+          stream.getTracks().forEach((track) => track.stop());
+          video.srcObject = null;
+        }
+      });
+      document
+        .querySelectorAll("[data-mindar-image-camera], .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning, .mindar-ui-compatibility")
+        .forEach((element) => element.remove());
       if (sceneRef.current) sceneRef.current.replaceChildren();
     };
   }, [start]);

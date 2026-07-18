@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
 import { ArrowLeft, Camera, ExternalLink, RotateCcw } from "lucide-react";
@@ -17,7 +17,6 @@ export const Route = createFileRoute("/scan")({
 function ScanPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
-  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
 
@@ -67,11 +66,18 @@ function ScanPage() {
       return;
     }
 
-    // Same-origin AR link — navigate instantly
-    if (url.origin === window.location.origin && url.pathname.startsWith("/ar/")) {
+    // Any Aether AR link — route locally so scanning never pauses for confirmation.
+    const isAetherHost = [
+      window.location.hostname,
+      "aetherphoto.shop",
+      "www.aetherphoto.shop",
+      "ar-license-guardian.lovable.app",
+    ].includes(url.hostname);
+    if (isAetherHost && url.pathname.startsWith("/ar/")) {
       ctl.stop();
       const slug = url.pathname.replace(/^\/ar\//, "").split("/")[0];
-      navigate({ to: "/ar/$slug", params: { slug } });
+      // A full navigation releases the scanner camera before MindAR requests it.
+      window.location.assign(`/ar/${encodeURIComponent(slug)}?mode=video`);
       return;
     }
 

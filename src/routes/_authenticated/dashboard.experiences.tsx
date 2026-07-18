@@ -53,7 +53,11 @@ function ExperiencesPage() {
   const updateFn = useServerFn(updateExperience);
   const deleteFn = useServerFn(deleteExperience);
 
-  const { data: items = [] } = useQuery({ queryKey: ["experiences"], queryFn: () => listFn() });
+  const { data: items = [] } = useQuery({
+    queryKey: ["experiences"],
+    queryFn: () => listFn(),
+    staleTime: 60_000,
+  });
   const [editing, setEditing] = useState<Draft | null>(null);
   const [qrFor, setQrFor] = useState<{ slug: string; title: string } | null>(null);
 
@@ -80,8 +84,8 @@ function ExperiencesPage() {
   });
 
   return (
-    <div className="p-8 max-w-6xl">
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-4 md:p-8 max-w-6xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-serif italic">AR Experiences</h1>
           <p className="text-sm text-muted-foreground">

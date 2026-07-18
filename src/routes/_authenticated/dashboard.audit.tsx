@@ -9,7 +9,11 @@ export const Route = createFileRoute("/_authenticated/dashboard/audit")({
 
 function AuditPage() {
   const fn = useServerFn(listAuditLog);
-  const { data: rows = [] } = useQuery({ queryKey: ["audit"], queryFn: () => fn() });
+  const { data: rows = [] } = useQuery({
+    queryKey: ["audit"],
+    queryFn: () => fn(),
+    staleTime: 30_000,
+  });
 
   return (
     <div className="p-8 max-w-6xl">

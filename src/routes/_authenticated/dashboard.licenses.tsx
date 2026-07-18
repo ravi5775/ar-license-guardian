@@ -15,7 +15,11 @@ function LicensesPage() {
   const listFn = useServerFn(listLicenses);
   const createFn = useServerFn(createLicense);
   const statusFn = useServerFn(setLicenseStatus);
-  const { data: licenses = [] } = useQuery({ queryKey: ["licenses"], queryFn: () => listFn() });
+  const { data: licenses = [] } = useQuery({
+    queryKey: ["licenses"],
+    queryFn: () => listFn(),
+    staleTime: 60_000,
+  });
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     client_name: "",
