@@ -1,6 +1,16 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Camera } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  Camera,
+  Maximize2,
+  Minimize2,
+  Pause,
+  Play,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { getPublicExperience } from "@/lib/experiences.functions";
 
 export const Route = createFileRoute("/ar/$slug")({
@@ -201,146 +211,212 @@ function waitFor(check: () => boolean, timeoutMs = 10000, intervalMs = 50) {
 
 function ARStage({ experience }: { experience: any }) {
   const sceneRef = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "no-marker" | "error">("loading");
+  const videoElRef = useRef<HTMLVideoElement | null>(null);
+  const sceneElRef = useRef<any>(null);
+  const attemptRef = useRef(0);
+  const lastTapRef = useRef(0);
+
+  const [status, setStatus] = useState<
+    "loading" | "ready" | "no-marker" | "error"
+  >("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [tracking, setTracking] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(true);
+  const [cinema, setCinema] = useState(false); // fullscreen video overlay
+
+  const start = useCallback(async () => {
+    attemptRef.current += 1;
+    setStatus("loading");
+    setErrorMsg(null);
+
+    try {
+      const markerUrl = safeHttpsUrl(experience.marker_url);
+      if (!markerUrl || !markerUrl.pathname.endsWith(".mind")) {
+        setStatus("no-marker");
+        return;
+      }
+      const mediaUrl = safeHttpsUrl(experience.media_url);
+
+      for (const src of MINDAR_SCRIPTS) await loadScript(src);
+      await waitFor(
+        () =>
+          typeof (window as any).AFRAME !== "undefined" &&
+          !!(window as any).AFRAME?.components?.["mindar-image"],
+      );
+      if (!sceneRef.current) return;
+
+      const root = sceneRef.current;
+      root.replaceChildren();
+
+      const scenEl = document.createElement("a-scene");
+      scenEl.setAttribute(
+        "mindar-image",
+        `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5;`,
+      );
+      scenEl.setAttribute("color-space", "sRGB");
+      scenEl.setAttribute(
+        "renderer",
+        "colorManagement: true, physicallyCorrectLights: true, antialias: false, precision: mediump",
+      );
+      scenEl.setAttribute("vr-mode-ui", "enabled: false");
+      scenEl.setAttribute("device-orientation-permission-ui", "enabled: false");
+      scenEl.setAttribute("embedded", "");
+      scenEl.style.width = "100%";
+      scenEl.style.height = "100vh";
+
+      const assets = document.createElement("a-assets");
+      let videoEl: HTMLVideoElement | null = null;
+      if (mediaUrl) {
+        if (experience.media_type === "video") {
+          const v = document.createElement("video");
+          v.id = "ar-media";
+          v.src = mediaUrl.href;
+          v.preload = "auto";
+          v.loop = experience.loop_playback !== false;
+          v.muted = true;
+          v.defaultMuted = true;
+          v.autoplay = true;
+          v.playsInline = true;
+          v.crossOrigin = "anonymous";
+          v.setAttribute("muted", "");
+          v.setAttribute("autoplay", "");
+          v.setAttribute("playsinline", "");
+          v.setAttribute("webkit-playsinline", "");
+          assets.appendChild(v);
+          videoEl = v;
+        } else if (experience.media_type === "image") {
+          const img = document.createElement("img");
+          img.id = "ar-media";
+          img.src = mediaUrl.href;
+          img.crossOrigin = "anonymous";
+          assets.appendChild(img);
+        }
+      }
+      scenEl.appendChild(assets);
+
+      const cam = document.createElement("a-camera");
+      cam.setAttribute("position", "0 0 0");
+      cam.setAttribute("look-controls", "enabled: false");
+      scenEl.appendChild(cam);
+
+      const target = document.createElement("a-entity");
+      target.setAttribute("mindar-image-target", "targetIndex: 0");
+      if (mediaUrl) {
+        if (experience.media_type === "video") {
+          const av = document.createElement("a-video");
+          av.setAttribute("src", "#ar-media");
+          av.setAttribute("webkit-playsinline", "");
+          av.setAttribute("playsinline", "");
+          av.setAttribute("autoplay", "true");
+          av.setAttribute("loop", String(experience.loop_playback !== false));
+          av.setAttribute("width", "1");
+          av.setAttribute("height", "0.5625");
+          av.setAttribute("position", "0 0 0");
+          target.appendChild(av);
+        } else if (experience.media_type === "image") {
+          const ai = document.createElement("a-image");
+          ai.setAttribute("src", "#ar-media");
+          ai.setAttribute("width", "1");
+          ai.setAttribute("height", "1");
+          ai.setAttribute("position", "0 0 0");
+          target.appendChild(ai);
+        }
+      }
+
+      const onFound = () => {
+        setTracking(true);
+        videoEl?.play().catch(() => {});
+      };
+      const onLost = () => setTracking(false);
+      target.addEventListener("targetFound", onFound);
+      target.addEventListener("targetLost", onLost);
+      scenEl.appendChild(target);
+
+      root.appendChild(scenEl);
+      sceneElRef.current = scenEl;
+      videoElRef.current = videoEl;
+
+      if (videoEl) {
+        videoEl.addEventListener("play", () => setPlaying(true));
+        videoEl.addEventListener("pause", () => setPlaying(false));
+        videoEl.addEventListener("volumechange", () =>
+          setMuted(videoEl!.muted),
+        );
+        const kick = () => videoEl!.play().catch(() => {});
+        kick();
+        scenEl.addEventListener("renderstart", kick);
+      }
+
+      // Recover from lost WebGL context (common on backgrounded tabs).
+      scenEl.addEventListener("webglcontextlost", (e: any) => {
+        e.preventDefault?.();
+        setErrorMsg("Graphics context lost — reloading engine");
+        setTimeout(() => start(), 300);
+      });
+
+      setStatus("ready");
+    } catch (e: any) {
+      // Auto-retry once before surfacing the error (transient CDN or camera race).
+      if (attemptRef.current < 2) {
+        setTimeout(() => start(), 500);
+        return;
+      }
+      setErrorMsg(e?.message ?? "Failed to start AR");
+      setStatus("error");
+    }
+  }, [experience]);
 
   useEffect(() => {
-    let scene: any = null;
-    let mounted = true;
-
-    (async () => {
-      try {
-        const markerUrl = safeHttpsUrl(experience.marker_url);
-        // Fall back to plain camera if no compiled .mind marker
-        if (!markerUrl || !markerUrl.pathname.endsWith(".mind")) {
-          setStatus("no-marker");
-          return;
-        }
-        const mediaUrl = safeHttpsUrl(experience.media_url);
-
-        // Load sequentially: A-Frame must fully register custom elements before
-        // MindAR's aframe component registers against it.
-        for (const src of MINDAR_SCRIPTS) await loadScript(src);
-        // Wait until AFRAME + the mindar-image component are actually available.
-        await waitFor(
-          () =>
-            typeof (window as any).AFRAME !== "undefined" &&
-            !!(window as any).AFRAME?.components?.["mindar-image"],
-        );
-        if (!mounted || !sceneRef.current) return;
-
-        // Build scene with DOM APIs so untrusted URLs are always treated as
-        // attribute values, never as HTML/script.
-        const root = sceneRef.current;
-        root.replaceChildren();
-
-        const scenEl = document.createElement("a-scene");
-        scenEl.setAttribute(
-          "mindar-image",
-          `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: #scanning; uiLoading: #loading; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5;`,
-        );
-        scenEl.setAttribute("color-space", "sRGB");
-        scenEl.setAttribute("renderer", "colorManagement: true, physicallyCorrectLights: true, antialias: false, precision: mediump");
-        scenEl.setAttribute("vr-mode-ui", "enabled: false");
-        scenEl.setAttribute("device-orientation-permission-ui", "enabled: false");
-        scenEl.setAttribute("embedded", "");
-        scenEl.style.width = "100%";
-        scenEl.style.height = "100vh";
-
-        const assets = document.createElement("a-assets");
-        let videoEl: HTMLVideoElement | null = null;
-        if (mediaUrl) {
-          if (experience.media_type === "video") {
-            const v = document.createElement("video");
-            v.id = "ar-media";
-            v.src = mediaUrl.href;
-            v.preload = "auto";
-            v.loop = experience.loop_playback !== false;
-            v.muted = true; // required for mobile autoplay
-            v.defaultMuted = true;
-            v.autoplay = true;
-            v.playsInline = true;
-            v.crossOrigin = "anonymous";
-            v.setAttribute("muted", "");
-            v.setAttribute("autoplay", "");
-            v.setAttribute("playsinline", "");
-            v.setAttribute("webkit-playsinline", "");
-            assets.appendChild(v);
-            videoEl = v;
-          } else if (experience.media_type === "image") {
-            const img = document.createElement("img");
-            img.id = "ar-media";
-            img.src = mediaUrl.href;
-            img.crossOrigin = "anonymous";
-            assets.appendChild(img);
-          }
-        }
-        scenEl.appendChild(assets);
-
-        const cam = document.createElement("a-camera");
-        cam.setAttribute("position", "0 0 0");
-        cam.setAttribute("look-controls", "enabled: false");
-        scenEl.appendChild(cam);
-
-        const target = document.createElement("a-entity");
-        target.setAttribute("mindar-image-target", "targetIndex: 0");
-        if (mediaUrl) {
-          if (experience.media_type === "video") {
-            const av = document.createElement("a-video");
-            av.setAttribute("src", "#ar-media");
-            av.setAttribute("webkit-playsinline", "");
-            av.setAttribute("playsinline", "");
-            av.setAttribute("autoplay", String(!!experience.autoplay));
-            av.setAttribute("loop", String(!!experience.loop_playback));
-            av.setAttribute("width", "1");
-            av.setAttribute("height", "0.5625");
-            av.setAttribute("position", "0 0 0");
-            target.appendChild(av);
-          } else if (experience.media_type === "image") {
-            const ai = document.createElement("a-image");
-            ai.setAttribute("src", "#ar-media");
-            ai.setAttribute("width", "1");
-            ai.setAttribute("height", "1");
-            ai.setAttribute("position", "0 0 0");
-            target.appendChild(ai);
-          }
-        }
-        scenEl.appendChild(target);
-
-        for (const id of ["loading", "scanning"]) {
-          const d = document.createElement("div");
-          d.id = id;
-          d.style.display = "none";
-          scenEl.appendChild(d);
-        }
-
-        root.appendChild(scenEl);
-        scene = scenEl;
-
-        // Kick playback from the launch gesture so iOS/Android honor autoplay
-        // when the marker locks. Muted + playsinline above satisfies the policy.
-        if (videoEl) {
-          const kick = () => videoEl!.play().catch(() => {});
-          kick();
-          scenEl.addEventListener("targetFound", kick);
-          scenEl.addEventListener("loaded", kick);
-        }
-
-        setStatus("ready");
-      } catch (e: any) {
-        setErrorMsg(e.message ?? "Failed to start AR");
-        setStatus("error");
-      }
-    })();
-
+    start();
     return () => {
-      mounted = false;
       try {
-        scene?.systems?.["mindar-image-system"]?.stop?.();
+        sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
       } catch {}
-      if (sceneRef.current) sceneRef.current.innerHTML = "";
+      if (sceneRef.current) sceneRef.current.replaceChildren();
     };
-  }, [experience]);
+  }, [start]);
+
+  // Pause when tab hidden, resume on return.
+  useEffect(() => {
+    const onVis = () => {
+      const v = videoElRef.current;
+      if (!v) return;
+      if (document.hidden) v.pause();
+      else v.play().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
+
+  const togglePlay = () => {
+    const v = videoElRef.current;
+    if (!v) return;
+    if (v.paused) v.play().catch(() => {});
+    else v.pause();
+  };
+  const toggleMute = () => {
+    const v = videoElRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setMuted(v.muted);
+  };
+  const restart = () => {
+    const v = videoElRef.current;
+    if (!v) return;
+    v.currentTime = 0;
+    v.play().catch(() => {});
+  };
+  const onSceneTap = () => {
+    // Double-tap anywhere on the scene → cinema mode
+    const now = Date.now();
+    if (now - lastTapRef.current < 320) {
+      setCinema((c) => !c);
+      lastTapRef.current = 0;
+      return;
+    }
+    lastTapRef.current = now;
+  };
 
   if (status === "error") {
     return (
@@ -350,10 +426,13 @@ function ARStage({ experience }: { experience: any }) {
           <p className="text-sm text-white/60 mb-6">{errorMsg}</p>
           <div className="flex flex-col gap-3">
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                attemptRef.current = 0;
+                start();
+              }}
               className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium"
             >
-              Reload &amp; try again
+              Try again
             </button>
             <button
               onClick={() => setStatus("no-marker")}
@@ -367,17 +446,124 @@ function ARStage({ experience }: { experience: any }) {
     );
   }
 
-  if (status === "no-marker") return <PlainCameraFallback experience={experience} />;
+  if (status === "no-marker")
+    return <PlainCameraFallback experience={experience} />;
 
   return (
     <>
       {status === "loading" && (
         <div className="absolute inset-0 z-20 grid place-items-center pointer-events-none">
-          <div className="text-sm text-white/70">Loading AR engine…</div>
+          <div className="text-sm text-white/70 animate-pulse">
+            Loading AR engine…
+          </div>
         </div>
       )}
-      <div ref={sceneRef} className="absolute inset-0" />
+      <div
+        ref={sceneRef}
+        onClick={onSceneTap}
+        className="absolute inset-0"
+      />
+
+      {/* Tracking indicator */}
+      {status === "ready" && (
+        <div className="absolute top-4 inset-x-0 z-30 flex justify-center pointer-events-none">
+          <div
+            className={`inline-flex items-center gap-2 rounded-full backdrop-blur px-3 py-1.5 text-xs transition-colors ${
+              tracking
+                ? "bg-emerald-500/20 text-emerald-100"
+                : "bg-white/10 text-white/80"
+            }`}
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                tracking ? "bg-emerald-400" : "bg-white/60 animate-pulse"
+              }`}
+            />
+            {tracking ? "Tracking marker" : "Point camera at the marker"}
+          </div>
+        </div>
+      )}
+
+      {/* Cinema mode: fullscreen video overlay while tracked or on demand */}
+      {cinema && experience.media_type === "video" && experience.media_url && (
+        <div
+          className="fixed inset-0 z-40 bg-black flex items-center justify-center"
+          onClick={() => setCinema(false)}
+        >
+          <video
+            src={experience.media_url}
+            autoPlay
+            loop={experience.loop_playback !== false}
+            playsInline
+            muted={muted}
+            controls
+            className="max-w-full max-h-full"
+          />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setCinema(false);
+            }}
+            className="absolute top-4 right-4 rounded-full bg-white/10 backdrop-blur p-2 text-white hover:bg-white/20"
+            aria-label="Exit fullscreen"
+          >
+            <Minimize2 className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Playback controls */}
+      {status === "ready" && experience.media_type === "video" && (
+        <div className="absolute bottom-4 inset-x-0 z-30 flex justify-center">
+          <div className="inline-flex items-center gap-1 rounded-full bg-black/50 backdrop-blur px-2 py-1.5 text-white">
+            <IconBtn label={playing ? "Pause" : "Play"} onClick={togglePlay}>
+              {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </IconBtn>
+            <IconBtn label="Restart" onClick={restart}>
+              <RotateCcw className="h-4 w-4" />
+            </IconBtn>
+            <IconBtn label={muted ? "Unmute" : "Mute"} onClick={toggleMute}>
+              {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </IconBtn>
+            <IconBtn
+              label={cinema ? "Exit fullscreen" : "Fullscreen"}
+              onClick={() => setCinema((c) => !c)}
+            >
+              {cinema ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </IconBtn>
+          </div>
+        </div>
+      )}
+
+      {/* Hint (auto-hides after tracking) */}
+      {status === "ready" && !tracking && !cinema && (
+        <div className="absolute bottom-20 inset-x-0 z-20 text-center pointer-events-none">
+          <p className="text-[11px] text-white/50">
+            Double-tap the video to expand
+          </p>
+        </div>
+      )}
     </>
+  );
+}
+
+function IconBtn({
+  children,
+  onClick,
+  label,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      className="grid place-items-center h-9 w-9 rounded-full hover:bg-white/10 active:bg-white/20"
+    >
+      {children}
+    </button>
   );
 }
 
