@@ -218,7 +218,15 @@ function ARStage({ experience }: { experience: any }) {
         }
         const mediaUrl = safeHttpsUrl(experience.media_url);
 
+        // Load sequentially: A-Frame must fully register custom elements before
+        // MindAR's aframe component registers against it.
         for (const src of MINDAR_SCRIPTS) await loadScript(src);
+        // Wait until AFRAME + the mindar-image component are actually available.
+        await waitFor(
+          () =>
+            typeof (window as any).AFRAME !== "undefined" &&
+            !!(window as any).AFRAME?.components?.["mindar-image"],
+        );
         if (!mounted || !sceneRef.current) return;
 
         // Build scene with DOM APIs so untrusted URLs are always treated as
