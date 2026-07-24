@@ -234,7 +234,7 @@ function FlatStage({ stageKey }: { stageKey: string }) {
   }, [stageKey]);
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center p-6">
+    <div className="absolute inset-0 flex items-center justify-center p-8 pt-14">
       <AnimatePresence mode="wait">
         <motion.div
           key={stageKey}
@@ -243,7 +243,7 @@ function FlatStage({ stageKey }: { stageKey: string }) {
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.5 }}
           style={{ transformStyle: "preserve-3d" }}
-          className="relative max-w-full max-h-full"
+          className="relative h-full w-full"
         >
           {stageKey === "play" ? (
             <video
@@ -254,7 +254,7 @@ function FlatStage({ stageKey }: { stageKey: string }) {
               loop
               playsInline
               preload="metadata"
-              className="max-h-full w-auto max-w-full object-contain rounded-xl border border-border"
+              className="h-full w-full object-contain rounded-xl"
             />
           ) : (
             <img
@@ -263,9 +263,10 @@ function FlatStage({ stageKey }: { stageKey: string }) {
               }
               alt="Printed wedding photograph moving through the Aether workflow"
               loading="lazy"
-              className="max-h-full w-auto max-w-full object-contain rounded-xl border border-border"
+              className="h-full w-full object-contain rounded-xl"
             />
           )}
+
           {stageKey === "qr" && (
             <div className="absolute inset-0 grid grid-cols-6 gap-2 p-4 pointer-events-none">
               {Array.from({ length: 18 }).map((_, i) => (
