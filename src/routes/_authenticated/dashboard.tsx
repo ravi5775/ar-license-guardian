@@ -29,10 +29,13 @@ function DashboardLayout() {
 
 
   async function signOut() {
+    await qc.cancelQueries();
+    qc.clear();
     await supabase.auth.signOut();
     toast.success("Signed out");
-    navigate({ to: "/auth" });
+    navigate({ to: "/auth", replace: true });
   }
+
 
   const nav = [
     { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
