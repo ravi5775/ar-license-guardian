@@ -13,6 +13,8 @@ import {
   ScanLine,
 } from "lucide-react";
 import { listPublicAlbums } from "@/lib/albums.functions";
+import { ScanTroubleshooting } from "@/components/ScanTroubleshooting";
+
 
 export const Route = createFileRoute("/scan")({
   head: () => ({
