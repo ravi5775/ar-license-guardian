@@ -263,20 +263,21 @@ function HowItWorks() {
       n: "01",
       icon: Wand2,
       title: "Upload the moment",
-      body: "Your client drops in a photo, video, or 3D asset. The admin generates a printable QR bound to that scene.",
+      body: "Your client drops in each photo with the video that belongs to it. The admin compiles one .mind marker file for the album.",
     },
     {
       n: "02",
       icon: QrCode,
-      title: "Print the trigger",
-      body: "The QR goes on the wedding invite, the museum plaque, the album page — anywhere physical.",
+      title: "Print the photos clean",
+      body: "Nothing is printed on the pictures — the photograph itself is the marker. An optional album card carries the link for guests.",
     },
     {
       n: "03",
       icon: Camera,
-      title: "Guest scans, AR plays",
-      body: "Phone camera opens the scene in the browser. No app install. Works on iOS Safari and Android Chrome.",
+      title: "Point the phone, AR plays",
+      body: "Guest opens the site, points at any printed photo, and the matching video locks onto it. No app install. iOS Safari and Android Chrome.",
     },
+
   ];
 
   return (
