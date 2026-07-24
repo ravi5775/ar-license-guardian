@@ -2,6 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { HeroVisual } from "@/components/hero/HeroVisual";
+import { WorkflowDemo } from "@/components/WorkflowDemo";
+import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
+import { useReducedMotionPref } from "@/hooks/use-motion-env";
+
 import {
   QrCode,
   ScanLine,
@@ -58,11 +63,15 @@ export const Route = createFileRoute("/")({
 
 
 function LandingPage() {
+  const reduced = useReducedMotionPref();
+  useSmoothScroll(!reduced);
+
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <Nav />
       <Hero />
       <LogoStrip />
+      <WorkflowDemo />
       <HowItWorks />
       <Features />
       <Pricing />
@@ -71,6 +80,7 @@ function LandingPage() {
     </div>
   );
 }
+
 
 /* ------------------------------- Nav ------------------------------- */
 
@@ -149,28 +159,8 @@ function Nav() {
 
 function Hero() {
   return (
-    <section className="relative pt-40 pb-32 px-6">
-      {/* Ambient glow */}
-      <div
-        className="absolute top-20 left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full blur-3xl opacity-40 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle at center, oklch(0.83 0.14 78 / 0.35), transparent 60%)",
-        }}
-      />
-      {/* Grid */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, oklch(0.97 0.008 90) 1px, transparent 1px), linear-gradient(to bottom, oklch(0.97 0.008 90) 1px, transparent 1px)",
-          backgroundSize: "64px 64px",
-          maskImage:
-            "radial-gradient(ellipse at center, black 40%, transparent 75%)",
-        }}
-      />
-
-      <div className="relative mx-auto max-w-5xl text-center">
+    <HeroVisual>
+      <div className="relative text-left">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -185,7 +175,7 @@ function Hero() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-5xl sm:text-7xl lg:text-8xl leading-[0.95] tracking-tight"
+          className="text-5xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-tight"
         >
           Turn any photo <br />
           into a <em className="text-primary not-italic font-display italic">portal</em>.
@@ -195,7 +185,7 @@ function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-8 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
+          className="mt-8 text-lg text-muted-foreground max-w-xl leading-relaxed"
         >
           Scan a printed QR, watch the photo come alive as video, 3D, or AR
           overlay. Sold once. Deployed to your own Cloudflare + Supabase.
@@ -206,7 +196,7 @@ function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-12 flex flex-wrap items-center justify-center gap-3"
+          className="mt-12 flex flex-wrap items-center gap-3"
         >
           <a
             href="#pricing"
@@ -223,44 +213,17 @@ function Hero() {
             Scan a QR
           </Link>
           <a
-            href="#how"
+            href="#demo"
             className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             See how it works
           </a>
         </motion.div>
-
-        {/* Preview card */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-20 relative mx-auto max-w-4xl"
-        >
-          <div className="glow-ring rounded-2xl overflow-hidden border border-border bg-surface-elevated aspect-[16/9] relative">
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(circle at 30% 40%, oklch(0.83 0.14 78 / 0.15), transparent 50%), radial-gradient(circle at 70% 60%, oklch(0.62 0.18 32 / 0.15), transparent 50%)",
-              }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-background/80 border border-primary/30 mb-4">
-                  <QrCode className="w-12 h-12 text-primary" />
-                </div>
-                <p className="text-sm text-muted-foreground font-mono">
-                  scan → play
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
       </div>
-    </section>
+    </HeroVisual>
   );
 }
+
 
 /* --------------------------- Logo strip ---------------------------- */
 
