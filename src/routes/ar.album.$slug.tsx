@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Camera,
+  Download,
+  Expand,
   Maximize2,
   Minimize2,
   Pause,
@@ -12,6 +14,8 @@ import {
   VolumeX,
 } from "lucide-react";
 import { getPublicAlbum } from "@/lib/albums.functions";
+import { logScanEvent } from "@/lib/analytics.functions";
+
 
 export const Route = createFileRoute("/ar/album/$slug")({
   loader: async ({ params }) => {
@@ -132,15 +136,48 @@ function safeHttpsUrl(raw: unknown): URL | null {
   }
 }
 
+function newSessionId() {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return `s-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
 function AlbumViewer() {
   const { album } = Route.useLoaderData();
   const [started, setStarted] = useState(false);
+  const sessionRef = useRef<string>("");
+  if (!sessionRef.current) sessionRef.current = newSessionId();
 
   useEffect(() => {
     void (async () => {
       for (const src of MINDAR_SCRIPTS) await loadScript(src);
     })().catch(() => {});
   }, []);
+
+  const track = useCallback(
+    (
+      event_type:
+        | "album_open"
+        | "target_found"
+        | "playback_start"
+        | "playback_complete"
+        | "recognition_timeout",
+      extra?: { target_index?: number | null; duration_ms?: number | null },
+    ) => {
+      void logScanEvent({
+        data: {
+          album_id: album.id,
+          target_index: extra?.target_index ?? null,
+          event_type,
+          session_id: sessionRef.current,
+          duration_ms: extra?.duration_ms ?? null,
+        },
+      }).catch(() => {});
+    },
+    [album.id],
+  );
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
@@ -162,7 +199,10 @@ function AlbumViewer() {
               plays its own video. No need to scan again.
             </p>
             <button
-              onClick={() => setStarted(true)}
+              onClick={() => {
+                track("album_open");
+                setStarted(true);
+              }}
               className="inline-flex items-center gap-2 rounded-full bg-white text-black px-6 py-3 text-sm font-medium hover:bg-white/90"
             >
               <Camera className="h-4 w-4" /> Open camera
@@ -173,18 +213,32 @@ function AlbumViewer() {
           </div>
         </div>
       ) : (
-        <AlbumStage album={album} />
+        <AlbumStage album={album} track={track} />
       )}
     </div>
   );
 }
 
-function AlbumStage({ album }: { album: any }) {
+type TrackFn = (
+  event_type:
+    | "album_open"
+    | "target_found"
+    | "playback_start"
+    | "playback_complete"
+    | "recognition_timeout",
+  extra?: { target_index?: number | null; duration_ms?: number | null },
+) => void;
+
+function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const sceneElRef = useRef<any>(null);
   const videosRef = useRef<Record<number, HTMLVideoElement>>({});
   const attemptRef = useRef(0);
   const lastTapRef = useRef(0);
+  const primedRef = useRef(false);
+  const readyAtRef = useRef<number>(Date.now());
+  const completedRef = useRef<Record<number, boolean>>({});
+  const startedRef = useRef<Record<number, boolean>>({});
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -192,13 +246,65 @@ function AlbumStage({ album }: { album: any }) {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const [cinema, setCinema] = useState(false);
+  const [fitContain, setFitContain] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
   const [everFound, setEverFound] = useState(false);
+  const [primed, setPrimed] = useState(false);
+  const [needsTapToPlay, setNeedsTapToPlay] = useState(false);
 
   const activeTarget =
     activeIndex === null
       ? null
       : album.targets.find((t: any) => t.target_index === activeIndex) ?? null;
+
+  /**
+   * iOS Safari only allows media playback that originates from a user gesture.
+   * Priming every video once (play → immediate pause) inside a real tap makes
+   * later programmatic play() calls on target detection succeed.
+   */
+  const primeVideos = useCallback(async () => {
+    if (primedRef.current) return;
+    primedRef.current = true;
+    const vids = Object.values(videosRef.current);
+    await Promise.all(
+      vids.map(async (v) => {
+        try {
+          v.muted = true;
+          const p = v.play();
+          if (p) await p;
+          v.pause();
+          v.currentTime = 0;
+        } catch {
+          /* ignore — we retry on first targetFound */
+        }
+      }),
+    );
+    setPrimed(true);
+  }, []);
+
+  const playVideo = useCallback(
+    async (v: HTMLVideoElement, index: number) => {
+      try {
+        await v.play();
+        setNeedsTapToPlay(false);
+      } catch {
+        // Fallback 1: force muted inline playback (iOS low-power mode).
+        try {
+          v.muted = true;
+          v.setAttribute("muted", "");
+          v.playsInline = true;
+          await v.play();
+          setMuted(true);
+          setNeedsTapToPlay(false);
+        } catch {
+          // Fallback 2: ask the user for an explicit tap.
+          setNeedsTapToPlay(true);
+          setActiveIndex(index);
+        }
+      }
+    },
+    [],
+  );
 
   const start = useCallback(async () => {
     attemptRef.current += 1;
@@ -289,10 +395,14 @@ function AlbumStage({ album }: { album: any }) {
           setActiveIndex(t.target_index);
           setEverFound(true);
           setShowHelp(false);
+          track("target_found", {
+            target_index: t.target_index,
+            duration_ms: Math.max(0, Date.now() - readyAtRef.current),
+          });
           const v = videosRef.current[t.target_index];
           if (v && t.autoplay !== false) {
             v.currentTime = 0;
-            v.play().catch(() => {});
+            void playVideo(v, t.target_index);
           }
         });
         entity.addEventListener("targetLost", () => {
@@ -303,10 +413,34 @@ function AlbumStage({ album }: { album: any }) {
         scene.appendChild(entity);
       }
 
-      for (const v of Object.values(videosRef.current)) {
-        v.addEventListener("play", () => setPlaying(true));
+      for (const [key, v] of Object.entries(videosRef.current)) {
+        const index = Number(key);
+        v.addEventListener("play", () => {
+          setPlaying(true);
+          if (!startedRef.current[index]) {
+            startedRef.current[index] = true;
+            track("playback_start", { target_index: index });
+          }
+        });
         v.addEventListener("pause", () => setPlaying(false));
         v.addEventListener("volumechange", () => setMuted(v.muted));
+        v.addEventListener("ended", () => {
+          if (completedRef.current[index]) return;
+          completedRef.current[index] = true;
+          track("playback_complete", { target_index: index });
+        });
+        // Looping videos never fire "ended" — count 95% watched as complete.
+        v.addEventListener("timeupdate", () => {
+          if (completedRef.current[index] || !v.duration || !isFinite(v.duration))
+            return;
+          if (v.currentTime / v.duration >= 0.95) {
+            completedRef.current[index] = true;
+            track("playback_complete", {
+              target_index: index,
+              duration_ms: Math.round(v.currentTime * 1000),
+            });
+          }
+        });
       }
 
       scene.addEventListener("webglcontextlost", (e: any) => {
@@ -317,6 +451,7 @@ function AlbumStage({ album }: { album: any }) {
 
       root.appendChild(scene);
       sceneElRef.current = scene;
+      readyAtRef.current = Date.now();
       setStatus("ready");
     } catch (e: any) {
       if (attemptRef.current < 2) {
@@ -326,7 +461,7 @@ function AlbumStage({ album }: { album: any }) {
       setErrorMsg(e?.message ?? "Failed to start AR");
       setStatus("error");
     }
-  }, [album]);
+  }, [album, playVideo, track]);
 
   useEffect(() => {
     start();
@@ -353,9 +488,12 @@ function AlbumStage({ album }: { album: any }) {
   // Graceful degradation: if nothing is recognised within 8s, coach the user.
   useEffect(() => {
     if (status !== "ready" || everFound) return;
-    const t = setTimeout(() => setShowHelp(true), 8000);
+    const t = setTimeout(() => {
+      setShowHelp(true);
+      track("recognition_timeout");
+    }, 8000);
     return () => clearTimeout(t);
-  }, [status, everFound]);
+  }, [status, everFound, track]);
 
   useEffect(() => {
     const onVis = () => {
@@ -370,8 +508,8 @@ function AlbumStage({ album }: { album: any }) {
     activeIndex === null ? null : videosRef.current[activeIndex] ?? null;
 
   const togglePlay = () => {
-    if (!activeVideo) return;
-    if (activeVideo.paused) activeVideo.play().catch(() => {});
+    if (!activeVideo || activeIndex === null) return;
+    if (activeVideo.paused) void playVideo(activeVideo, activeIndex);
     else activeVideo.pause();
   };
   const toggleMute = () => {
@@ -380,11 +518,12 @@ function AlbumStage({ album }: { album: any }) {
     setMuted(activeVideo.muted);
   };
   const restart = () => {
-    if (!activeVideo) return;
+    if (!activeVideo || activeIndex === null) return;
     activeVideo.currentTime = 0;
-    activeVideo.play().catch(() => {});
+    void playVideo(activeVideo, activeIndex);
   };
   const onSceneTap = () => {
+    void primeVideos();
     const now = Date.now();
     if (now - lastTapRef.current < 320) {
       if (activeTarget) setCinema((c) => !c);
@@ -426,6 +565,31 @@ function AlbumStage({ album }: { album: any }) {
 
       <div ref={sceneRef} onClick={onSceneTap} className="absolute inset-0" />
 
+      {status === "ready" && !primed && (
+        <div className="absolute inset-x-0 bottom-28 z-30 flex justify-center px-6">
+          <button
+            onClick={() => void primeVideos()}
+            className="rounded-full bg-white text-black px-5 py-2.5 text-sm font-medium shadow-lg"
+          >
+            Tap once to enable video
+          </button>
+        </div>
+      )}
+
+      {status === "ready" && needsTapToPlay && activeTarget && (
+        <div className="absolute inset-0 z-40 grid place-items-center bg-black/40">
+          <button
+            onClick={() => {
+              if (activeVideo && activeIndex !== null)
+                void playVideo(activeVideo, activeIndex);
+            }}
+            className="inline-flex items-center gap-2 rounded-full bg-white text-black px-6 py-3 text-sm font-medium"
+          >
+            <Play className="h-4 w-4" /> Tap to play
+          </button>
+        </div>
+      )}
+
       {status === "ready" && (
         <div className="absolute top-4 inset-x-0 z-30 flex justify-center pointer-events-none px-14">
           <div
@@ -459,10 +623,7 @@ function AlbumStage({ album }: { album: any }) {
       )}
 
       {cinema && activeTarget?.media_url && (
-        <div
-          className="fixed inset-0 z-40 bg-black flex items-center justify-center"
-          onClick={() => setCinema(false)}
-        >
+        <div className="fixed inset-0 z-40 bg-black flex items-center justify-center">
           <video
             src={activeTarget.media_url}
             autoPlay
@@ -470,23 +631,46 @@ function AlbumStage({ album }: { album: any }) {
             playsInline
             muted={muted}
             controls
-            className="max-w-full max-h-full"
+            className={`w-full h-full ${fitContain ? "object-contain" : "object-cover"}`}
           />
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setCinema(false);
-            }}
-            className="absolute top-4 right-4 rounded-full bg-white/10 backdrop-blur p-2 text-white hover:bg-white/20"
-            aria-label="Exit fullscreen"
-          >
-            <Minimize2 className="h-4 w-4" />
-          </button>
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <a
+              href={activeTarget.media_url}
+              download={`${activeTarget.title ?? "aether-ar"}.mp4`}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Download video"
+              className="grid place-items-center h-9 w-9 rounded-full bg-white/10 backdrop-blur text-white hover:bg-white/20"
+            >
+              <Download className="h-4 w-4" />
+            </a>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setFitContain((f) => !f);
+              }}
+              aria-label={fitContain ? "Fill screen" : "Fit to screen"}
+              className="grid place-items-center h-9 w-9 rounded-full bg-white/10 backdrop-blur text-white hover:bg-white/20"
+            >
+              <Expand className="h-4 w-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setCinema(false);
+              }}
+              className="grid place-items-center h-9 w-9 rounded-full bg-white/10 backdrop-blur text-white hover:bg-white/20"
+              aria-label="Exit fullscreen"
+            >
+              <Minimize2 className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
 
       {status === "ready" && activeTarget && (
-        <div className="absolute bottom-4 inset-x-0 z-30 flex justify-center">
+        <div className="absolute bottom-4 inset-x-0 z-30 flex justify-center px-4">
           <div className="inline-flex items-center gap-1 rounded-full bg-black/50 backdrop-blur px-2 py-1.5 text-white">
             <IconBtn label={playing ? "Pause" : "Play"} onClick={togglePlay}>
               {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -498,11 +682,23 @@ function AlbumStage({ album }: { album: any }) {
               {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             </IconBtn>
             <IconBtn
-              label={cinema ? "Exit fullscreen" : "Fullscreen"}
+              label={cinema ? "Exit fit to screen" : "Fit to screen"}
               onClick={() => setCinema((c) => !c)}
             >
               {cinema ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </IconBtn>
+            {activeTarget.media_url && (
+              <a
+                href={activeTarget.media_url}
+                download={`${activeTarget.title ?? "aether-ar"}.mp4`}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Download video"
+                className="grid place-items-center h-9 w-9 rounded-full hover:bg-white/10 active:bg-white/20"
+              >
+                <Download className="h-4 w-4" />
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -510,7 +706,7 @@ function AlbumStage({ album }: { album: any }) {
       {status === "ready" && activeTarget && !cinema && (
         <div className="absolute bottom-20 inset-x-0 z-20 text-center pointer-events-none">
           <p className="text-[11px] text-white/50">
-            Double-tap the video to expand
+            Double-tap the video to fit it to your screen
           </p>
         </div>
       )}
@@ -537,3 +733,4 @@ function IconBtn({
     </button>
   );
 }
+
