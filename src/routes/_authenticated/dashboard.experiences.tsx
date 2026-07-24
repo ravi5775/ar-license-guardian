@@ -184,8 +184,11 @@ function ExperiencesPage() {
         <ExperienceModal
           value={editing}
           onChange={setEditing}
+          existingSlugs={items
+            .filter((e: any) => e.id !== editing.id)
+            .map((e: any) => e.slug)}
           onCancel={() => setEditing(null)}
-          onSave={() => saveMut.mutate(editing)}
+          onSave={(d) => saveMut.mutate(d)}
           saving={saveMut.isPending}
         />
       )}
@@ -195,19 +198,39 @@ function ExperiencesPage() {
   );
 }
 
+function slugify(input: string) {
+  return input
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function uniqueSlug(base: string, taken: string[]) {
+  const root = base || "experience";
+  if (!taken.includes(root)) return root;
+  let i = 2;
+  while (taken.includes(`${root}-${i}`)) i++;
+  return `${root}-${i}`;
+}
+
 function ExperienceModal({
   value,
   onChange,
+  existingSlugs,
   onCancel,
   onSave,
   saving,
 }: {
   value: Draft;
   onChange: (d: Draft) => void;
+  existingSlugs: string[];
   onCancel: () => void;
-  onSave: () => void;
+  onSave: (d: Draft) => void;
   saving: boolean;
 }) {
+  const [slugTouched, setSlugTouched] = useState(Boolean(value.slug));
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => onChange({ ...value, [k]: v });
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
@@ -221,18 +244,42 @@ function ExperienceModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onSave();
+            const slug = uniqueSlug(
+              slugify(value.slug || value.title),
+              existingSlugs,
+            );
+            onSave({ ...value, slug });
           }}
           className="space-y-4"
         >
           <div className="grid grid-cols-2 gap-4">
             <label className="text-sm">
               <span className="text-muted-foreground">Title</span>
-              <input required value={value.title} onChange={(e) => set("title", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
+              <input
+                required
+                value={value.title}
+                onChange={(e) => {
+                  const title = e.target.value;
+                  onChange({
+                    ...value,
+                    title,
+                    slug: slugTouched ? value.slug : slugify(title),
+                  });
+                }}
+                className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2"
+              />
             </label>
             <label className="text-sm">
-              <span className="text-muted-foreground">Slug (URL)</span>
-              <input required pattern="[a-z0-9-]+" value={value.slug} onChange={(e) => set("slug", e.target.value.toLowerCase())} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-xs" />
+              <span className="text-muted-foreground">Slug (URL) — auto-generated</span>
+              <input
+                value={value.slug}
+                onChange={(e) => {
+                  setSlugTouched(true);
+                  set("slug", slugify(e.target.value));
+                }}
+                placeholder="auto from title"
+                className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-xs"
+              />
             </label>
           </div>
           <label className="text-sm block">
