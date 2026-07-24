@@ -5,14 +5,17 @@ import { Download, X, Printer } from "lucide-react";
 interface Props {
   slug: string;
   title: string;
+  /** "album" encodes one QR for the whole album (multi-target scanning). */
+  kind?: "experience" | "album";
   onClose: () => void;
 }
 
-export function QRCodeDialog({ slug, title, onClose }: Props) {
+export function QRCodeDialog({ slug, title, kind = "experience", onClose }: Props) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
-  const url = typeof window !== "undefined"
-    ? `${getPublicOrigin()}/ar/${slug}?mode=video`
-    : `/ar/${slug}?mode=video`;
+  const path =
+    kind === "album" ? `/ar/album/${slug}` : `/ar/${slug}?mode=video`;
+  const url =
+    typeof window !== "undefined" ? `${getPublicOrigin()}${path}` : path;
 
   useEffect(() => {
     QRCode.toDataURL(url, { width: 640, margin: 2, errorCorrectionLevel: "H" }).then(setDataUrl);
@@ -40,7 +43,7 @@ export function QRCodeDialog({ slug, title, onClose }: Props) {
       </style></head>
       <body>
         <h1>${title}</h1>
-        <p>Scan to view in AR</p>
+        <p>${kind === "album" ? "Scan once, then point your camera at any photo in this album" : "Scan to view in AR"}</p>
         <img src="${dataUrl}" alt="QR code"/>
         <p><code>${url}</code></p>
       </body></html>`);
@@ -64,6 +67,12 @@ export function QRCodeDialog({ slug, title, onClose }: Props) {
             <div className="w-64 h-64 bg-muted rounded-md animate-pulse" />
           )}
         </div>
+        {kind === "album" && (
+          <p className="text-xs text-center text-muted-foreground mb-2">
+            One QR code covers the whole album — customers scan once, then point
+            their camera at any photo to play its video.
+          </p>
+        )}
         <p className="text-xs text-center text-muted-foreground break-all mb-4">{url}</p>
         <div className="flex gap-2">
           <button

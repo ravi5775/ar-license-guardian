@@ -18,11 +18,14 @@ import { Route as ArSlugRouteImport } from './routes/ar.$slug'
 import { Route as AuthenticatedMfaRouteImport } from './routes/_authenticated/mfa'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
+import { Route as ArAlbumSlugRouteImport } from './routes/ar.album.$slug'
 import { Route as AuthenticatedDashboardLicensesRouteImport } from './routes/_authenticated/dashboard.licenses'
 import { Route as AuthenticatedDashboardExperiencesRouteImport } from './routes/_authenticated/dashboard.experiences'
 import { Route as AuthenticatedDashboardAuditRouteImport } from './routes/_authenticated/dashboard.audit'
 import { Route as AuthenticatedDashboardActivationsRouteImport } from './routes/_authenticated/dashboard.activations'
+import { Route as AuthenticatedDashboardAlbumsIndexRouteImport } from './routes/_authenticated/dashboard.albums.index'
 import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
+import { Route as AuthenticatedDashboardAlbumsNewRouteImport } from './routes/_authenticated/dashboard.albums.new'
 
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
@@ -69,6 +72,11 @@ const AuthenticatedDashboardIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const ArAlbumSlugRoute = ArAlbumSlugRouteImport.update({
+  id: '/ar/album/$slug',
+  path: '/ar/album/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedDashboardLicensesRoute =
   AuthenticatedDashboardLicensesRouteImport.update({
     id: '/licenses',
@@ -93,11 +101,23 @@ const AuthenticatedDashboardActivationsRoute =
     path: '/activations',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardAlbumsIndexRoute =
+  AuthenticatedDashboardAlbumsIndexRouteImport.update({
+    id: '/albums/',
+    path: '/albums/',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const ApiPublicLicenseActivateRoute =
   ApiPublicLicenseActivateRouteImport.update({
     id: '/api/public/license/activate',
     path: '/api/public/license/activate',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedDashboardAlbumsNewRoute =
+  AuthenticatedDashboardAlbumsNewRouteImport.update({
+    id: '/albums/new',
+    path: '/albums/new',
+    getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -112,8 +132,11 @@ export interface FileRoutesByFullPath {
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
+  '/ar/album/$slug': typeof ArAlbumSlugRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
+  '/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,8 +149,11 @@ export interface FileRoutesByTo {
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
+  '/ar/album/$slug': typeof ArAlbumSlugRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
+  '/dashboard/albums': typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,8 +169,11 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
   '/_authenticated/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/_authenticated/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
+  '/ar/album/$slug': typeof ArAlbumSlugRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/_authenticated/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
+  '/_authenticated/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -160,8 +189,11 @@ export interface FileRouteTypes {
     | '/dashboard/audit'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
+    | '/ar/album/$slug'
     | '/dashboard/'
+    | '/dashboard/albums/new'
     | '/api/public/license/activate'
+    | '/dashboard/albums/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -174,8 +206,11 @@ export interface FileRouteTypes {
     | '/dashboard/audit'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
+    | '/ar/album/$slug'
     | '/dashboard'
+    | '/dashboard/albums/new'
     | '/api/public/license/activate'
+    | '/dashboard/albums'
   id:
     | '__root__'
     | '/'
@@ -190,8 +225,11 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/audit'
     | '/_authenticated/dashboard/experiences'
     | '/_authenticated/dashboard/licenses'
+    | '/ar/album/$slug'
     | '/_authenticated/dashboard/'
+    | '/_authenticated/dashboard/albums/new'
     | '/api/public/license/activate'
+    | '/_authenticated/dashboard/albums/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -201,6 +239,7 @@ export interface RootRouteChildren {
   GalleryRoute: typeof GalleryRoute
   ScanRoute: typeof ScanRoute
   ArSlugRoute: typeof ArSlugRoute
+  ArAlbumSlugRoute: typeof ArAlbumSlugRoute
   ApiPublicLicenseActivateRoute: typeof ApiPublicLicenseActivateRoute
 }
 
@@ -269,6 +308,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/ar/album/$slug': {
+      id: '/ar/album/$slug'
+      path: '/ar/album/$slug'
+      fullPath: '/ar/album/$slug'
+      preLoaderRoute: typeof ArAlbumSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/dashboard/licenses': {
       id: '/_authenticated/dashboard/licenses'
       path: '/licenses'
@@ -297,12 +343,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardActivationsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/albums/': {
+      id: '/_authenticated/dashboard/albums/'
+      path: '/albums'
+      fullPath: '/dashboard/albums/'
+      preLoaderRoute: typeof AuthenticatedDashboardAlbumsIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/api/public/license/activate': {
       id: '/api/public/license/activate'
       path: '/api/public/license/activate'
       fullPath: '/api/public/license/activate'
       preLoaderRoute: typeof ApiPublicLicenseActivateRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard/albums/new': {
+      id: '/_authenticated/dashboard/albums/new'
+      path: '/albums/new'
+      fullPath: '/dashboard/albums/new'
+      preLoaderRoute: typeof AuthenticatedDashboardAlbumsNewRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
     }
   }
 }
@@ -313,6 +373,8 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardExperiencesRoute: typeof AuthenticatedDashboardExperiencesRoute
   AuthenticatedDashboardLicensesRoute: typeof AuthenticatedDashboardLicensesRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedDashboardAlbumsNewRoute: typeof AuthenticatedDashboardAlbumsNewRoute
+  AuthenticatedDashboardAlbumsIndexRoute: typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
@@ -324,6 +386,9 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
       AuthenticatedDashboardExperiencesRoute,
     AuthenticatedDashboardLicensesRoute: AuthenticatedDashboardLicensesRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+    AuthenticatedDashboardAlbumsNewRoute: AuthenticatedDashboardAlbumsNewRoute,
+    AuthenticatedDashboardAlbumsIndexRoute:
+      AuthenticatedDashboardAlbumsIndexRoute,
   }
 
 const AuthenticatedDashboardRouteWithChildren =
@@ -351,6 +416,7 @@ const rootRouteChildren: RootRouteChildren = {
   GalleryRoute: GalleryRoute,
   ScanRoute: ScanRoute,
   ArSlugRoute: ArSlugRoute,
+  ArAlbumSlugRoute: ArAlbumSlugRoute,
   ApiPublicLicenseActivateRoute: ApiPublicLicenseActivateRoute,
 }
 export const routeTree = rootRouteImport
