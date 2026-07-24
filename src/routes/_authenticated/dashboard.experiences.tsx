@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Plus, ExternalLink, Trash2, Pencil, X, QrCode } from "lucide-react";
 import { MediaUploader } from "@/components/MediaUploader";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
+import { QueryState } from "@/components/QueryState";
 
 export const Route = createFileRoute("/_authenticated/dashboard/experiences")({
   component: ExperiencesPage,
@@ -53,7 +54,7 @@ function ExperiencesPage() {
   const updateFn = useServerFn(updateExperience);
   const deleteFn = useServerFn(deleteExperience);
 
-  const { data: items = [] } = useQuery({
+  const { data: items = [], isLoading, error, refetch } = useQuery({
     queryKey: ["experiences"],
     queryFn: () => listFn(),
     staleTime: 60_000,
