@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, QrCode, Printer, Camera, PlayCircle, ArrowRight } from "lucide-react";
-import { workflowMedia, demoScanUrl } from "@/lib/workflow-media";
+import { workflowMedia } from "@/lib/workflow-media";
 
 type Stage = {
   key: string;
