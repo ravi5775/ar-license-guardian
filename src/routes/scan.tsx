@@ -151,7 +151,10 @@ function PhotoScan() {
             </li>
           ))}
         </ul>
+
+        <ScanTroubleshooting />
       </div>
+
     </div>
   );
 }
