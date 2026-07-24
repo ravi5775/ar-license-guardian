@@ -264,6 +264,13 @@ rate_limit_hits (id, key, window, count, created_at)
 - [x] License API + vendor-worker
 - [x] Security hardening
 - [x] Custom domain + favicon
+- [x] Multi-target album schema (`albums`, `ar_experiences.album_id/target_index`)
+- [x] Admin album compiler page (`/dashboard/albums/new`, MindAR OfflineCompiler, 20-photo cap)
+- [x] `/ar/album/$slug` multi-target viewer (one QR per album, per-target video)
+- [x] QR generation updated for albums
+- [x] Branch B self-hosted config scaffolds (`deploy/self-hosted/`)
+- [ ] Branch B auth module (bcrypt + JWT + TOTP) — manual build
+- [ ] Branch B R2 upload flow — manual build
 - [ ] Automated client provisioning script
 - [ ] Real-world marker accuracy testing
 - [ ] Attorney-reviewed agreements
@@ -271,7 +278,7 @@ rate_limit_hits (id, key, window, count, created_at)
 
 ---
 
-**Document Version:** 4.0  
+**Document Version:** 6.0  
 **Last Updated:** July 2026  
 **Owner:** Aether AR Project  
 **Next Review:** After first 5 client deployments
