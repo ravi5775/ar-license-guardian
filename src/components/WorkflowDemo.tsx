@@ -172,9 +172,22 @@ export function WorkflowDemo() {
                 </motion.p>
               </AnimatePresence>
 
+              {/* Permanent reminder: prints never carry a code */}
+              <div
+                className={`absolute top-4 left-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs pointer-events-none transition-colors ${
+                  stage.key === "qr" || stage.key === "print"
+                    ? "border-primary/60 bg-primary/15 text-primary"
+                    : "border-border bg-background/80 text-muted-foreground"
+                }`}
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                No QR printed on the photo
+              </div>
+
               {stage.key === "scan" && (
                 <div className="absolute inset-10 border-2 border-primary/60 rounded-xl animate-pulse pointer-events-none" />
               )}
+
 
               {/* progress rail */}
               <div className="absolute top-0 left-0 right-0 h-0.5 bg-border/50">
