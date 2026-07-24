@@ -141,7 +141,10 @@ export const getPublicExperience = createServerFn({ method: "GET" })
       marker_url: marker_signed ?? row.marker_url,
       marker_image_url: marker_image_signed,
       media_url: media_signed ?? row.media_url,
+      // Cover image is optional — fall back to the printable marker image.
+      cover_image_url: row.cover_image_url || marker_image_signed,
     };
+
   });
 
 // Signed upload URL for the admin console. Uses admin client because we
