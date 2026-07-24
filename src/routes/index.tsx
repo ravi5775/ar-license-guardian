@@ -211,7 +211,7 @@ function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-6 py-3 text-sm font-medium hover:bg-surface transition-colors"
           >
             <ScanLine className="w-4 h-4" />
-            Scan a QR
+            Scan a photo
           </Link>
           <a
             href="#demo"
