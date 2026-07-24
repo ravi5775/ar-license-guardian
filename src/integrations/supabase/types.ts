@@ -14,8 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      albums: {
+        Row: {
+          compiled_mind_path: string | null
+          compiled_mind_url: string | null
+          created_at: string
+          id: string
+          owner_id: string
+          published: boolean
+          slug: string
+          target_count: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          compiled_mind_path?: string | null
+          compiled_mind_url?: string | null
+          created_at?: string
+          id?: string
+          owner_id: string
+          published?: boolean
+          slug: string
+          target_count?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          compiled_mind_path?: string | null
+          compiled_mind_url?: string | null
+          created_at?: string
+          id?: string
+          owner_id?: string
+          published?: boolean
+          slug?: string
+          target_count?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ar_experiences: {
         Row: {
+          album_id: string | null
           autoplay: boolean
           cover_image_url: string | null
           created_at: string
@@ -30,12 +70,14 @@ export type Database = {
           media_url: string | null
           owner_id: string
           published: boolean
-          slug: string
+          slug: string | null
+          target_index: number | null
           title: string
           updated_at: string
           view_count: number
         }
         Insert: {
+          album_id?: string | null
           autoplay?: boolean
           cover_image_url?: string | null
           created_at?: string
@@ -50,12 +92,14 @@ export type Database = {
           media_url?: string | null
           owner_id: string
           published?: boolean
-          slug: string
+          slug?: string | null
+          target_index?: number | null
           title: string
           updated_at?: string
           view_count?: number
         }
         Update: {
+          album_id?: string | null
           autoplay?: boolean
           cover_image_url?: string | null
           created_at?: string
@@ -70,12 +114,21 @@ export type Database = {
           media_url?: string | null
           owner_id?: string
           published?: boolean
-          slug?: string
+          slug?: string | null
+          target_index?: number | null
           title?: string
           updated_at?: string
           view_count?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ar_experiences_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       audit_log: {
         Row: {
