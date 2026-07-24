@@ -202,9 +202,13 @@ function ExperiencesPage() {
           existingSlugs={items
             .filter((e: any) => e.id !== editing.id)
             .map((e: any) => e.slug)}
-          onCancel={() => setEditing(null)}
+          onCancel={() => {
+            setSaveError(null);
+            setEditing(null);
+          }}
           onSave={(d) => saveMut.mutate(d)}
           saving={saveMut.isPending}
+          errorText={saveError}
         />
       )}
 
