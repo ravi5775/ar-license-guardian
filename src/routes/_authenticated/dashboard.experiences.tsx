@@ -101,6 +101,10 @@ function ExperiencesPage() {
         </button>
       </div>
 
+      <div className="mb-6 empty:mb-0">
+        <QueryState isLoading={isLoading} error={error} onRetry={() => refetch()} label="experiences" />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((e: any) => (
           <div key={e.id} className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden group">

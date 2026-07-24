@@ -61,6 +61,10 @@ function LicensesPage() {
         </button>
       </div>
 
+      <div className="mb-6 empty:mb-0">
+        <QueryState isLoading={isLoading} error={error} onRetry={() => refetch()} label="licenses" />
+      </div>
+
       <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
