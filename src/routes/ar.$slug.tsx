@@ -70,7 +70,6 @@ export const Route = createFileRoute("/ar/$slug")({
 
 function ARViewer() {
   const { experience } = Route.useLoaderData();
-  const { mode } = Route.useSearch();
   const [started, setStarted] = useState(false);
   const [forceFallback, setForceFallback] = useState(false);
   const hasMarker = !!experience.marker_url;
@@ -85,10 +84,10 @@ function ARViewer() {
     })().catch(() => {});
   }, [hasMarker]);
 
-  // Plain video mode is only a fallback for experiences with no compiled marker.
-  if (mode === "video" && experience.media_url && !hasMarker) {
-    return <QRMediaPlayer experience={experience} />;
-  }
+  // NOTE: we never play the media directly on this route. AR mode always opens
+  // the camera (image tracking when a marker exists, plain camera preview otherwise).
+
+
 
 
   return (
