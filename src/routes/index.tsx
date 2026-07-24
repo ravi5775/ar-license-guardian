@@ -24,7 +24,8 @@ import {
 
 const HOME_TITLE = "Aether AR — Wedding AR Albums & Augmented Reality Photo Platform";
 const HOME_DESC =
-  "Aether AR turns printed photos into video. Wedding AR albums, AR greeting cards, AR business cards and AR invitations — one QR per album, no app install, one-time white-label licence.";
+  "Aether AR turns printed photos into video. Wedding AR albums, AR greeting cards, AR business cards and AR invitations — the photo itself is the marker, no QR printed on it, no app install, one-time white-label licence.";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
