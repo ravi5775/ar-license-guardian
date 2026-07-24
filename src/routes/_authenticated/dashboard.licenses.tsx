@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listLicenses, createLicense, setLicenseStatus } from "@/lib/licenses.functions";
 import { useState } from "react";
 import { toast } from "sonner";
+import { QueryState } from "@/components/QueryState";
 import { Plus, Copy, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/licenses")({
@@ -15,7 +16,7 @@ function LicensesPage() {
   const listFn = useServerFn(listLicenses);
   const createFn = useServerFn(createLicense);
   const statusFn = useServerFn(setLicenseStatus);
-  const { data: licenses = [] } = useQuery({
+  const { data: licenses = [], isLoading, error, refetch } = useQuery({
     queryKey: ["licenses"],
     queryFn: () => listFn(),
     staleTime: 60_000,
@@ -58,6 +59,10 @@ function LicensesPage() {
         >
           <Plus className="h-4 w-4" /> Issue license
         </button>
+      </div>
+
+      <div className="mb-6 empty:mb-0">
+        <QueryState isLoading={isLoading} error={error} onRetry={() => refetch()} label="licenses" />
       </div>
 
       <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden">

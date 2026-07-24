@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listAuditLog } from "@/lib/licenses.functions";
+import { QueryState } from "@/components/QueryState";
 
 export const Route = createFileRoute("/_authenticated/dashboard/audit")({
   component: AuditPage,
@@ -9,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/dashboard/audit")({
 
 function AuditPage() {
   const fn = useServerFn(listAuditLog);
-  const { data: rows = [] } = useQuery({
+  const { data: rows = [], isLoading, error, refetch } = useQuery({
     queryKey: ["audit"],
     queryFn: () => fn(),
     staleTime: 30_000,
@@ -19,6 +20,8 @@ function AuditPage() {
     <div className="p-8 max-w-6xl">
       <h1 className="text-3xl font-serif italic mb-1">Audit log</h1>
       <p className="text-sm text-muted-foreground mb-8">Recent admin actions across the platform.</p>
+
+      <QueryState isLoading={isLoading} error={error} onRetry={() => refetch()} label="audit log" />
 
       <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden">
         <table className="w-full text-sm">

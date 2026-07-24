@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listMyExperiences } from "@/lib/experiences.functions";
 import { Boxes, Eye, TrendingUp } from "lucide-react";
+import { QueryState } from "@/components/QueryState";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: Overview,
@@ -10,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
 
 function Overview() {
   const fn = useServerFn(listMyExperiences);
-  const { data: experiences = [] } = useQuery({
+  const { data: experiences = [], isLoading, error, refetch } = useQuery({
     queryKey: ["experiences"],
     queryFn: () => fn(),
     staleTime: 60_000,
@@ -30,6 +31,10 @@ function Overview() {
     <div className="p-4 md:p-8 max-w-6xl">
       <h1 className="text-3xl font-serif italic mb-1">Overview</h1>
       <p className="text-sm text-muted-foreground mb-8">Welcome back to your AR command center.</p>
+
+      <div className="mb-6 empty:mb-0">
+        <QueryState isLoading={isLoading} error={error} onRetry={() => refetch()} label="experiences" />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         {stats.map(({ label, value, icon: Icon }) => (
