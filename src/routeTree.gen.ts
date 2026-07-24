@@ -15,6 +15,7 @@ import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AugmentedRealityPhotoAlbumRouteImport } from './routes/augmented-reality-photo-album'
 import { Route as ArGreetingCardsRouteImport } from './routes/ar-greeting-cards'
+import { Route as ArBusinessCardsRouteImport } from './routes/ar-business-cards'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ArSlugRouteImport } from './routes/ar.$slug'
@@ -61,6 +62,11 @@ const AugmentedRealityPhotoAlbumRoute =
 const ArGreetingCardsRoute = ArGreetingCardsRouteImport.update({
   id: '/ar-greeting-cards',
   path: '/ar-greeting-cards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArBusinessCardsRoute = ArBusinessCardsRouteImport.update({
+  id: '/ar-business-cards',
+  path: '/ar-business-cards',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -155,6 +161,7 @@ const AuthenticatedDashboardAlbumsNewRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ar-business-cards': typeof ArBusinessCardsRoute
   '/ar-greeting-cards': typeof ArGreetingCardsRoute
   '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ar-business-cards': typeof ArBusinessCardsRoute
   '/ar-greeting-cards': typeof ArGreetingCardsRoute
   '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
@@ -202,6 +210,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/ar-business-cards': typeof ArBusinessCardsRoute
   '/ar-greeting-cards': typeof ArGreetingCardsRoute
   '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
@@ -227,6 +236,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ar-business-cards'
     | '/ar-greeting-cards'
     | '/augmented-reality-photo-album'
     | '/auth'
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ar-business-cards'
     | '/ar-greeting-cards'
     | '/augmented-reality-photo-album'
     | '/auth'
@@ -273,6 +284,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/ar-business-cards'
     | '/ar-greeting-cards'
     | '/augmented-reality-photo-album'
     | '/auth'
@@ -298,6 +310,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ArBusinessCardsRoute: typeof ArBusinessCardsRoute
   ArGreetingCardsRoute: typeof ArGreetingCardsRoute
   AugmentedRealityPhotoAlbumRoute: typeof AugmentedRealityPhotoAlbumRoute
   AuthRoute: typeof AuthRoute
@@ -351,6 +364,13 @@ declare module '@tanstack/react-router' {
       path: '/ar-greeting-cards'
       fullPath: '/ar-greeting-cards'
       preLoaderRoute: typeof ArGreetingCardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ar-business-cards': {
+      id: '/ar-business-cards'
+      path: '/ar-business-cards'
+      fullPath: '/ar-business-cards'
+      preLoaderRoute: typeof ArBusinessCardsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -518,6 +538,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ArBusinessCardsRoute: ArBusinessCardsRoute,
   ArGreetingCardsRoute: ArGreetingCardsRoute,
   AugmentedRealityPhotoAlbumRoute: AugmentedRealityPhotoAlbumRoute,
   AuthRoute: AuthRoute,
