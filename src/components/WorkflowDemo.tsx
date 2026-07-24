@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, QrCode, Printer, Camera, PlayCircle, ArrowRight } from "lucide-react";
 import { workflowMedia } from "@/lib/workflow-media";
+import { useIsDesktopViewport, useReducedMotionPref } from "@/hooks/use-motion-env";
+
+const WorkflowStage3D = lazy(() => import("./workflow/WorkflowStage3D"));
 
 type Stage = {
   key: string;
@@ -9,6 +13,7 @@ type Stage = {
   icon: typeof Upload;
   title: string;
   body: string;
+  hud: string;
 };
 
 const stages: Stage[] = [
@@ -18,6 +23,7 @@ const stages: Stage[] = [
     icon: Upload,
     title: "Drop the photo and its film",
     body: "Studio uploads each printed still plus the video that belongs to it — up to 20 photos per album.",
+    hud: "wedding-01.jpg + ceremony.mp4 · queued",
   },
   {
     key: "qr",
@@ -25,6 +31,7 @@ const stages: Stage[] = [
     icon: QrCode,
     title: "One .mind file for the whole album",
     body: "All photos compile into a single marker file in the browser. The photograph itself becomes the trigger — nothing is printed on it.",
+    hud: "album.mind · 20 targets · feature points extracted",
   },
   {
     key: "print",
@@ -32,6 +39,7 @@ const stages: Stage[] = [
     icon: Printer,
     title: "Print the album as-is",
     body: "No QR, no watermark, no border on any picture. Only the optional album card carries a link for guests who prefer scanning it.",
+    hud: "no QR on the print",
   },
   {
     key: "scan",
@@ -39,6 +47,7 @@ const stages: Stage[] = [
     icon: Camera,
     title: "Guest opens the site and points",
     body: "Camera opens in the browser, the printed photo is recognised in under a second on iOS Safari and Android Chrome.",
+    hud: "target found · 640ms",
   },
   {
     key: "play",
@@ -46,31 +55,34 @@ const stages: Stage[] = [
     icon: PlayCircle,
     title: "The memory plays in place",
     body: "Video locks onto the printed photo with playback controls, fit-to-screen and download.",
+    hud: "playing · fit to screen · download",
   },
 ];
 
-
 /**
- * Interactive end-to-end demo. Auto-advances, pauses on hover, and every step
- * is directly clickable — showing the real Aether flow with real media.
+ * Interactive end-to-end demo. On capable devices one printed photograph
+ * travels through all five steps inside a live WebGL stage; elsewhere the same
+ * story is told with contained stills and a video, no 3D loaded.
  */
 export function WorkflowDemo() {
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [webglFailed, setWebglFailed] = useState(false);
+  const stageRef = useRef(0);
+
+  const reduced = useReducedMotionPref();
+  const isDesktop = useIsDesktopViewport();
+  const use3D = isDesktop && !reduced && !webglFailed;
+
+  useEffect(() => {
+    stageRef.current = active;
+  }, [active]);
 
   useEffect(() => {
     if (paused) return;
-    const t = setTimeout(() => setActive((a) => (a + 1) % stages.length), 4200);
+    const t = setTimeout(() => setActive((a) => (a + 1) % stages.length), 4600);
     return () => clearTimeout(t);
   }, [active, paused]);
-
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (stages[active].key === "play") void v.play().catch(() => undefined);
-    else v.pause();
-  }, [active]);
 
   const stage = stages[active];
 
@@ -91,19 +103,26 @@ export function WorkflowDemo() {
 
         <div className="grid lg:grid-cols-[320px_1fr] gap-8">
           {/* Steps */}
-          <ol className="space-y-2">
+          <ol className="space-y-2" style={{ perspective: "900px" }}>
             {stages.map((s, i) => {
               const Icon = s.icon;
               const isActive = i === active;
               return (
                 <li key={s.key}>
-                  <button
+                  <motion.button
                     type="button"
                     onClick={() => setActive(i)}
                     aria-current={isActive}
-                    className={`w-full text-left rounded-xl border px-4 py-3 flex items-center gap-3 transition-colors ${
+                    animate={{
+                      rotateY: isActive ? 0 : -8,
+                      x: isActive ? 10 : 0,
+                      opacity: isActive ? 1 : 0.62,
+                    }}
+                    transition={{ type: "spring", stiffness: 220, damping: 26 }}
+                    style={{ transformStyle: "preserve-3d" }}
+                    className={`w-full text-left rounded-xl border px-4 py-3 flex items-center gap-3 ${
                       isActive
-                        ? "border-primary/50 bg-primary/10"
+                        ? "border-primary/50 bg-primary/10 shadow-[0_18px_40px_-24px_var(--color-primary)]"
                         : "border-border bg-surface hover:border-primary/30"
                     }`}
                   >
@@ -120,7 +139,7 @@ export function WorkflowDemo() {
                     <span className="ml-auto font-mono text-xs text-muted-foreground">
                       0{i + 1}
                     </span>
-                  </button>
+                  </motion.button>
                 </li>
               );
             })}
@@ -129,18 +148,44 @@ export function WorkflowDemo() {
           {/* Stage viewport */}
           <div className="rounded-2xl border border-border bg-surface-elevated overflow-hidden">
             <div className="relative aspect-[16/10] bg-background">
+              {use3D ? (
+                <Suspense fallback={<FlatStage stageKey={stage.key} />}>
+                  <ErrorFence onError={() => setWebglFailed(true)} stageKey={stage.key}>
+                    <WorkflowStage3D stage={stageRef} />
+                  </ErrorFence>
+                </Suspense>
+              ) : (
+                <FlatStage stageKey={stage.key} />
+              )}
+
+              {/* HUD */}
               <AnimatePresence mode="wait">
-                <motion.div
+                <motion.p
                   key={stage.key}
-                  initial={{ opacity: 0, scale: 1.02 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.45 }}
-                  className="absolute inset-0"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-background/85 border border-border px-3 py-1.5 font-mono text-xs text-muted-foreground whitespace-nowrap"
                 >
-                  <StageVisual stageKey={stage.key} videoRef={videoRef} />
-                </motion.div>
+                  {stage.hud}
+                </motion.p>
               </AnimatePresence>
+
+              {stage.key === "scan" && (
+                <div className="absolute inset-10 border-2 border-primary/60 rounded-xl animate-pulse pointer-events-none" />
+              )}
+
+              {/* progress rail */}
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-border/50">
+                <motion.div
+                  key={active}
+                  className="h-full bg-primary"
+                  initial={{ width: "0%" }}
+                  animate={{ width: paused ? "0%" : "100%" }}
+                  transition={{ duration: paused ? 0 : 4.6, ease: "linear" }}
+                />
+              </div>
             </div>
 
             <div className="p-6 border-t border-border/60 flex flex-wrap items-start gap-4 justify-between">
@@ -164,104 +209,81 @@ export function WorkflowDemo() {
   );
 }
 
-function StageVisual({
-  stageKey,
-  videoRef,
-}: {
-  stageKey: string;
-  videoRef: React.RefObject<HTMLVideoElement | null>;
-}) {
-  if (stageKey === "upload") {
-    return (
-      <div className="absolute inset-0 grid grid-cols-2 gap-3 p-6">
-        <img
-          src={workflowMedia.weddingPhoto}
-          alt="Wedding photo being uploaded to the Aether admin"
-          loading="lazy"
-          className="w-full h-full object-cover rounded-xl border border-border"
-        />
-        <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 flex flex-col items-center justify-center gap-2 text-center px-4">
-          <Upload className="w-6 h-6 text-primary" />
-          <p className="text-sm">wedding-01.jpg + ceremony.mp4</p>
-          <p className="font-mono text-xs text-muted-foreground">marker compiled · 0.8s</p>
-        </div>
-      </div>
-    );
-  }
+/** Non-WebGL story: the same photo, always contained (never cropped). */
+function FlatStage({ stageKey }: { stageKey: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  if (stageKey === "qr") {
-    return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-6 text-center">
-        <div className="grid grid-cols-4 gap-1.5">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <span
-              key={i}
-              className="w-10 h-10 rounded-md border border-primary/40 bg-primary/10"
-              style={{ opacity: 0.35 + (i % 4) * 0.18 }}
-            />
-          ))}
-        </div>
-        <div>
-          <p className="font-mono text-sm">album.mind · 20 targets</p>
-          <p className="font-mono text-xs text-muted-foreground mt-1">
-            feature points extracted — photos stay untouched
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (stageKey === "print") {
-    return (
-      <div className="absolute inset-0">
-        <img
-          src={workflowMedia.printedInvitation}
-          alt="Printed wedding album page with no QR code on the photograph"
-          loading="lazy"
-          className="w-full h-full object-cover"
-        />
-        <p className="absolute bottom-5 right-5 rounded-full bg-background/85 border border-border px-3 py-1.5 font-mono text-xs">
-          no QR on the print
-        </p>
-      </div>
-    );
-  }
-
-
-  if (stageKey === "scan") {
-    return (
-      <div className="absolute inset-0">
-        <img
-          src={workflowMedia.weddingPhotoLarge}
-          alt="Phone camera identifying the printed photograph"
-          loading="lazy"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-background/40" />
-        <div className="absolute inset-8 border-2 border-primary/70 rounded-xl animate-pulse" />
-        <p className="absolute bottom-5 left-1/2 -translate-x-1/2 font-mono text-xs bg-background/80 border border-border rounded-full px-3 py-1">
-          target found · 640ms
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (stageKey === "play") void v.play().catch(() => undefined);
+    else v.pause();
+  }, [stageKey]);
 
   return (
-    <div className="absolute inset-0">
-      <video
-        ref={videoRef}
-        src={workflowMedia.weddingVideo}
-        poster={workflowMedia.weddingVideoPoster}
-        muted
-        loop
-        playsInline
-        preload="metadata"
-        className="w-full h-full object-cover"
-      />
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full bg-background/85 border border-border px-3 py-1.5 text-xs">
-        <PlayCircle className="w-3.5 h-3.5 text-primary" />
-        playing · fit to screen · download
-      </div>
+    <div className="absolute inset-0 flex items-center justify-center p-6">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={stageKey}
+          initial={{ opacity: 0, rotateY: -12, scale: 0.96 }}
+          animate={{ opacity: 1, rotateY: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.5 }}
+          style={{ transformStyle: "preserve-3d" }}
+          className="relative max-w-full max-h-full"
+        >
+          {stageKey === "play" ? (
+            <video
+              ref={videoRef}
+              src={workflowMedia.weddingVideo}
+              poster={workflowMedia.weddingVideoPoster}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              className="max-h-[46vh] w-auto max-w-full object-contain rounded-xl border border-border"
+            />
+          ) : (
+            <img
+              src={
+                stageKey === "print" ? workflowMedia.printedInvitation : workflowMedia.weddingPhoto
+              }
+              alt="Printed wedding photograph moving through the Aether workflow"
+              loading="lazy"
+              className="max-h-[46vh] w-auto max-w-full object-contain rounded-xl border border-border"
+            />
+          )}
+          {stageKey === "qr" && (
+            <div className="absolute inset-0 grid grid-cols-6 gap-2 p-4 pointer-events-none">
+              {Array.from({ length: 18 }).map((_, i) => (
+                <span
+                  key={i}
+                  className="rounded-full bg-primary/70 w-1.5 h-1.5 self-center justify-self-center animate-pulse"
+                  style={{ animationDelay: `${i * 60}ms` }}
+                />
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
+}
+
+/** Keeps a WebGL/context failure from taking down the section. */
+class ErrorFence extends React.Component<
+  { children: React.ReactNode; onError: () => void; stageKey: string },
+  { failed: boolean }
+> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch() {
+    this.props.onError();
+  }
+  render() {
+    if (this.state.failed) return <FlatStage stageKey={this.props.stageKey} />;
+    return this.props.children;
+  }
 }
