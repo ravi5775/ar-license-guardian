@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Sparkles, LayoutDashboard, Boxes, Images, Key, ShieldCheck, LogOut, ScrollText } from "lucide-react";
+import { Sparkles, LayoutDashboard, Boxes, Images, Key, ShieldCheck, LogOut, ScrollText, BarChart3, Target } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
