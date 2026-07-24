@@ -13,6 +13,7 @@ import { Route as WeddingArAlbumsRouteImport } from './routes/wedding-ar-albums'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AugmentedRealityPhotoAlbumRouteImport } from './routes/augmented-reality-photo-album'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ArSlugRouteImport } from './routes/ar.$slug'
@@ -50,6 +51,12 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AugmentedRealityPhotoAlbumRoute =
+  AugmentedRealityPhotoAlbumRouteImport.update({
+    id: '/augmented-reality-photo-album',
+    path: '/augmented-reality-photo-album',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -142,6 +149,7 @@ const AuthenticatedDashboardAlbumsNewRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
@@ -163,6 +171,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
@@ -185,6 +194,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/augmented-reality-photo-album'
     | '/auth'
     | '/gallery'
     | '/scan'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/augmented-reality-photo-album'
     | '/auth'
     | '/gallery'
     | '/scan'
@@ -250,6 +262,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/augmented-reality-photo-album'
     | '/auth'
     | '/gallery'
     | '/scan'
@@ -273,6 +286,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AugmentedRealityPhotoAlbumRoute: typeof AugmentedRealityPhotoAlbumRoute
   AuthRoute: typeof AuthRoute
   GalleryRoute: typeof GalleryRoute
   ScanRoute: typeof ScanRoute
@@ -310,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/augmented-reality-photo-album': {
+      id: '/augmented-reality-photo-album'
+      path: '/augmented-reality-photo-album'
+      fullPath: '/augmented-reality-photo-album'
+      preLoaderRoute: typeof AugmentedRealityPhotoAlbumRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -477,6 +498,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AugmentedRealityPhotoAlbumRoute: AugmentedRealityPhotoAlbumRoute,
   AuthRoute: AuthRoute,
   GalleryRoute: GalleryRoute,
   ScanRoute: ScanRoute,
