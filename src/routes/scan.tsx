@@ -223,7 +223,7 @@ function QrScan() {
       if (rest.startsWith("album/")) {
         window.location.assign(`/ar/${rest}`);
       } else {
-        window.location.assign(`/ar/${encodeURIComponent(rest.split("/")[0])}?mode=video`);
+        window.location.assign(`/ar/${encodeURIComponent(rest.split("/")[0])}`);
       }
       return;
     }

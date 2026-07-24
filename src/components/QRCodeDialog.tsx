@@ -13,7 +13,7 @@ interface Props {
 export function QRCodeDialog({ slug, title, kind = "experience", onClose }: Props) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const path =
-    kind === "album" ? `/ar/album/${slug}` : `/ar/${slug}?mode=video`;
+    kind === "album" ? `/ar/album/${slug}` : `/ar/${slug}`;
   const url =
     typeof window !== "undefined" ? `${getPublicOrigin()}${path}` : path;
 

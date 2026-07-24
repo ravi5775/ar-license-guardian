@@ -70,7 +70,6 @@ export const Route = createFileRoute("/ar/$slug")({
 
 function ARViewer() {
   const { experience } = Route.useLoaderData();
-  const { mode } = Route.useSearch();
   const [started, setStarted] = useState(false);
   const [forceFallback, setForceFallback] = useState(false);
   const hasMarker = !!experience.marker_url;
@@ -85,10 +84,10 @@ function ARViewer() {
     })().catch(() => {});
   }, [hasMarker]);
 
-  // Plain video mode is only a fallback for experiences with no compiled marker.
-  if (mode === "video" && experience.media_url && !hasMarker) {
-    return <QRMediaPlayer experience={experience} />;
-  }
+  // NOTE: we never play the media directly on this route. AR mode always opens
+  // the camera (image tracking when a marker exists, plain camera preview otherwise).
+
+
 
 
   return (
@@ -147,7 +146,7 @@ function ARViewer() {
           </div>
         </div>
       ) : (
-        forceFallback
+        forceFallback || !hasMarker
           ? <PlainCameraFallback experience={experience} />
           : <ARStage experience={experience} />
       )}
@@ -155,40 +154,6 @@ function ARViewer() {
   );
 }
 
-function QRMediaPlayer({ experience }: { experience: any }) {
-  return (
-    <div className="fixed inset-0 bg-black text-white grid place-items-center">
-      <Link
-        to="/"
-        className="absolute top-4 left-4 z-20 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-xs hover:bg-white/20"
-      >
-        <ArrowLeft className="h-3 w-3" /> Home
-      </Link>
-      {experience.media_type === "video" ? (
-        <video
-          src={experience.media_url}
-          autoPlay={experience.autoplay !== false}
-          loop={experience.loop_playback !== false}
-          playsInline
-          muted
-          controls
-          preload="auto"
-          className="h-full w-full object-contain"
-        />
-      ) : (
-        <img src={experience.media_url} alt={experience.title} className="h-full w-full object-contain" />
-      )}
-      <Link
-        to="/ar/$slug"
-        params={{ slug: experience.slug }}
-        search={{ mode: undefined }}
-        className="absolute bottom-5 z-20 inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2.5 text-sm font-medium shadow-xl"
-      >
-        <Camera className="h-4 w-4" /> Open image-tracking AR
-      </Link>
-    </div>
-  );
-}
 
 // MindAR loads via CDN (its npm package pulls native gyp deps we don't need).
 // We inject the A-Frame + MindAR scripts once, then mount the scene.
