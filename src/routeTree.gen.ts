@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WeddingArAlbumsRouteImport } from './routes/wedding-ar-albums'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -29,6 +30,11 @@ import { Route as AuthenticatedDashboardAlbumsIndexRouteImport } from './routes/
 import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
 import { Route as AuthenticatedDashboardAlbumsNewRouteImport } from './routes/_authenticated/dashboard.albums.new'
 
+const WeddingArAlbumsRoute = WeddingArAlbumsRouteImport.update({
+  id: '/wedding-ar-albums',
+  path: '/wedding-ar-albums',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
   path: '/scan',
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
   '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
@@ -202,6 +211,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/wedding-ar-albums'
     | '/dashboard'
     | '/mfa'
     | '/ar/$slug'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/wedding-ar-albums'
     | '/mfa'
     | '/ar/$slug'
     | '/dashboard/activations'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/wedding-ar-albums'
     | '/_authenticated/dashboard'
     | '/_authenticated/mfa'
     | '/ar/$slug'
@@ -264,6 +276,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   GalleryRoute: typeof GalleryRoute
   ScanRoute: typeof ScanRoute
+  WeddingArAlbumsRoute: typeof WeddingArAlbumsRoute
   ArSlugRoute: typeof ArSlugRoute
   ArAlbumSlugRoute: typeof ArAlbumSlugRoute
   ApiPublicLicenseActivateRoute: typeof ApiPublicLicenseActivateRoute
@@ -271,6 +284,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wedding-ar-albums': {
+      id: '/wedding-ar-albums'
+      path: '/wedding-ar-albums'
+      fullPath: '/wedding-ar-albums'
+      preLoaderRoute: typeof WeddingArAlbumsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scan': {
       id: '/scan'
       path: '/scan'
@@ -460,6 +480,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   GalleryRoute: GalleryRoute,
   ScanRoute: ScanRoute,
+  WeddingArAlbumsRoute: WeddingArAlbumsRoute,
   ArSlugRoute: ArSlugRoute,
   ArAlbumSlugRoute: ArAlbumSlugRoute,
   ApiPublicLicenseActivateRoute: ApiPublicLicenseActivateRoute,
