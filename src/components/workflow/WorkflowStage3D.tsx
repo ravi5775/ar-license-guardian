@@ -57,15 +57,24 @@ function StageContent({ stage }: { stage: StageRef }) {
     return () => window.removeEventListener("pointermove", onMove);
   }, []);
 
-  /** Contain-fit the photo plane inside the canvas so it never crops or overflows. */
+  /**
+   * Contain-fit the photo plane inside the canvas so it never crops or overflows.
+   * The budget accounts for the largest pose (scale 1.12 pushed to z 0.45, which
+   * magnifies by camera_z / (camera_z - z)) plus the tilt/parallax swing, so even
+   * the most aggressive stage keeps the whole frame — and every face — visible.
+   */
   const { w, h } = useMemo(() => {
     const img = photo.image as { width?: number; height?: number } | undefined;
     const aspect = img?.width && img?.height ? img.width / img.height : 3 / 2;
-    const maxH = viewport.height * 0.72;
-    const maxW = viewport.width * 0.72;
+    const maxPoseScale = 1.12 * (3.1 / (3.1 - 0.45)); // ≈1.31
+    const tiltHeadroom = 1.1;
+    const budget = 0.86 / (maxPoseScale * tiltHeadroom); // ≈0.6 of the viewport
+    const maxH = viewport.height * budget;
+    const maxW = viewport.width * budget;
     const height = Math.min(maxH, maxW / aspect);
     return { w: height * aspect, h: height };
   }, [photo, viewport.width, viewport.height]);
+
 
   /** Marker feature points scattered across the photo surface. */
   const featureGeom = useMemo(() => {

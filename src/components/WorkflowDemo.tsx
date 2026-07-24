@@ -172,9 +172,22 @@ export function WorkflowDemo() {
                 </motion.p>
               </AnimatePresence>
 
+              {/* Permanent reminder: prints never carry a code */}
+              <div
+                className={`absolute top-4 left-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs pointer-events-none transition-colors ${
+                  stage.key === "qr" || stage.key === "print"
+                    ? "border-primary/60 bg-primary/15 text-primary"
+                    : "border-border bg-background/80 text-muted-foreground"
+                }`}
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                No QR printed on the photo
+              </div>
+
               {stage.key === "scan" && (
                 <div className="absolute inset-10 border-2 border-primary/60 rounded-xl animate-pulse pointer-events-none" />
               )}
+
 
               {/* progress rail */}
               <div className="absolute top-0 left-0 right-0 h-0.5 bg-border/50">
@@ -221,7 +234,7 @@ function FlatStage({ stageKey }: { stageKey: string }) {
   }, [stageKey]);
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center p-6">
+    <div className="absolute inset-0 flex items-center justify-center p-8 pt-14">
       <AnimatePresence mode="wait">
         <motion.div
           key={stageKey}
@@ -230,7 +243,7 @@ function FlatStage({ stageKey }: { stageKey: string }) {
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.5 }}
           style={{ transformStyle: "preserve-3d" }}
-          className="relative max-w-full max-h-full"
+          className="relative h-full w-full"
         >
           {stageKey === "play" ? (
             <video
@@ -241,7 +254,7 @@ function FlatStage({ stageKey }: { stageKey: string }) {
               loop
               playsInline
               preload="metadata"
-              className="max-h-[46vh] w-auto max-w-full object-contain rounded-xl border border-border"
+              className="h-full w-full object-contain rounded-xl"
             />
           ) : (
             <img
@@ -250,9 +263,10 @@ function FlatStage({ stageKey }: { stageKey: string }) {
               }
               alt="Printed wedding photograph moving through the Aether workflow"
               loading="lazy"
-              className="max-h-[46vh] w-auto max-w-full object-contain rounded-xl border border-border"
+              className="h-full w-full object-contain rounded-xl"
             />
           )}
+
           {stageKey === "qr" && (
             <div className="absolute inset-0 grid grid-cols-6 gap-2 p-4 pointer-events-none">
               {Array.from({ length: 18 }).map((_, i) => (

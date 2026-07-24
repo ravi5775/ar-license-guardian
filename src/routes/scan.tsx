@@ -13,6 +13,8 @@ import {
   ScanLine,
 } from "lucide-react";
 import { listPublicAlbums } from "@/lib/albums.functions";
+import { ScanTroubleshooting } from "@/components/ScanTroubleshooting";
+
 
 export const Route = createFileRoute("/scan")({
   head: () => ({
@@ -63,9 +65,13 @@ function ScanPage() {
       </div>
 
       {mode === "photo" ? <PhotoScan /> : <QrScan />}
+
+      {mode === "qr" && <ScanTroubleshooting variant="overlay" />}
     </div>
   );
 }
+
+
 
 /**
  * QR-free entry: pick the album (auto-selected when there is only one),
@@ -92,18 +98,28 @@ function PhotoScan() {
   }, [albums]);
 
   return (
-    <div className="min-h-screen grid place-items-center p-8">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
+    <div className="min-h-screen p-8 pt-20">
+      <div className="mx-auto w-full max-w-md">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 mb-4">
             <Images className="h-6 w-6" />
           </div>
           <h1 className="text-2xl mb-2">Scan the photo itself</h1>
           <p className="text-sm text-white/60">
-            Nothing is printed on your photos. Choose the album, point your camera
-            at any picture in it, and its video plays on the print.
+            Choose the album, point your camera at any picture in it, and its
+            video plays on the print.
           </p>
         </div>
+
+        <p className="mb-8 flex items-start gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 text-xs text-white/85">
+          <QrCode className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <span>
+            <strong className="font-semibold">No QR code is ever printed on your photos.</strong>{" "}
+            The picture itself is the marker — prints stay clean, no codes, borders
+            or watermarks.
+          </span>
+        </p>
+
 
         {isLoading && (
           <p className="text-center text-sm text-white/50">Loading albums…</p>
@@ -135,7 +151,10 @@ function PhotoScan() {
             </li>
           ))}
         </ul>
+
+        <ScanTroubleshooting />
       </div>
+
     </div>
   );
 }
