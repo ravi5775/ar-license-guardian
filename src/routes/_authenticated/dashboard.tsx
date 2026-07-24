@@ -41,6 +41,8 @@ function DashboardLayout() {
     { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
     { to: "/dashboard/experiences", label: "AR Experiences", icon: Boxes },
     { to: "/dashboard/albums", label: "Albums", icon: Images },
+    { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+    { to: "/dashboard/marker-tests", label: "Marker Testing", icon: Target },
     ...(isAdmin
       ? [
           { to: "/dashboard/licenses", label: "Licenses", icon: Key },
@@ -49,6 +51,7 @@ function DashboardLayout() {
         ]
       : []),
   ];
+
 
   return (
     <div className="min-h-screen bg-background text-foreground grid grid-rows-[auto_1fr] md:grid-rows-1 md:grid-cols-[240px_1fr]">
