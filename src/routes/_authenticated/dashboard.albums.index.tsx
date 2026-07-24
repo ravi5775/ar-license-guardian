@@ -60,60 +60,64 @@ function AlbumsPage() {
         any photo in the album to play that photo's video.
       </p>
 
-      <QueryState query={query}>
-        {(albums: any[]) =>
-          albums.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border/60 p-10 text-center text-sm text-muted-foreground">
-              <Images className="h-6 w-6 mx-auto mb-3 opacity-60" />
-              No albums yet. Create one to generate a single album QR code.
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {albums.map((a) => (
-                <div
-                  key={a.id}
-                  className="rounded-xl border border-border/60 bg-card/40 p-4 flex flex-wrap items-center gap-3"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">{a.title}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      /ar/album/{a.slug} · {a.target_count} photo
-                      {a.target_count === 1 ? "" : "s"}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() =>
-                      pubMut.mutate({ id: a.id, published: !a.published })
-                    }
-                    className={`rounded-full px-3 py-1 text-xs border ${
-                      a.published
-                        ? "border-primary/40 text-primary bg-primary/10"
-                        : "border-border text-muted-foreground"
-                    }`}
-                  >
-                    {a.published ? "Published" : "Draft"}
-                  </button>
-                  <button
-                    onClick={() => setQr({ slug: a.slug, title: a.title })}
-                    className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-accent"
-                  >
-                    <QrCode className="h-3.5 w-3.5" /> QR
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm(`Delete "${a.title}" and its photos?`))
-                        delMut.mutate(a.id);
-                    }}
-                    className="inline-flex items-center gap-2 rounded-md border border-destructive/40 text-destructive px-3 py-1.5 text-xs hover:bg-destructive/10"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+      <QueryState
+        isLoading={query.isPending}
+        error={query.error}
+        onRetry={() => query.refetch()}
+        label="albums"
+      />
+
+      {query.data &&
+        (query.data.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border/60 p-10 text-center text-sm text-muted-foreground">
+            <Images className="h-6 w-6 mx-auto mb-3 opacity-60" />
+            No albums yet. Create one to generate a single album QR code.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {query.data.map((a) => (
+              <div
+                key={a.id}
+                className="rounded-xl border border-border/60 bg-card/40 p-4 flex flex-wrap items-center gap-3"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{a.title}</p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    /ar/album/{a.slug} · {a.target_count} photo
+                    {a.target_count === 1 ? "" : "s"}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )
-        }
-      </QueryState>
+                <button
+                  onClick={() =>
+                    pubMut.mutate({ id: a.id, published: !a.published })
+                  }
+                  className={`rounded-full px-3 py-1 text-xs border ${
+                    a.published
+                      ? "border-primary/40 text-primary bg-primary/10"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {a.published ? "Published" : "Draft"}
+                </button>
+                <button
+                  onClick={() => setQr({ slug: a.slug, title: a.title })}
+                  className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-accent"
+                >
+                  <QrCode className="h-3.5 w-3.5" /> QR
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm(`Delete "${a.title}" and its photos?`))
+                      delMut.mutate(a.id);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-md border border-destructive/40 text-destructive px-3 py-1.5 text-xs hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        ))}
 
       {qr && (
         <QRCodeDialog
