@@ -372,6 +372,14 @@ function ExperienceModal({
             <input type="checkbox" checked={value.published} onChange={(e) => set("published", e.target.checked)} />
             Published (visible to public)
           </label>
+          {errorText && (
+            <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
+              <div className="text-sm font-medium text-destructive">Save failed</div>
+              <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words text-xs text-destructive/90">
+                {errorText}
+              </pre>
+            </div>
+          )}
           <div className="flex justify-end gap-2 pt-4 border-t border-border/60">
             <button type="button" onClick={onCancel} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-accent">
               Cancel
