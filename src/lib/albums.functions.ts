@@ -180,3 +180,25 @@ export const getPublicAlbum = createServerFn({ method: "GET" })
       targets: signedTargets,
     };
   });
+
+/**
+ * Public directory of published albums — powers the QR-free "open the site and
+ * point at the photo" entry point. Returns only non-sensitive display fields.
+ */
+export const listPublicAlbums = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const sb = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_PUBLISHABLE_KEY!,
+      { auth: { persistSession: false, autoRefreshToken: false, storage: undefined } },
+    );
+    const { data } = await sb
+      .from("albums")
+      .select("slug, title, target_count, created_at")
+      .eq("published", true)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    return data ?? [];
+  },
+);
+

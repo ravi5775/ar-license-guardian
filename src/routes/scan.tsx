@@ -1,13 +1,28 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
-import { ArrowLeft, Camera, ExternalLink, RotateCcw } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  ExternalLink,
+  Images,
+  QrCode,
+  RotateCcw,
+  ScanLine,
+} from "lucide-react";
+import { listPublicAlbums } from "@/lib/albums.functions";
 
 export const Route = createFileRoute("/scan")({
   head: () => ({
     meta: [
-      { title: "Scan QR — Aether AR" },
-      { name: "description", content: "Point your camera at an Aether AR QR code to launch the experience." },
+      { title: "Scan a photo — Aether AR" },
+      {
+        name: "description",
+        content:
+          "Open Aether, point your camera at a printed photo and the matching video plays. No QR printed on the photo, no app install.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -15,6 +30,118 @@ export const Route = createFileRoute("/scan")({
 });
 
 function ScanPage() {
+  const [mode, setMode] = useState<"photo" | "qr">("photo");
+
+  return (
+    <div className="min-h-screen bg-black text-white relative overflow-hidden">
+      <Link
+        to="/"
+        className="absolute top-4 left-4 z-30 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-xs hover:bg-white/20"
+      >
+        <ArrowLeft className="h-3 w-3" /> Home
+      </Link>
+
+      <div className="absolute top-4 right-4 z-30 flex rounded-full bg-white/10 backdrop-blur p-1 text-xs">
+        <button
+          type="button"
+          onClick={() => setMode("photo")}
+          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 ${
+            mode === "photo" ? "bg-white text-black" : "hover:bg-white/10"
+          }`}
+        >
+          <ScanLine className="h-3 w-3" /> Photo
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("qr")}
+          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 ${
+            mode === "qr" ? "bg-white text-black" : "hover:bg-white/10"
+          }`}
+        >
+          <QrCode className="h-3 w-3" /> QR link
+        </button>
+      </div>
+
+      {mode === "photo" ? <PhotoScan /> : <QrScan />}
+    </div>
+  );
+}
+
+/**
+ * QR-free entry: pick the album (auto-selected when there is only one),
+ * then hand off to the multi-target .mind viewer which recognises the
+ * printed photograph itself.
+ */
+function PhotoScan() {
+  const fetchAlbums = useServerFn(listPublicAlbums);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["public-albums"],
+    queryFn: () => fetchAlbums(),
+  });
+
+  const albums = data ?? [];
+
+  useEffect(() => {
+    if (albums.length === 1) {
+      const t = setTimeout(
+        () => window.location.assign(`/ar/album/${encodeURIComponent(albums[0].slug)}`),
+        600,
+      );
+      return () => clearTimeout(t);
+    }
+  }, [albums]);
+
+  return (
+    <div className="min-h-screen grid place-items-center p-8">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 mb-4">
+            <Images className="h-6 w-6" />
+          </div>
+          <h1 className="text-2xl mb-2">Scan the photo itself</h1>
+          <p className="text-sm text-white/60">
+            Nothing is printed on your photos. Choose the album, point your camera
+            at any picture in it, and its video plays on the print.
+          </p>
+        </div>
+
+        {isLoading && (
+          <p className="text-center text-sm text-white/50">Loading albums…</p>
+        )}
+        {error && (
+          <p className="text-center text-sm text-white/60">
+            Couldn't load albums. Reload and try again.
+          </p>
+        )}
+        {!isLoading && !error && albums.length === 0 && (
+          <p className="text-center text-sm text-white/60">
+            No published albums yet. Ask your studio for the album link.
+          </p>
+        )}
+
+        <ul className="space-y-2">
+          {albums.map((a) => (
+            <li key={a.slug}>
+              <a
+                href={`/ar/album/${encodeURIComponent(a.slug)}`}
+                className="flex items-center gap-3 rounded-xl border border-white/15 bg-white/5 px-4 py-3 hover:bg-white/10"
+              >
+                <Camera className="h-4 w-4 opacity-70" />
+                <span className="text-sm">{a.title}</span>
+                <span className="ml-auto font-mono text-xs text-white/50">
+                  {a.target_count ?? 0} photos
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/** Optional QR path — used for album share cards, never printed on photos. */
+function QrScan() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +164,7 @@ function ScanPage() {
           videoRef.current!,
           (result, _err, ctl) => {
             if (!result) return;
-            const text = result.getText();
-            handleDecoded(text, ctl);
+            handleDecoded(result.getText(), ctl);
           },
         );
         if (cancelled) controls.stop();
@@ -60,13 +186,11 @@ function ScanPage() {
     try {
       url = new URL(text);
     } catch {
-      // Non-URL payload; show raw text as confirm
       ctl.stop();
       setPending(text);
       return;
     }
 
-    // Any Aether AR link — route locally so scanning never pauses for confirmation.
     const isAetherHost = [
       window.location.hostname,
       "aetherphoto.shop",
@@ -75,96 +199,87 @@ function ScanPage() {
     ].includes(url.hostname);
     if (isAetherHost && url.pathname.startsWith("/ar/")) {
       ctl.stop();
-      const slug = url.pathname.replace(/^\/ar\//, "").split("/")[0];
+      const rest = url.pathname.replace(/^\/ar\//, "");
       // A full navigation releases the scanner camera before MindAR requests it.
-      window.location.assign(`/ar/${encodeURIComponent(slug)}?mode=video`);
+      if (rest.startsWith("album/")) {
+        window.location.assign(`/ar/${rest}`);
+      } else {
+        window.location.assign(`/ar/${encodeURIComponent(rest.split("/")[0])}?mode=video`);
+      }
       return;
     }
 
-    // Anything else — confirm before opening
     ctl.stop();
     setPending(url.toString());
   }
 
-  function reset() {
-    setPending(null);
-    // Re-mount effect by hard reload of the reader
-    window.location.reload();
+  if (error) {
+    return (
+      <div className="min-h-screen grid place-items-center p-8 text-center">
+        <div className="max-w-sm">
+          <Camera className="h-10 w-10 mx-auto mb-4 opacity-70" />
+          <p className="text-lg mb-2">Can't open camera</p>
+          <p className="text-sm text-white/60 mb-6">{error}</p>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-full bg-white text-black px-4 py-2 text-sm"
+          >
+            Back home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (pending) {
+    return (
+      <div className="min-h-screen grid place-items-center p-8 text-center">
+        <div className="max-w-md w-full">
+          <p className="text-xs uppercase tracking-wider text-white/50 mb-2">QR detected</p>
+          <p className="text-sm break-all bg-white/5 rounded-lg p-4 mb-6">{pending}</p>
+          <div className="flex gap-2 justify-center">
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/10"
+            >
+              <RotateCcw className="h-3.5 w-3.5" /> Scan again
+            </button>
+            {pending.startsWith("http") && (
+              <a
+                href={pending}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-white text-black px-4 py-2 text-sm"
+              >
+                <ExternalLink className="h-3.5 w-3.5" /> Open link
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white relative overflow-hidden">
-      <Link
-        to="/"
-        className="absolute top-4 left-4 z-30 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-xs hover:bg-white/20"
-      >
-        <ArrowLeft className="h-3 w-3" /> Home
-      </Link>
-
-      {error ? (
-        <div className="min-h-screen grid place-items-center p-8 text-center">
-          <div className="max-w-sm">
-            <Camera className="h-10 w-10 mx-auto mb-4 opacity-70" />
-            <p className="text-lg mb-2">Can't open camera</p>
-            <p className="text-sm text-white/60 mb-6">{error}</p>
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 rounded-full bg-white text-black px-4 py-2 text-sm"
-            >
-              Back home
-            </Link>
-          </div>
+    <>
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 grid place-items-center pointer-events-none">
+        <div className="relative w-64 h-64">
+          <div className="absolute inset-0 border-2 border-white/30 rounded-2xl" />
+          <div className="absolute inset-0 border-t-2 border-primary rounded-2xl animate-pulse" />
         </div>
-      ) : pending ? (
-        <div className="min-h-screen grid place-items-center p-8 text-center">
-          <div className="max-w-md w-full">
-            <p className="text-xs uppercase tracking-wider text-white/50 mb-2">
-              QR detected
-            </p>
-            <p className="text-sm break-all bg-white/5 rounded-lg p-4 mb-6">
-              {pending}
-            </p>
-            <div className="flex gap-2 justify-center">
-              <button
-                onClick={reset}
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-sm hover:bg-white/10"
-              >
-                <RotateCcw className="h-3.5 w-3.5" /> Scan again
-              </button>
-              {pending.startsWith("http") && (
-                <a
-                  href={pending}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full bg-white text-black px-4 py-2 text-sm"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" /> Open link
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <>
-          <video
-            ref={videoRef}
-            playsInline
-            muted
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          {/* Scan viewfinder */}
-          <div className="absolute inset-0 grid place-items-center pointer-events-none">
-            <div className="relative w-64 h-64">
-              <div className="absolute inset-0 border-2 border-white/30 rounded-2xl" />
-              <div className="absolute inset-0 border-t-2 border-primary rounded-2xl animate-pulse" />
-            </div>
-          </div>
-          <div className="absolute bottom-8 inset-x-0 text-center">
-            <p className="text-sm text-white/80">Point at an Aether QR code</p>
-            <p className="text-xs text-white/50 mt-1">Scanning automatically…</p>
-          </div>
-        </>
-      )}
-    </div>
+      </div>
+      <div className="absolute bottom-8 inset-x-0 text-center">
+        <p className="text-sm text-white/80">Point at an Aether album QR card</p>
+        <p className="text-xs text-white/50 mt-1">
+          Photos themselves never carry a QR — switch to Photo mode for those.
+        </p>
+      </div>
+    </>
   );
 }

@@ -24,7 +24,8 @@ import {
 
 const HOME_TITLE = "Aether AR — Wedding AR Albums & Augmented Reality Photo Platform";
 const HOME_DESC =
-  "Aether AR turns printed photos into video. Wedding AR albums, AR greeting cards, AR business cards and AR invitations — one QR per album, no app install, one-time white-label licence.";
+  "Aether AR turns printed photos into video. Wedding AR albums, AR greeting cards, AR business cards and AR invitations — the photo itself is the marker, no QR printed on it, no app install, one-time white-label licence.";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -118,7 +119,7 @@ function Nav() {
           <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
           <a href="#features" className="hover:text-foreground transition-colors">Features</a>
           <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
-          <Link to="/scan" className="hover:text-foreground transition-colors inline-flex items-center gap-1"><ScanLine className="w-3.5 h-3.5" />Scan QR</Link>
+          <Link to="/scan" className="hover:text-foreground transition-colors inline-flex items-center gap-1"><ScanLine className="w-3.5 h-3.5" />Scan a photo</Link>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -187,9 +188,10 @@ function Hero() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-8 text-lg text-muted-foreground max-w-xl leading-relaxed"
         >
-          Scan a printed QR, watch the photo come alive as video, 3D, or AR
-          overlay. Sold once. Deployed to your own Cloudflare + Supabase.
-          Owned by you, forever.
+          Open the site, point at a printed photo, and it comes alive as video
+          or AR — no QR on the picture, no app install. Sold once. Deployed to
+          your own Cloudflare + Supabase. Owned by you, forever.
+
         </motion.p>
 
         <motion.div
@@ -210,7 +212,7 @@ function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-6 py-3 text-sm font-medium hover:bg-surface transition-colors"
           >
             <ScanLine className="w-4 h-4" />
-            Scan a QR
+            Scan a photo
           </Link>
           <a
             href="#demo"
@@ -262,20 +264,21 @@ function HowItWorks() {
       n: "01",
       icon: Wand2,
       title: "Upload the moment",
-      body: "Your client drops in a photo, video, or 3D asset. The admin generates a printable QR bound to that scene.",
+      body: "Your client drops in each photo with the video that belongs to it. The admin compiles one .mind marker file for the album.",
     },
     {
       n: "02",
       icon: QrCode,
-      title: "Print the trigger",
-      body: "The QR goes on the wedding invite, the museum plaque, the album page — anywhere physical.",
+      title: "Print the photos clean",
+      body: "Nothing is printed on the pictures — the photograph itself is the marker. An optional album card carries the link for guests.",
     },
     {
       n: "03",
       icon: Camera,
-      title: "Guest scans, AR plays",
-      body: "Phone camera opens the scene in the browser. No app install. Works on iOS Safari and Android Chrome.",
+      title: "Point the phone, AR plays",
+      body: "Guest opens the site, points at any printed photo, and the matching video locks onto it. No app install. iOS Safari and Android Chrome.",
     },
+
   ];
 
   return (

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, QrCode, Printer, Camera, PlayCircle, ArrowRight } from "lucide-react";
-import { workflowMedia, demoScanUrl } from "@/lib/workflow-media";
+import { workflowMedia } from "@/lib/workflow-media";
 
 type Stage = {
   key: string;
@@ -17,37 +17,38 @@ const stages: Stage[] = [
     label: "Upload",
     icon: Upload,
     title: "Drop the photo and its film",
-    body: "Studio uploads the printed still plus the video that belongs to it. Aether compiles the marker in the browser.",
+    body: "Studio uploads each printed still plus the video that belongs to it — up to 20 photos per album.",
   },
   {
     key: "qr",
-    label: "Generate QR",
+    label: "Compile marker",
     icon: QrCode,
-    title: "One QR for the whole album",
-    body: "Every photo in the album is bound to a single scannable code — no per-page codes, no app install.",
+    title: "One .mind file for the whole album",
+    body: "All photos compile into a single marker file in the browser. The photograph itself becomes the trigger — nothing is printed on it.",
   },
   {
     key: "print",
-    label: "Print",
+    label: "Print clean",
     icon: Printer,
-    title: "Print the trigger",
-    body: "The QR lands on the invitation, album page, card or plaque. Paper becomes the interface.",
+    title: "Print the album as-is",
+    body: "No QR, no watermark, no border on any picture. Only the optional album card carries a link for guests who prefer scanning it.",
   },
   {
     key: "scan",
-    label: "Scan",
+    label: "Point camera",
     icon: Camera,
-    title: "Guest points their phone",
-    body: "Camera opens in the browser, the photo is identified in under a second on iOS Safari and Android Chrome.",
+    title: "Guest opens the site and points",
+    body: "Camera opens in the browser, the printed photo is recognised in under a second on iOS Safari and Android Chrome.",
   },
   {
     key: "play",
     label: "AR plays",
     icon: PlayCircle,
     title: "The memory plays in place",
-    body: "Video locks to the printed photo with playback controls, fit-to-screen and download.",
+    body: "Video locks onto the printed photo with playback controls, fit-to-screen and download.",
   },
 ];
+
 
 /**
  * Interactive end-to-end demo. Auto-advances, pauses on hover, and every step
@@ -190,18 +191,22 @@ function StageVisual({
 
   if (stageKey === "qr") {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-        <div className="p-4 rounded-2xl bg-foreground">
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=0&data=${encodeURIComponent(demoScanUrl)}`}
-            alt="QR code linking to a demo Aether AR album"
-            loading="lazy"
-            width={180}
-            height={180}
-            className="w-[180px] h-[180px]"
-          />
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-6 text-center">
+        <div className="grid grid-cols-4 gap-1.5">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <span
+              key={i}
+              className="w-10 h-10 rounded-md border border-primary/40 bg-primary/10"
+              style={{ opacity: 0.35 + (i % 4) * 0.18 }}
+            />
+          ))}
         </div>
-        <p className="font-mono text-xs text-muted-foreground">1 QR · 20 photos · 1 album</p>
+        <div>
+          <p className="font-mono text-sm">album.mind · 20 targets</p>
+          <p className="font-mono text-xs text-muted-foreground mt-1">
+            feature points extracted — photos stay untouched
+          </p>
+        </div>
       </div>
     );
   }
@@ -211,16 +216,17 @@ function StageVisual({
       <div className="absolute inset-0">
         <img
           src={workflowMedia.printedInvitation}
-          alt="Printed wedding album page carrying the AR QR code"
+          alt="Printed wedding album page with no QR code on the photograph"
           loading="lazy"
           className="w-full h-full object-cover"
         />
-        <div className="absolute bottom-5 right-5 bg-background/90 border border-border rounded-lg p-2">
-          <QrCode className="w-10 h-10 text-foreground" />
-        </div>
+        <p className="absolute bottom-5 right-5 rounded-full bg-background/85 border border-border px-3 py-1.5 font-mono text-xs">
+          no QR on the print
+        </p>
       </div>
     );
   }
+
 
   if (stageKey === "scan") {
     return (
