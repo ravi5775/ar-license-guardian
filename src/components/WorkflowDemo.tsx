@@ -254,7 +254,7 @@ function FlatStage({ stageKey }: { stageKey: string }) {
               loop
               playsInline
               preload="metadata"
-              className="max-h-[46vh] w-auto max-w-full object-contain rounded-xl border border-border"
+              className="max-h-[46vh] max-h-full w-auto max-w-full object-contain rounded-xl border border-border"
             />
           ) : (
             <img
@@ -263,7 +263,7 @@ function FlatStage({ stageKey }: { stageKey: string }) {
               }
               alt="Printed wedding photograph moving through the Aether workflow"
               loading="lazy"
-              className="max-h-[46vh] w-auto max-w-full object-contain rounded-xl border border-border"
+              className="max-h-[46vh] max-h-full w-auto max-w-full object-contain rounded-xl border border-border"
             />
           )}
           {stageKey === "qr" && (
