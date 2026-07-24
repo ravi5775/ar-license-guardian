@@ -17,37 +17,38 @@ const stages: Stage[] = [
     label: "Upload",
     icon: Upload,
     title: "Drop the photo and its film",
-    body: "Studio uploads the printed still plus the video that belongs to it. Aether compiles the marker in the browser.",
+    body: "Studio uploads each printed still plus the video that belongs to it — up to 20 photos per album.",
   },
   {
     key: "qr",
-    label: "Generate QR",
+    label: "Compile marker",
     icon: QrCode,
-    title: "One QR for the whole album",
-    body: "Every photo in the album is bound to a single scannable code — no per-page codes, no app install.",
+    title: "One .mind file for the whole album",
+    body: "All photos compile into a single marker file in the browser. The photograph itself becomes the trigger — nothing is printed on it.",
   },
   {
     key: "print",
-    label: "Print",
+    label: "Print clean",
     icon: Printer,
-    title: "Print the trigger",
-    body: "The QR lands on the invitation, album page, card or plaque. Paper becomes the interface.",
+    title: "Print the album as-is",
+    body: "No QR, no watermark, no border on any picture. Only the optional album card carries a link for guests who prefer scanning it.",
   },
   {
     key: "scan",
-    label: "Scan",
+    label: "Point camera",
     icon: Camera,
-    title: "Guest points their phone",
-    body: "Camera opens in the browser, the photo is identified in under a second on iOS Safari and Android Chrome.",
+    title: "Guest opens the site and points",
+    body: "Camera opens in the browser, the printed photo is recognised in under a second on iOS Safari and Android Chrome.",
   },
   {
     key: "play",
     label: "AR plays",
     icon: PlayCircle,
     title: "The memory plays in place",
-    body: "Video locks to the printed photo with playback controls, fit-to-screen and download.",
+    body: "Video locks onto the printed photo with playback controls, fit-to-screen and download.",
   },
 ];
+
 
 /**
  * Interactive end-to-end demo. Auto-advances, pauses on hover, and every step
