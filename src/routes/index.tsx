@@ -17,9 +17,44 @@ import {
   LogIn,
 } from "lucide-react";
 
+const HOME_TITLE = "Aether AR — Wedding AR Albums & Augmented Reality Photo Platform";
+const HOME_DESC =
+  "Aether AR turns printed photos into video. Wedding AR albums, AR greeting cards, AR business cards and AR invitations — one QR per album, no app install, one-time white-label licence.";
+
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: HOME_TITLE },
+      { name: "description", content: HOME_DESC },
+      { name: "keywords", content: "wedding ar album, augmented reality photo album, ar photo app, ar greeting card, ar business card, ar wedding invitation, ar photo platform" },
+      { property: "og:title", content: HOME_TITLE },
+      { property: "og:description", content: HOME_DESC },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://aetherphoto.shop/" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: HOME_TITLE },
+      { name: "twitter:description", content: HOME_DESC },
+    ],
+    links: [{ rel: "canonical", href: "https://aetherphoto.shop/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "Aether AR",
+          applicationCategory: "MultimediaApplication",
+          operatingSystem: "Web",
+          description: HOME_DESC,
+          url: "https://aetherphoto.shop/",
+        }),
+      },
+    ],
+  }),
   component: LandingPage,
 });
+
+
 
 
 function LandingPage() {
@@ -493,6 +528,19 @@ function FinalCTA() {
 function Footer() {
   return (
     <footer className="px-6 py-10 border-t border-border/40">
+      <div className="mx-auto max-w-7xl mb-8">
+        <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">
+          AR use cases
+        </h2>
+        <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+          <Link to="/wedding-ar-albums" className="hover:text-primary">Wedding AR albums</Link>
+          <Link to="/augmented-reality-photo-album" className="hover:text-primary">Augmented reality photo album</Link>
+          <Link to="/ar-greeting-cards" className="hover:text-primary">AR greeting cards</Link>
+          <Link to="/ar-business-cards" className="hover:text-primary">AR business cards</Link>
+          <Link to="/ar-wedding-invitations" className="hover:text-primary">AR wedding invitations</Link>
+          <Link to="/gallery" className="hover:text-primary">Gallery</Link>
+        </nav>
+      </div>
       <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center">
@@ -500,6 +548,7 @@ function Footer() {
           </div>
           <span className="font-display text-sm">Aether.</span>
         </div>
+
         <p className="text-xs text-muted-foreground font-mono">
           © {new Date().getFullYear()} · Built for people who ship.
         </p>

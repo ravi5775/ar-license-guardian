@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WeddingArAlbumsRouteImport } from './routes/wedding-ar-albums'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AugmentedRealityPhotoAlbumRouteImport } from './routes/augmented-reality-photo-album'
+import { Route as ArWeddingInvitationsRouteImport } from './routes/ar-wedding-invitations'
+import { Route as ArGreetingCardsRouteImport } from './routes/ar-greeting-cards'
+import { Route as ArBusinessCardsRouteImport } from './routes/ar-business-cards'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ArSlugRouteImport } from './routes/ar.$slug'
@@ -29,6 +35,16 @@ import { Route as AuthenticatedDashboardAlbumsIndexRouteImport } from './routes/
 import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
 import { Route as AuthenticatedDashboardAlbumsNewRouteImport } from './routes/_authenticated/dashboard.albums.new'
 
+const WeddingArAlbumsRoute = WeddingArAlbumsRouteImport.update({
+  id: '/wedding-ar-albums',
+  path: '/wedding-ar-albums',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
   path: '/scan',
@@ -42,6 +58,27 @@ const GalleryRoute = GalleryRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AugmentedRealityPhotoAlbumRoute =
+  AugmentedRealityPhotoAlbumRouteImport.update({
+    id: '/augmented-reality-photo-album',
+    path: '/augmented-reality-photo-album',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ArWeddingInvitationsRoute = ArWeddingInvitationsRouteImport.update({
+  id: '/ar-wedding-invitations',
+  path: '/ar-wedding-invitations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArGreetingCardsRoute = ArGreetingCardsRouteImport.update({
+  id: '/ar-greeting-cards',
+  path: '/ar-greeting-cards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArBusinessCardsRoute = ArBusinessCardsRouteImport.update({
+  id: '/ar-business-cards',
+  path: '/ar-business-cards',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -136,9 +173,15 @@ const AuthenticatedDashboardAlbumsNewRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ar-business-cards': typeof ArBusinessCardsRoute
+  '/ar-greeting-cards': typeof ArGreetingCardsRoute
+  '/ar-wedding-invitations': typeof ArWeddingInvitationsRoute
+  '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
@@ -156,9 +199,15 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ar-business-cards': typeof ArBusinessCardsRoute
+  '/ar-greeting-cards': typeof ArGreetingCardsRoute
+  '/ar-wedding-invitations': typeof ArWeddingInvitationsRoute
+  '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
   '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
@@ -177,9 +226,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/ar-business-cards': typeof ArBusinessCardsRoute
+  '/ar-greeting-cards': typeof ArGreetingCardsRoute
+  '/ar-wedding-invitations': typeof ArWeddingInvitationsRoute
+  '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
@@ -199,9 +254,15 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ar-business-cards'
+    | '/ar-greeting-cards'
+    | '/ar-wedding-invitations'
+    | '/augmented-reality-photo-album'
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/sitemap.xml'
+    | '/wedding-ar-albums'
     | '/dashboard'
     | '/mfa'
     | '/ar/$slug'
@@ -219,9 +280,15 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ar-business-cards'
+    | '/ar-greeting-cards'
+    | '/ar-wedding-invitations'
+    | '/augmented-reality-photo-album'
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/sitemap.xml'
+    | '/wedding-ar-albums'
     | '/mfa'
     | '/ar/$slug'
     | '/dashboard/activations'
@@ -239,9 +306,15 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/ar-business-cards'
+    | '/ar-greeting-cards'
+    | '/ar-wedding-invitations'
+    | '/augmented-reality-photo-album'
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/sitemap.xml'
+    | '/wedding-ar-albums'
     | '/_authenticated/dashboard'
     | '/_authenticated/mfa'
     | '/ar/$slug'
@@ -261,9 +334,15 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  ArBusinessCardsRoute: typeof ArBusinessCardsRoute
+  ArGreetingCardsRoute: typeof ArGreetingCardsRoute
+  ArWeddingInvitationsRoute: typeof ArWeddingInvitationsRoute
+  AugmentedRealityPhotoAlbumRoute: typeof AugmentedRealityPhotoAlbumRoute
   AuthRoute: typeof AuthRoute
   GalleryRoute: typeof GalleryRoute
   ScanRoute: typeof ScanRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  WeddingArAlbumsRoute: typeof WeddingArAlbumsRoute
   ArSlugRoute: typeof ArSlugRoute
   ArAlbumSlugRoute: typeof ArAlbumSlugRoute
   ApiPublicLicenseActivateRoute: typeof ApiPublicLicenseActivateRoute
@@ -271,6 +350,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wedding-ar-albums': {
+      id: '/wedding-ar-albums'
+      path: '/wedding-ar-albums'
+      fullPath: '/wedding-ar-albums'
+      preLoaderRoute: typeof WeddingArAlbumsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scan': {
       id: '/scan'
       path: '/scan'
@@ -290,6 +383,34 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/augmented-reality-photo-album': {
+      id: '/augmented-reality-photo-album'
+      path: '/augmented-reality-photo-album'
+      fullPath: '/augmented-reality-photo-album'
+      preLoaderRoute: typeof AugmentedRealityPhotoAlbumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ar-wedding-invitations': {
+      id: '/ar-wedding-invitations'
+      path: '/ar-wedding-invitations'
+      fullPath: '/ar-wedding-invitations'
+      preLoaderRoute: typeof ArWeddingInvitationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ar-greeting-cards': {
+      id: '/ar-greeting-cards'
+      path: '/ar-greeting-cards'
+      fullPath: '/ar-greeting-cards'
+      preLoaderRoute: typeof ArGreetingCardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ar-business-cards': {
+      id: '/ar-business-cards'
+      path: '/ar-business-cards'
+      fullPath: '/ar-business-cards'
+      preLoaderRoute: typeof ArBusinessCardsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -457,9 +578,15 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  ArBusinessCardsRoute: ArBusinessCardsRoute,
+  ArGreetingCardsRoute: ArGreetingCardsRoute,
+  ArWeddingInvitationsRoute: ArWeddingInvitationsRoute,
+  AugmentedRealityPhotoAlbumRoute: AugmentedRealityPhotoAlbumRoute,
   AuthRoute: AuthRoute,
   GalleryRoute: GalleryRoute,
   ScanRoute: ScanRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  WeddingArAlbumsRoute: WeddingArAlbumsRoute,
   ArSlugRoute: ArSlugRoute,
   ArAlbumSlugRoute: ArAlbumSlugRoute,
   ApiPublicLicenseActivateRoute: ApiPublicLicenseActivateRoute,
