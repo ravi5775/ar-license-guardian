@@ -312,10 +312,16 @@ function ExperienceModal({
             <span className="text-muted-foreground">Description</span>
             <textarea rows={2} value={value.description} onChange={(e) => set("description", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
           </label>
-          <label className="text-sm block">
-            <span className="text-muted-foreground">Cover image URL (optional, for OG preview)</span>
-            <input type="url" value={value.cover_image_url} onChange={(e) => set("cover_image_url", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
-          </label>
+          <details className="rounded-md border border-border/60 bg-background/40 p-3">
+            <summary className="cursor-pointer text-xs text-muted-foreground">
+              Cover image — optional. Leave empty and the marker image below is used automatically.
+            </summary>
+            <label className="text-sm block mt-3">
+              <span className="text-muted-foreground">Custom cover image URL (advanced)</span>
+              <input type="url" value={value.cover_image_url} onChange={(e) => set("cover_image_url", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
+            </label>
+          </details>
+
 
           <div className="grid grid-cols-2 gap-4">
             <MediaUploader
