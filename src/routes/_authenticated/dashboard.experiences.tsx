@@ -184,8 +184,11 @@ function ExperiencesPage() {
         <ExperienceModal
           value={editing}
           onChange={setEditing}
+          existingSlugs={items
+            .filter((e: any) => e.id !== editing.id)
+            .map((e: any) => e.slug)}
           onCancel={() => setEditing(null)}
-          onSave={() => saveMut.mutate(editing)}
+          onSave={(d) => saveMut.mutate(d)}
           saving={saveMut.isPending}
         />
       )}
@@ -195,19 +198,39 @@ function ExperiencesPage() {
   );
 }
 
+function slugify(input: string) {
+  return input
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function uniqueSlug(base: string, taken: string[]) {
+  const root = base || "experience";
+  if (!taken.includes(root)) return root;
+  let i = 2;
+  while (taken.includes(`${root}-${i}`)) i++;
+  return `${root}-${i}`;
+}
+
 function ExperienceModal({
   value,
   onChange,
+  existingSlugs,
   onCancel,
   onSave,
   saving,
 }: {
   value: Draft;
   onChange: (d: Draft) => void;
+  existingSlugs: string[];
   onCancel: () => void;
-  onSave: () => void;
+  onSave: (d: Draft) => void;
   saving: boolean;
 }) {
+  const [slugTouched, setSlugTouched] = useState(Boolean(value.slug));
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => onChange({ ...value, [k]: v });
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
