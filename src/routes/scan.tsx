@@ -64,10 +64,11 @@ function ScanPage() {
 
       {mode === "photo" ? <PhotoScan /> : <QrScan />}
 
-      <ScanTroubleshooting variant={mode === "photo" ? "panel-hidden" : "overlay"} />
+      {mode === "qr" && <ScanTroubleshooting variant="overlay" />}
     </div>
   );
 }
+
 
 
 /**
