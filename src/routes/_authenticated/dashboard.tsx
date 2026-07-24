@@ -1,9 +1,14 @@
-import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useNavigate,
+  useRouteContext,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
-import { getMyRoles } from "@/lib/experiences.functions";
+import { useQueryClient } from "@tanstack/react-query";
 import { Sparkles, LayoutDashboard, Boxes, Key, ShieldCheck, LogOut, ScrollText } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,19 +18,15 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardLayout() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [email, setEmail] = useState<string>("");
-  const rolesFn = useServerFn(getMyRoles);
-  const { data: roles = [] } = useQuery({
-    queryKey: ["my-roles"],
-    queryFn: () => rolesFn(),
-    staleTime: 5 * 60_000,
-  });
-  const isAdmin = roles.includes("admin");
+  const { user, isAdmin } = useRouteContext({ from: "/_authenticated" });
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
-  }, []);
+    setEmail(user?.email ?? "");
+  }, [user]);
+
 
   async function signOut() {
     await supabase.auth.signOut();
