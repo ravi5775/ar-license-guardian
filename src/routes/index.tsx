@@ -118,7 +118,7 @@ function Nav() {
           <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
           <a href="#features" className="hover:text-foreground transition-colors">Features</a>
           <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
-          <Link to="/scan" className="hover:text-foreground transition-colors inline-flex items-center gap-1"><ScanLine className="w-3.5 h-3.5" />Scan QR</Link>
+          <Link to="/scan" className="hover:text-foreground transition-colors inline-flex items-center gap-1"><ScanLine className="w-3.5 h-3.5" />Scan a photo</Link>
         </nav>
 
         <div className="flex items-center gap-2">
