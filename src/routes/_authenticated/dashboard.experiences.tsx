@@ -124,13 +124,18 @@ function ExperiencesPage() {
         {items.map((e: any) => (
           <div key={e.id} className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden group">
             <div className="aspect-video bg-muted relative">
-              {e.cover_image_url ? (
-                <img src={e.cover_image_url} alt={e.title} className="w-full h-full object-cover" />
+              {e.cover_image_url || e.cover_preview_url ? (
+                <img
+                  src={e.cover_image_url || e.cover_preview_url}
+                  alt={e.title}
+                  className="w-full h-full object-contain bg-black/20"
+                />
               ) : (
                 <div className="w-full h-full grid place-items-center text-muted-foreground text-sm">
-                  No cover image
+                  No marker image yet
                 </div>
               )}
+
               <span
                 className={`absolute top-3 right-3 text-xs px-2 py-1 rounded-full ${
                   e.published ? "bg-primary/90 text-primary-foreground" : "bg-black/60 text-white"
