@@ -244,18 +244,42 @@ function ExperienceModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            onSave();
+            const slug = uniqueSlug(
+              slugify(value.slug || value.title),
+              existingSlugs,
+            );
+            onSave({ ...value, slug });
           }}
           className="space-y-4"
         >
           <div className="grid grid-cols-2 gap-4">
             <label className="text-sm">
               <span className="text-muted-foreground">Title</span>
-              <input required value={value.title} onChange={(e) => set("title", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
+              <input
+                required
+                value={value.title}
+                onChange={(e) => {
+                  const title = e.target.value;
+                  onChange({
+                    ...value,
+                    title,
+                    slug: slugTouched ? value.slug : slugify(title),
+                  });
+                }}
+                className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2"
+              />
             </label>
             <label className="text-sm">
-              <span className="text-muted-foreground">Slug (URL)</span>
-              <input required pattern="[a-z0-9-]+" value={value.slug} onChange={(e) => set("slug", e.target.value.toLowerCase())} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-xs" />
+              <span className="text-muted-foreground">Slug (URL) — auto-generated</span>
+              <input
+                value={value.slug}
+                onChange={(e) => {
+                  setSlugTouched(true);
+                  set("slug", slugify(e.target.value));
+                }}
+                placeholder="auto from title"
+                className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 font-mono text-xs"
+              />
             </label>
           </div>
           <label className="text-sm block">
