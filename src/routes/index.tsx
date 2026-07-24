@@ -187,9 +187,10 @@ function Hero() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-8 text-lg text-muted-foreground max-w-xl leading-relaxed"
         >
-          Scan a printed QR, watch the photo come alive as video, 3D, or AR
-          overlay. Sold once. Deployed to your own Cloudflare + Supabase.
-          Owned by you, forever.
+          Open the site, point at a printed photo, and it comes alive as video
+          or AR — no QR on the picture, no app install. Sold once. Deployed to
+          your own Cloudflare + Supabase. Owned by you, forever.
+
         </motion.p>
 
         <motion.div
