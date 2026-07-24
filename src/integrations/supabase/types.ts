@@ -258,6 +258,75 @@ export type Database = {
         }
         Relationships: []
       }
+      marker_tests: {
+        Row: {
+          album_id: string | null
+          angle_deg: number | null
+          created_at: string
+          device: string | null
+          distance_cm: number | null
+          experience_id: string | null
+          id: string
+          lighting: string
+          marker_label: string
+          notes: string | null
+          outcome: string
+          owner_id: string
+          step_key: string
+          time_to_detect_ms: number | null
+          updated_at: string
+        }
+        Insert: {
+          album_id?: string | null
+          angle_deg?: number | null
+          created_at?: string
+          device?: string | null
+          distance_cm?: number | null
+          experience_id?: string | null
+          id?: string
+          lighting: string
+          marker_label: string
+          notes?: string | null
+          outcome: string
+          owner_id: string
+          step_key: string
+          time_to_detect_ms?: number | null
+          updated_at?: string
+        }
+        Update: {
+          album_id?: string | null
+          angle_deg?: number | null
+          created_at?: string
+          device?: string | null
+          distance_cm?: number | null
+          experience_id?: string | null
+          id?: string
+          lighting?: string
+          marker_label?: string
+          notes?: string | null
+          outcome?: string
+          owner_id?: string
+          step_key?: string
+          time_to_detect_ms?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marker_tests_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marker_tests_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "ar_experiences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -302,6 +371,54 @@ export type Database = {
           key?: string
         }
         Relationships: []
+      }
+      scan_events: {
+        Row: {
+          album_id: string | null
+          created_at: string
+          duration_ms: number | null
+          event_type: string
+          experience_id: string | null
+          id: string
+          session_id: string
+          target_index: number | null
+        }
+        Insert: {
+          album_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          event_type: string
+          experience_id?: string | null
+          id?: string
+          session_id: string
+          target_index?: number | null
+        }
+        Update: {
+          album_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          event_type?: string
+          experience_id?: string | null
+          id?: string
+          session_id?: string
+          target_index?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_events_album_id_fkey"
+            columns: ["album_id"]
+            isOneToOne: false
+            referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_events_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "ar_experiences"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
