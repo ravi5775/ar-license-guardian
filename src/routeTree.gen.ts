@@ -22,6 +22,7 @@ import { Route as AuthenticatedDashboardLicensesRouteImport } from './routes/_au
 import { Route as AuthenticatedDashboardExperiencesRouteImport } from './routes/_authenticated/dashboard.experiences'
 import { Route as AuthenticatedDashboardAuditRouteImport } from './routes/_authenticated/dashboard.audit'
 import { Route as AuthenticatedDashboardActivationsRouteImport } from './routes/_authenticated/dashboard.activations'
+import { Route as AuthenticatedDashboardAlbumsIndexRouteImport } from './routes/_authenticated/dashboard.albums.index'
 import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
 
 const ScanRoute = ScanRouteImport.update({
@@ -93,6 +94,12 @@ const AuthenticatedDashboardActivationsRoute =
     path: '/activations',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardAlbumsIndexRoute =
+  AuthenticatedDashboardAlbumsIndexRouteImport.update({
+    id: '/albums/',
+    path: '/albums/',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const ApiPublicLicenseActivateRoute =
   ApiPublicLicenseActivateRouteImport.update({
     id: '/api/public/license/activate',
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
+  '/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -128,6 +136,7 @@ export interface FileRoutesByTo {
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
+  '/dashboard/albums': typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -145,6 +154,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
+  '/_authenticated/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/dashboard/licenses'
     | '/dashboard/'
     | '/api/public/license/activate'
+    | '/dashboard/albums/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/dashboard/licenses'
     | '/dashboard'
     | '/api/public/license/activate'
+    | '/dashboard/albums'
   id:
     | '__root__'
     | '/'
@@ -192,6 +204,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/licenses'
     | '/_authenticated/dashboard/'
     | '/api/public/license/activate'
+    | '/_authenticated/dashboard/albums/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardActivationsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/albums/': {
+      id: '/_authenticated/dashboard/albums/'
+      path: '/albums'
+      fullPath: '/dashboard/albums/'
+      preLoaderRoute: typeof AuthenticatedDashboardAlbumsIndexRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/api/public/license/activate': {
       id: '/api/public/license/activate'
       path: '/api/public/license/activate'
@@ -313,6 +333,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardExperiencesRoute: typeof AuthenticatedDashboardExperiencesRoute
   AuthenticatedDashboardLicensesRoute: typeof AuthenticatedDashboardLicensesRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedDashboardAlbumsIndexRoute: typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
@@ -324,6 +345,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
       AuthenticatedDashboardExperiencesRoute,
     AuthenticatedDashboardLicensesRoute: AuthenticatedDashboardLicensesRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+    AuthenticatedDashboardAlbumsIndexRoute:
+      AuthenticatedDashboardAlbumsIndexRoute,
   }
 
 const AuthenticatedDashboardRouteWithChildren =
