@@ -75,11 +75,8 @@ function ARViewer() {
   const [forceFallback, setForceFallback] = useState(false);
   const hasMarker = !!experience.marker_url;
 
-  if (mode === "video" && experience.media_url) {
-    return <QRMediaPlayer experience={experience} />;
-  }
-
   // Preload MindAR scripts while user reads the intro — makes "Launch AR" feel instant.
+  // NOTE: must run before any conditional return (React hooks rules).
   useEffect(() => {
     if (!hasMarker) return;
     // A-Frame must finish before MindAR evaluates and registers its component.
@@ -87,6 +84,12 @@ function ARViewer() {
       for (const src of MINDAR_SCRIPTS) await loadScript(src);
     })().catch(() => {});
   }, [hasMarker]);
+
+  // Plain video mode is only a fallback for experiences with no compiled marker.
+  if (mode === "video" && experience.media_url && !hasMarker) {
+    return <QRMediaPlayer experience={experience} />;
+  }
+
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
