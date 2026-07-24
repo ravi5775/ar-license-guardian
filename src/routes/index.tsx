@@ -17,9 +17,44 @@ import {
   LogIn,
 } from "lucide-react";
 
+const HOME_TITLE = "Aether AR — Wedding AR Albums & Augmented Reality Photo Platform";
+const HOME_DESC =
+  "Aether AR turns printed photos into video. Wedding AR albums, AR greeting cards, AR business cards and AR invitations — one QR per album, no app install, one-time white-label licence.";
+
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: HOME_TITLE },
+      { name: "description", content: HOME_DESC },
+      { name: "keywords", content: "wedding ar album, augmented reality photo album, ar photo app, ar greeting card, ar business card, ar wedding invitation, ar photo platform" },
+      { property: "og:title", content: HOME_TITLE },
+      { property: "og:description", content: HOME_DESC },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://aetherphoto.shop/" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: HOME_TITLE },
+      { name: "twitter:description", content: HOME_DESC },
+    ],
+    links: [{ rel: "canonical", href: "https://aetherphoto.shop/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "Aether AR",
+          applicationCategory: "MultimediaApplication",
+          operatingSystem: "Web",
+          description: HOME_DESC,
+          url: "https://aetherphoto.shop/",
+        }),
+      },
+    ],
+  }),
   component: LandingPage,
 });
+
+
 
 
 function LandingPage() {

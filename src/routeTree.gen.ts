@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WeddingArAlbumsRouteImport } from './routes/wedding-ar-albums'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -37,6 +38,11 @@ import { Route as AuthenticatedDashboardAlbumsNewRouteImport } from './routes/_a
 const WeddingArAlbumsRoute = WeddingArAlbumsRouteImport.update({
   id: '/wedding-ar-albums',
   path: '/wedding-ar-albums',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScanRoute = ScanRouteImport.update({
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/mfa': typeof AuthenticatedMfaRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/mfa': typeof AuthenticatedMfaRoute
   '/ar/$slug': typeof ArSlugRoute
@@ -225,6 +233,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/mfa': typeof AuthenticatedMfaRoute
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/sitemap.xml'
     | '/wedding-ar-albums'
     | '/dashboard'
     | '/mfa'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/sitemap.xml'
     | '/wedding-ar-albums'
     | '/mfa'
     | '/ar/$slug'
@@ -302,6 +313,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/sitemap.xml'
     | '/wedding-ar-albums'
     | '/_authenticated/dashboard'
     | '/_authenticated/mfa'
@@ -329,6 +341,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   GalleryRoute: typeof GalleryRoute
   ScanRoute: typeof ScanRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WeddingArAlbumsRoute: typeof WeddingArAlbumsRoute
   ArSlugRoute: typeof ArSlugRoute
   ArAlbumSlugRoute: typeof ArAlbumSlugRoute
@@ -342,6 +355,13 @@ declare module '@tanstack/react-router' {
       path: '/wedding-ar-albums'
       fullPath: '/wedding-ar-albums'
       preLoaderRoute: typeof WeddingArAlbumsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/scan': {
@@ -565,6 +585,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   GalleryRoute: GalleryRoute,
   ScanRoute: ScanRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   WeddingArAlbumsRoute: WeddingArAlbumsRoute,
   ArSlugRoute: ArSlugRoute,
   ArAlbumSlugRoute: ArAlbumSlugRoute,
