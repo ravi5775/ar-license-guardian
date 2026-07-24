@@ -51,6 +51,7 @@ function Gallery() {
                 key={e.slug}
                 to="/ar/$slug"
                 params={{ slug: e.slug }}
+                search={{ mode: undefined }}
                 className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden hover:border-primary/60 transition-colors group"
               >
                 <div className="aspect-video bg-muted">

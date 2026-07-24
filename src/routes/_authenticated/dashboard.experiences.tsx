@@ -131,6 +131,7 @@ function ExperiencesPage() {
                 <Link
                   to="/ar/$slug"
                   params={{ slug: e.slug }}
+                  search={{ mode: undefined }}
                   className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent"
                 >
                   <ExternalLink className="h-3 w-3" /> View

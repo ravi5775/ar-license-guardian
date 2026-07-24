@@ -178,6 +178,7 @@ function QRMediaPlayer({ experience }: { experience: any }) {
       <Link
         to="/ar/$slug"
         params={{ slug: experience.slug }}
+        search={{ mode: undefined }}
         className="absolute bottom-5 z-20 inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2.5 text-sm font-medium shadow-xl"
       >
         <Camera className="h-4 w-4" /> Open image-tracking AR
