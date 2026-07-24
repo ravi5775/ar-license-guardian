@@ -19,6 +19,7 @@ import { Route as AuthenticatedMfaRouteImport } from './routes/_authenticated/mf
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as ArAlbumSlugRouteImport } from './routes/ar.album.$slug'
+import { Route as AuthenticatedDashboardMarkerTestsRouteImport } from './routes/_authenticated/dashboard.marker-tests'
 import { Route as AuthenticatedDashboardLicensesRouteImport } from './routes/_authenticated/dashboard.licenses'
 import { Route as AuthenticatedDashboardExperiencesRouteImport } from './routes/_authenticated/dashboard.experiences'
 import { Route as AuthenticatedDashboardAuditRouteImport } from './routes/_authenticated/dashboard.audit'
@@ -77,6 +78,12 @@ const ArAlbumSlugRoute = ArAlbumSlugRouteImport.update({
   path: '/ar/album/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardMarkerTestsRoute =
+  AuthenticatedDashboardMarkerTestsRouteImport.update({
+    id: '/marker-tests',
+    path: '/marker-tests',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardLicensesRoute =
   AuthenticatedDashboardLicensesRouteImport.update({
     id: '/licenses',
@@ -132,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
+  '/dashboard/marker-tests': typeof AuthenticatedDashboardMarkerTestsRoute
   '/ar/album/$slug': typeof ArAlbumSlugRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
@@ -149,6 +157,7 @@ export interface FileRoutesByTo {
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
+  '/dashboard/marker-tests': typeof AuthenticatedDashboardMarkerTestsRoute
   '/ar/album/$slug': typeof ArAlbumSlugRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
@@ -169,6 +178,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
   '/_authenticated/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/_authenticated/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
+  '/_authenticated/dashboard/marker-tests': typeof AuthenticatedDashboardMarkerTestsRoute
   '/ar/album/$slug': typeof ArAlbumSlugRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/dashboard/audit'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
+    | '/dashboard/marker-tests'
     | '/ar/album/$slug'
     | '/dashboard/'
     | '/dashboard/albums/new'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/dashboard/audit'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
+    | '/dashboard/marker-tests'
     | '/ar/album/$slug'
     | '/dashboard'
     | '/dashboard/albums/new'
@@ -225,6 +237,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/audit'
     | '/_authenticated/dashboard/experiences'
     | '/_authenticated/dashboard/licenses'
+    | '/_authenticated/dashboard/marker-tests'
     | '/ar/album/$slug'
     | '/_authenticated/dashboard/'
     | '/_authenticated/dashboard/albums/new'
@@ -315,6 +328,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArAlbumSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/marker-tests': {
+      id: '/_authenticated/dashboard/marker-tests'
+      path: '/marker-tests'
+      fullPath: '/dashboard/marker-tests'
+      preLoaderRoute: typeof AuthenticatedDashboardMarkerTestsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/licenses': {
       id: '/_authenticated/dashboard/licenses'
       path: '/licenses'
@@ -372,6 +392,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAuditRoute: typeof AuthenticatedDashboardAuditRoute
   AuthenticatedDashboardExperiencesRoute: typeof AuthenticatedDashboardExperiencesRoute
   AuthenticatedDashboardLicensesRoute: typeof AuthenticatedDashboardLicensesRoute
+  AuthenticatedDashboardMarkerTestsRoute: typeof AuthenticatedDashboardMarkerTestsRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedDashboardAlbumsNewRoute: typeof AuthenticatedDashboardAlbumsNewRoute
   AuthenticatedDashboardAlbumsIndexRoute: typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -385,6 +406,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardExperiencesRoute:
       AuthenticatedDashboardExperiencesRoute,
     AuthenticatedDashboardLicensesRoute: AuthenticatedDashboardLicensesRoute,
+    AuthenticatedDashboardMarkerTestsRoute:
+      AuthenticatedDashboardMarkerTestsRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
     AuthenticatedDashboardAlbumsNewRoute: AuthenticatedDashboardAlbumsNewRoute,
     AuthenticatedDashboardAlbumsIndexRoute:
