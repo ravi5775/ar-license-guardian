@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Camera,
+  Download,
+  Expand,
   Maximize2,
   Minimize2,
   Pause,
@@ -12,6 +14,8 @@ import {
   VolumeX,
 } from "lucide-react";
 import { getPublicAlbum } from "@/lib/albums.functions";
+import { logScanEvent } from "@/lib/analytics.functions";
+
 
 export const Route = createFileRoute("/ar/album/$slug")({
   loader: async ({ params }) => {
