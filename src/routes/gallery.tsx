@@ -20,10 +20,24 @@ export const Route = createFileRoute("/gallery")({
   loader: () => listPublicExperiences(),
   head: () => ({
     meta: [
-      { title: "Gallery — Aether AR" },
-      { name: "description", content: "Browse published AR experiences on Aether." },
+      { title: "AR Gallery — Live Augmented Reality Photo Experiences | Aether AR" },
+      {
+        name: "description",
+        content:
+          "Browse live AR photo experiences built with Aether: wedding AR albums, AR cards and augmented reality prints you can scan from your phone.",
+      },
+      { property: "og:title", content: "AR Gallery — Live Augmented Reality Photo Experiences" },
+      {
+        property: "og:description",
+        content: "Browse live AR photo experiences built with Aether — scan and watch printed photos play video.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://aetherphoto.shop/gallery" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://aetherphoto.shop/gallery" }],
   }),
+
   errorComponent: ({ error }) => (
     <div className="p-8 text-center">Couldn't load gallery: {error.message}</div>
   ),

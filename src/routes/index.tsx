@@ -528,6 +528,19 @@ function FinalCTA() {
 function Footer() {
   return (
     <footer className="px-6 py-10 border-t border-border/40">
+      <div className="mx-auto max-w-7xl mb-8">
+        <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">
+          AR use cases
+        </h2>
+        <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+          <Link to="/wedding-ar-albums" className="hover:text-primary">Wedding AR albums</Link>
+          <Link to="/augmented-reality-photo-album" className="hover:text-primary">Augmented reality photo album</Link>
+          <Link to="/ar-greeting-cards" className="hover:text-primary">AR greeting cards</Link>
+          <Link to="/ar-business-cards" className="hover:text-primary">AR business cards</Link>
+          <Link to="/ar-wedding-invitations" className="hover:text-primary">AR wedding invitations</Link>
+          <Link to="/gallery" className="hover:text-primary">Gallery</Link>
+        </nav>
+      </div>
       <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center">
@@ -535,6 +548,7 @@ function Footer() {
           </div>
           <span className="font-display text-sm">Aether.</span>
         </div>
+
         <p className="text-xs text-muted-foreground font-mono">
           © {new Date().getFullYear()} · Built for people who ship.
         </p>
