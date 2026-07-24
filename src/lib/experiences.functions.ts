@@ -31,8 +31,23 @@ export const listMyExperiences = createServerFn({ method: "GET" })
       .select("*")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    const rows = data ?? [];
+
+    // Cover image is optional: when none is set we preview the marker image.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    return Promise.all(
+      rows.map(async (row) => {
+        if (row.cover_image_url || !row.marker_path) {
+          return { ...row, cover_preview_url: row.cover_image_url ?? null };
+        }
+        const { data: s } = await supabaseAdmin.storage
+          .from("ar-media")
+          .createSignedUrl(row.marker_path, 60 * 60);
+        return { ...row, cover_preview_url: s?.signedUrl ?? null };
+      }),
+    );
   });
+
 
 export const createExperience = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
