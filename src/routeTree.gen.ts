@@ -14,6 +14,7 @@ import { Route as ScanRouteImport } from './routes/scan'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AugmentedRealityPhotoAlbumRouteImport } from './routes/augmented-reality-photo-album'
+import { Route as ArWeddingInvitationsRouteImport } from './routes/ar-wedding-invitations'
 import { Route as ArGreetingCardsRouteImport } from './routes/ar-greeting-cards'
 import { Route as ArBusinessCardsRouteImport } from './routes/ar-business-cards'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -59,6 +60,11 @@ const AugmentedRealityPhotoAlbumRoute =
     path: '/augmented-reality-photo-album',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ArWeddingInvitationsRoute = ArWeddingInvitationsRouteImport.update({
+  id: '/ar-wedding-invitations',
+  path: '/ar-wedding-invitations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArGreetingCardsRoute = ArGreetingCardsRouteImport.update({
   id: '/ar-greeting-cards',
   path: '/ar-greeting-cards',
@@ -163,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ar-business-cards': typeof ArBusinessCardsRoute
   '/ar-greeting-cards': typeof ArGreetingCardsRoute
+  '/ar-wedding-invitations': typeof ArWeddingInvitationsRoute
   '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ar-business-cards': typeof ArBusinessCardsRoute
   '/ar-greeting-cards': typeof ArGreetingCardsRoute
+  '/ar-wedding-invitations': typeof ArWeddingInvitationsRoute
   '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
@@ -212,6 +220,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/ar-business-cards': typeof ArBusinessCardsRoute
   '/ar-greeting-cards': typeof ArGreetingCardsRoute
+  '/ar-wedding-invitations': typeof ArWeddingInvitationsRoute
   '/augmented-reality-photo-album': typeof AugmentedRealityPhotoAlbumRoute
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
@@ -238,6 +247,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ar-business-cards'
     | '/ar-greeting-cards'
+    | '/ar-wedding-invitations'
     | '/augmented-reality-photo-album'
     | '/auth'
     | '/gallery'
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ar-business-cards'
     | '/ar-greeting-cards'
+    | '/ar-wedding-invitations'
     | '/augmented-reality-photo-album'
     | '/auth'
     | '/gallery'
@@ -286,6 +297,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/ar-business-cards'
     | '/ar-greeting-cards'
+    | '/ar-wedding-invitations'
     | '/augmented-reality-photo-album'
     | '/auth'
     | '/gallery'
@@ -312,6 +324,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   ArBusinessCardsRoute: typeof ArBusinessCardsRoute
   ArGreetingCardsRoute: typeof ArGreetingCardsRoute
+  ArWeddingInvitationsRoute: typeof ArWeddingInvitationsRoute
   AugmentedRealityPhotoAlbumRoute: typeof AugmentedRealityPhotoAlbumRoute
   AuthRoute: typeof AuthRoute
   GalleryRoute: typeof GalleryRoute
@@ -357,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/augmented-reality-photo-album'
       fullPath: '/augmented-reality-photo-album'
       preLoaderRoute: typeof AugmentedRealityPhotoAlbumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ar-wedding-invitations': {
+      id: '/ar-wedding-invitations'
+      path: '/ar-wedding-invitations'
+      fullPath: '/ar-wedding-invitations'
+      preLoaderRoute: typeof ArWeddingInvitationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ar-greeting-cards': {
@@ -540,6 +560,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   ArBusinessCardsRoute: ArBusinessCardsRoute,
   ArGreetingCardsRoute: ArGreetingCardsRoute,
+  ArWeddingInvitationsRoute: ArWeddingInvitationsRoute,
   AugmentedRealityPhotoAlbumRoute: AugmentedRealityPhotoAlbumRoute,
   AuthRoute: AuthRoute,
   GalleryRoute: GalleryRoute,
