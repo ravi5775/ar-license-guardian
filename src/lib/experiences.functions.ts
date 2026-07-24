@@ -31,8 +31,23 @@ export const listMyExperiences = createServerFn({ method: "GET" })
       .select("*")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    const rows = data ?? [];
+
+    // Cover image is optional: when none is set we preview the marker image.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    return Promise.all(
+      rows.map(async (row) => {
+        if (row.cover_image_url || !row.marker_path) {
+          return { ...row, cover_preview_url: row.cover_image_url ?? null };
+        }
+        const { data: s } = await supabaseAdmin.storage
+          .from("ar-media")
+          .createSignedUrl(row.marker_path, 60 * 60);
+        return { ...row, cover_preview_url: s?.signedUrl ?? null };
+      }),
+    );
   });
+
 
 export const createExperience = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -126,7 +141,10 @@ export const getPublicExperience = createServerFn({ method: "GET" })
       marker_url: marker_signed ?? row.marker_url,
       marker_image_url: marker_image_signed,
       media_url: media_signed ?? row.media_url,
+      // Cover image is optional — fall back to the printable marker image.
+      cover_image_url: row.cover_image_url || marker_image_signed,
     };
+
   });
 
 // Signed upload URL for the admin console. Uses admin client because we

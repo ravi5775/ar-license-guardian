@@ -124,13 +124,18 @@ function ExperiencesPage() {
         {items.map((e: any) => (
           <div key={e.id} className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden group">
             <div className="aspect-video bg-muted relative">
-              {e.cover_image_url ? (
-                <img src={e.cover_image_url} alt={e.title} className="w-full h-full object-cover" />
+              {e.cover_image_url || e.cover_preview_url ? (
+                <img
+                  src={e.cover_image_url || e.cover_preview_url}
+                  alt={e.title}
+                  className="w-full h-full object-contain bg-black/20"
+                />
               ) : (
                 <div className="w-full h-full grid place-items-center text-muted-foreground text-sm">
-                  No cover image
+                  No marker image yet
                 </div>
               )}
+
               <span
                 className={`absolute top-3 right-3 text-xs px-2 py-1 rounded-full ${
                   e.published ? "bg-primary/90 text-primary-foreground" : "bg-black/60 text-white"
@@ -307,10 +312,16 @@ function ExperienceModal({
             <span className="text-muted-foreground">Description</span>
             <textarea rows={2} value={value.description} onChange={(e) => set("description", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
           </label>
-          <label className="text-sm block">
-            <span className="text-muted-foreground">Cover image URL (optional, for OG preview)</span>
-            <input type="url" value={value.cover_image_url} onChange={(e) => set("cover_image_url", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
-          </label>
+          <details className="rounded-md border border-border/60 bg-background/40 p-3">
+            <summary className="cursor-pointer text-xs text-muted-foreground">
+              Cover image — optional. Leave empty and the marker image below is used automatically.
+            </summary>
+            <label className="text-sm block mt-3">
+              <span className="text-muted-foreground">Custom cover image URL (advanced)</span>
+              <input type="url" value={value.cover_image_url} onChange={(e) => set("cover_image_url", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
+            </label>
+          </details>
+
 
           <div className="grid grid-cols-2 gap-4">
             <MediaUploader
