@@ -62,17 +62,32 @@ function ExperiencesPage() {
   const [editing, setEditing] = useState<Draft | null>(null);
   const [qrFor, setQrFor] = useState<{ slug: string; title: string } | null>(null);
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const saveMut = useMutation({
     mutationFn: async (d: Draft) => {
+      setSaveError(null);
       if (d.id) return updateFn({ data: d });
       return createFn({ data: d });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["experiences"] });
       toast.success("Saved");
+      setSaveError(null);
       setEditing(null);
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => {
+      const detail =
+        e?.body?.message ??
+        e?.response?.statusText ??
+        (e?.issues ? JSON.stringify(e.issues, null, 2) : null) ??
+        e?.message ??
+        JSON.stringify(e);
+      setSaveError(String(detail));
+      toast.error(String(detail).slice(0, 160));
+      // eslint-disable-next-line no-console
+      console.error("[experiences] save failed", e);
+    },
   });
 
   const delMut = useMutation({
