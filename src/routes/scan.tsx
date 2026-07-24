@@ -63,9 +63,12 @@ function ScanPage() {
       </div>
 
       {mode === "photo" ? <PhotoScan /> : <QrScan />}
+
+      <ScanTroubleshooting variant={mode === "photo" ? "panel-hidden" : "overlay"} />
     </div>
   );
 }
+
 
 /**
  * QR-free entry: pick the album (auto-selected when there is only one),
