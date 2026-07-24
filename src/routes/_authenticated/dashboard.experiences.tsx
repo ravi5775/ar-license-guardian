@@ -241,6 +241,7 @@ function ExperienceModal({
   onCancel,
   onSave,
   saving,
+  errorText,
 }: {
   value: Draft;
   onChange: (d: Draft) => void;
@@ -248,6 +249,7 @@ function ExperienceModal({
   onCancel: () => void;
   onSave: (d: Draft) => void;
   saving: boolean;
+  errorText?: string | null;
 }) {
   const [slugTouched, setSlugTouched] = useState(Boolean(value.slug));
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => onChange({ ...value, [k]: v });
