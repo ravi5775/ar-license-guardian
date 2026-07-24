@@ -62,17 +62,32 @@ function ExperiencesPage() {
   const [editing, setEditing] = useState<Draft | null>(null);
   const [qrFor, setQrFor] = useState<{ slug: string; title: string } | null>(null);
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const saveMut = useMutation({
     mutationFn: async (d: Draft) => {
+      setSaveError(null);
       if (d.id) return updateFn({ data: d });
       return createFn({ data: d });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["experiences"] });
       toast.success("Saved");
+      setSaveError(null);
       setEditing(null);
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => {
+      const detail =
+        e?.body?.message ??
+        e?.response?.statusText ??
+        (e?.issues ? JSON.stringify(e.issues, null, 2) : null) ??
+        e?.message ??
+        JSON.stringify(e);
+      setSaveError(String(detail));
+      toast.error(String(detail).slice(0, 160));
+      // eslint-disable-next-line no-console
+      console.error("[experiences] save failed", e);
+    },
   });
 
   const delMut = useMutation({
@@ -187,9 +202,13 @@ function ExperiencesPage() {
           existingSlugs={items
             .filter((e: any) => e.id !== editing.id)
             .map((e: any) => e.slug)}
-          onCancel={() => setEditing(null)}
+          onCancel={() => {
+            setSaveError(null);
+            setEditing(null);
+          }}
           onSave={(d) => saveMut.mutate(d)}
           saving={saveMut.isPending}
+          errorText={saveError}
         />
       )}
 
@@ -222,6 +241,7 @@ function ExperienceModal({
   onCancel,
   onSave,
   saving,
+  errorText,
 }: {
   value: Draft;
   onChange: (d: Draft) => void;
@@ -229,6 +249,7 @@ function ExperienceModal({
   onCancel: () => void;
   onSave: (d: Draft) => void;
   saving: boolean;
+  errorText?: string | null;
 }) {
   const [slugTouched, setSlugTouched] = useState(Boolean(value.slug));
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => onChange({ ...value, [k]: v });
@@ -351,6 +372,14 @@ function ExperienceModal({
             <input type="checkbox" checked={value.published} onChange={(e) => set("published", e.target.checked)} />
             Published (visible to public)
           </label>
+          {errorText && (
+            <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
+              <div className="text-sm font-medium text-destructive">Save failed</div>
+              <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words text-xs text-destructive/90">
+                {errorText}
+              </pre>
+            </div>
+          )}
           <div className="flex justify-end gap-2 pt-4 border-t border-border/60">
             <button type="button" onClick={onCancel} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-accent">
               Cancel
