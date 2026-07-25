@@ -61,9 +61,9 @@ export function TryItNow() {
           </h2>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)] items-stretch">
+        <div className="grid gap-6 lg:grid-cols-3 items-stretch">
           <div className="rounded-2xl border border-border bg-surface p-6 text-center flex flex-col">
-            <div className="mx-auto w-full max-w-[240px] aspect-square rounded-xl bg-white p-3">
+            <div className="mx-auto w-full max-w-[220px] aspect-square rounded-xl bg-white p-3">
               {qr ? (
                 <img
                   src={qr}
@@ -77,18 +77,35 @@ export function TryItNow() {
               )}
             </div>
             <p className="mt-5 text-sm text-foreground/90">
-              Scan this with your phone right now — no app needed
+              1. Scan this QR with your phone camera
             </p>
             <a
               href={DEMO_PATH}
               className="mt-auto pt-5 inline-flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-primary"
             >
-              <ScanLine className="h-3.5 w-3.5" /> or open the demo on this
-              device
+              <ScanLine className="h-3.5 w-3.5" /> or open the demo on this device
             </a>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+          <div className="rounded-2xl border border-border bg-surface overflow-hidden flex flex-col">
+            <div className="relative aspect-[4/5] w-full overflow-hidden bg-black">
+              <img
+                src={workflowMedia.demoTrigger}
+                alt="Printed wedding photograph — point your phone at this to trigger AR"
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+              />
+              <div className="absolute inset-3 rounded-lg border-2 border-dashed border-primary/70 pointer-events-none" />
+              <span className="absolute top-3 left-3 rounded-full bg-background/80 backdrop-blur px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest text-primary">
+                Live trigger
+              </span>
+            </div>
+            <p className="px-5 py-4 text-xs text-muted-foreground">
+              2. Point the phone at this photo — no QR printed on it. The picture itself is the marker.
+            </p>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-border bg-surface flex flex-col">
             <video
               src={workflowMedia.weddingVideo}
               poster={workflowMedia.weddingVideoPoster}
@@ -97,11 +114,10 @@ export function TryItNow() {
               muted
               loop
               preload="none"
-              className="aspect-video w-full object-cover"
+              className="aspect-[4/5] w-full object-cover"
             />
             <p className="px-5 py-4 text-xs text-muted-foreground">
-              A recording of the scan-to-play experience: point the camera at a
-              printed photo, the film plays on the print.
+              3. The film plays on top of the print, locked in place as it moves.
             </p>
           </div>
         </div>

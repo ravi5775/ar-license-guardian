@@ -15,6 +15,7 @@ import portalLoop from "@/assets/portal-hero.mp4.asset.json";
 import portalPoster from "@/assets/portal-hero.jpg.asset.json";
 
 import phoneScan from "@/assets/phone-scan.jpg";
+import weddingDemoAsset from "@/assets/wedding-demo.jpg.asset.json";
 
 const unsplash = (id: string, w = 2000, q = 82) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}&q=${q}`;
@@ -45,6 +46,9 @@ export const workflowMedia = {
   museumImage: unsplash("photo-1502920917128-1aa500764cbd", 1600),
   realEstateImage: unsplash("photo-1560518883-ce09059eeffa", 1600),
   weddingRings: unsplash("photo-1523438885200-e635ba2c371e", 1600),
+
+  /** Live demo trigger — the actual photo the demo QR/scan resolves to */
+  demoTrigger: weddingDemoAsset.url,
 } as const;
 
 
