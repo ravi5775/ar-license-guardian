@@ -501,9 +501,12 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
   useEffect(() => {
     start();
     return () => {
+      detachRecoveryRef.current?.();
+      detachRecoveryRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
       } catch {}
+
       document.querySelectorAll("video").forEach((video) => {
         const stream = video.srcObject;
         if (stream instanceof MediaStream) {
