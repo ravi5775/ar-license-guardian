@@ -80,6 +80,7 @@ function LandingPage() {
       <FilmTexture />
       <PillNav />
       <Hero />
+      <TryItNow />
       <LogoStrip />
       <ConveyorShowcase />
       <ProductReveal />
@@ -101,9 +102,11 @@ function LandingPage() {
         title="Wall labels that speak."
         body="Point a phone at the work and the curator's cut plays over it. No beacons, no app, no hardware on the wall."
       />
+      <TrustSignals />
       <Pricing />
       <FinalCTA />
       <Footer />
+
     </div>
   );
 }
