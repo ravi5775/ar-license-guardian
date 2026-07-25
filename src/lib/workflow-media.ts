@@ -11,8 +11,8 @@
  */
 import heroLoop from "@/assets/hero-loop.mp4.asset.json";
 import heroPoster from "@/assets/hero-poster.jpg.asset.json";
-import portalLoop from "@/assets/portal-loop.mp4.asset.json";
-import portalPoster from "@/assets/portal-poster.jpg.asset.json";
+import portalLoop from "@/assets/portal-hero.mp4.asset.json";
+import portalPoster from "@/assets/portal-hero.jpg.asset.json";
 
 import phoneScan from "@/assets/phone-scan.jpg";
 
