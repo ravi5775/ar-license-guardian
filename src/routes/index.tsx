@@ -12,8 +12,11 @@ import { ParallaxDepthSection } from "@/components/scroll/ParallaxDepthSection";
 import { SpecGrid } from "@/components/scroll/SpecGrid";
 import { ProductReveal } from "@/components/scroll/ProductReveal";
 import { workflowMedia } from "@/lib/workflow-media";
+import { TryItNow } from "@/components/home/TryItNow";
+import { TrustSignals } from "@/components/home/TrustSignals";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useReducedMotionPref } from "@/hooks/use-motion-env";
+
 
 import {
   Sparkles,
