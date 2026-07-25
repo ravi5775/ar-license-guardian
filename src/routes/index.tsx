@@ -288,12 +288,13 @@ function Features() {
 function Pricing() {
   const included = [
     "Full source code, transferred to your GitHub org",
-    "Deployed to your own Cloudflare + Supabase account",
-    "Admin dashboard with mandatory TOTP",
-    "License agreement + DPA + RUNBOOK",
+    "Deployed to accounts you own and control",
+    "Admin dashboard with two-factor sign-in",
+    "License agreement + data-protection addendum + handover guide",
     "30-day post-handover bug-fix window",
-    "MindAR + AR.js WebAR runtime (no per-scan fees)",
+    "Browser-based AR runtime — no per-scan fees",
   ];
+
 
   return (
     <section id="pricing" className="px-6 py-32 border-t border-border/40">
