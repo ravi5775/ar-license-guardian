@@ -61,7 +61,7 @@ export function TryItNow() {
           </h2>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3 items-stretch">
+        <div className="grid gap-6 sm:grid-cols-2 items-stretch max-w-3xl">
           <div className="rounded-2xl border border-border bg-surface p-6 text-center flex flex-col">
             <div className="mx-auto w-full max-w-[220px] aspect-square rounded-xl bg-white p-3">
               {qr ? (
@@ -101,26 +101,11 @@ export function TryItNow() {
               </span>
             </div>
             <p className="px-5 py-4 text-xs text-muted-foreground">
-              2. Point the phone at this photo — no QR printed on it. The picture itself is the marker.
-            </p>
-          </div>
-
-          <div className="overflow-hidden rounded-2xl border border-border bg-surface flex flex-col">
-            <video
-              src={workflowMedia.weddingVideo}
-              poster={workflowMedia.weddingVideoPoster}
-              controls
-              playsInline
-              muted
-              loop
-              preload="none"
-              className="aspect-[4/5] w-full object-cover"
-            />
-            <p className="px-5 py-4 text-xs text-muted-foreground">
-              3. The film plays on top of the print, locked in place as it moves.
+              2. Point the phone at this photo — no QR printed on it. The picture itself is the marker, and the film plays locked on top of it.
             </p>
           </div>
         </div>
+
       </div>
     </section>
   );
