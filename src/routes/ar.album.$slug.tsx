@@ -15,6 +15,12 @@ import {
 } from "lucide-react";
 import { getPublicAlbum } from "@/lib/albums.functions";
 import { logScanEvent } from "@/lib/analytics.functions";
+import {
+  attachWebglRecovery,
+  hasWebglSupport,
+  WEBGL_UNSUPPORTED_MESSAGE,
+} from "@/lib/webgl-recovery";
+
 
 
 export const Route = createFileRoute("/ar/album/$slug")({
@@ -242,6 +248,8 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [recovering, setRecovering] = useState<string | null>(null);
+
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
