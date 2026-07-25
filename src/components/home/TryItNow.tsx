@@ -45,25 +45,25 @@ export function TryItNow() {
     <section
       id="try-it"
       ref={ref}
-      className="px-6 py-24 border-t border-border/40"
+      className="px-6 py-14 border-t border-border/40"
     >
       <div
         className={`mx-auto max-w-6xl transition-all duration-500 ease-out motion-reduce:transition-none ${
           shown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
         }`}
       >
-        <div className="max-w-2xl mb-12">
-          <p className="text-xs uppercase tracking-widest text-primary mb-4">
+        <div className="max-w-2xl mb-8">
+          <p className="text-xs uppercase tracking-widest text-primary mb-3">
             Live demo
           </p>
-          <h2 className="text-4xl sm:text-5xl leading-tight">
+          <h2 className="text-3xl sm:text-4xl leading-tight">
             See it before you buy it.
           </h2>
         </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 items-stretch max-w-3xl">
-          <div className="rounded-2xl border border-border bg-surface p-6 text-center flex flex-col">
-            <div className="mx-auto w-full max-w-[220px] aspect-square rounded-xl bg-white p-3">
+        <div className="grid gap-5 sm:grid-cols-2 items-start max-w-3xl">
+          <div className="rounded-2xl border border-border bg-surface p-5 text-center flex flex-col">
+            <div className="mx-auto w-full max-w-[160px] aspect-square rounded-xl bg-white p-2.5">
               {qr ? (
                 <img
                   src={qr}
@@ -76,19 +76,19 @@ export function TryItNow() {
                 </div>
               )}
             </div>
-            <p className="mt-5 text-sm text-foreground/90">
+            <p className="mt-4 text-sm text-foreground/90">
               1. Scan this QR with your phone camera
             </p>
             <a
               href={DEMO_PATH}
-              className="mt-auto pt-5 inline-flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-primary"
+              className="mt-3 inline-flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-primary"
             >
               <ScanLine className="h-3.5 w-3.5" /> or open the demo on this device
             </a>
           </div>
 
           <div className="rounded-2xl border border-border bg-surface overflow-hidden flex flex-col">
-            <div className="relative aspect-[4/5] w-full overflow-hidden bg-black">
+            <div className="relative aspect-[4/3] w-full overflow-hidden bg-black">
               <img
                 src={workflowMedia.demoTrigger}
                 alt="Printed wedding photograph — point your phone at this to trigger AR"
@@ -100,11 +100,12 @@ export function TryItNow() {
                 Live trigger
               </span>
             </div>
-            <p className="px-5 py-4 text-xs text-muted-foreground">
+            <p className="px-4 py-3 text-xs text-muted-foreground">
               2. Point the phone at this photo — no QR printed on it. The picture itself is the marker, and the film plays locked on top of it.
             </p>
           </div>
         </div>
+
 
       </div>
     </section>
