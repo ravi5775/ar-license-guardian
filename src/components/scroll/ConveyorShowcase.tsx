@@ -121,7 +121,7 @@ export function ConveyorShowcase() {
                   src={s.img}
                   alt={s.title}
                   loading="lazy"
-                  className="w-full aspect-[4/3] object-cover"
+                  className="w-full aspect-[4/3] object-cover object-[50%_35%]"
                 />
               </div>
               <figcaption className="mt-4">
@@ -160,7 +160,7 @@ export function ConveyorShowcase() {
                 src={s.img}
                 alt={s.title}
                 loading="lazy"
-                className="w-full aspect-[16/10] object-cover"
+                className="w-full aspect-[16/10] object-cover object-[50%_35%]"
               />
             </div>
             <figcaption data-conveyor-caption className="mt-6 max-w-lg">
