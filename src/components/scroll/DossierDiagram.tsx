@@ -81,22 +81,23 @@ export function DossierDiagram() {
 
           {/* Labels positioned over the SVG grid */}
           <div className="absolute inset-0">
-            {notes.map((n) => (
-              <div
-                key={n.label}
-                data-dossier-label
-                style={{
-                  left: `${(n.lx / 1000) * 100}%`,
-                  top: `${(n.ly / 560) * 100}%`,
-                  transform: n.anchor === "end" ? "translate(-100%, -50%)" : "translate(0, -50%)",
-                  opacity: reduced ? 1 : 0,
-                }}
-                className="absolute w-[min(38vw,260px)]"
-              >
-                <p className="text-sm sm:text-base text-foreground">{n.label}</p>
-                <p className="font-mono text-[10px] sm:text-xs text-muted-foreground leading-snug mt-1">{n.sub}</p>
-              </div>
-            ))}
+            {notes.map((n) => {
+              const isEnd = n.anchor === "end";
+              const style: React.CSSProperties = isEnd
+                ? { right: `${100 - (n.lx / 1000) * 100}%`, top: `${(n.ly / 560) * 100}%`, transform: "translateY(-50%)", opacity: reduced ? 1 : 0 }
+                : { left: `${(n.lx / 1000) * 100}%`, top: `${(n.ly / 560) * 100}%`, transform: "translateY(-50%)", opacity: reduced ? 1 : 0 };
+              return (
+                <div
+                  key={n.label}
+                  data-dossier-label
+                  style={style}
+                  className={`absolute w-[min(38vw,240px)] ${isEnd ? "pr-3 text-right" : "pl-3"}`}
+                >
+                  <p className="text-sm sm:text-base text-foreground">{n.label}</p>
+                  <p className="font-mono text-[10px] sm:text-xs text-muted-foreground leading-snug mt-1">{n.sub}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
