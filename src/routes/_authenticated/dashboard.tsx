@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Sparkles, LayoutDashboard, Boxes, Images, Key, ShieldCheck, LogOut, ScrollText, BarChart3, Target } from "lucide-react";
+import { Sparkles, LayoutDashboard, Boxes, Images, Key, ShieldCheck, LogOut, ScrollText, BarChart3, Target, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -45,11 +45,13 @@ function DashboardLayout() {
     { to: "/dashboard/marker-tests", label: "Marker Testing", icon: Target },
     ...(isAdmin
       ? [
+          { to: "/dashboard/approvals", label: "Approvals", icon: UserCheck },
           { to: "/dashboard/licenses", label: "Licenses", icon: Key },
           { to: "/dashboard/activations", label: "Activations", icon: ShieldCheck },
           { to: "/dashboard/audit", label: "Audit Log", icon: ScrollText },
         ]
       : []),
+
   ];
 
 
