@@ -46,13 +46,14 @@ export function DossierDiagram() {
 
   return (
     <section ref={ref} id="dossier" className="px-6 py-32 border-t border-border/40">
-      <div className="mx-auto max-w-7xl">
-        <div className="max-w-2xl mb-16">
+      <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-2xl mb-16 text-center">
           <p className="text-xs uppercase tracking-widest text-primary mb-4">The dossier</p>
           <h2 className="text-4xl sm:text-5xl leading-tight">Scan to AR, exploded.</h2>
         </div>
 
-        <div className="relative">
+        {/* Wide screens: exploded diagram with connector lines */}
+        <div className="relative mx-auto hidden w-full max-w-5xl lg:block">
           <svg viewBox="0 0 1000 560" className="w-full h-auto" role="img" aria-label="Diagram of the scan-to-AR pipeline">
             {/* Central phone */}
             <rect x={300} y={130} width={130} height={300} rx={20} fill="var(--surface-elevated)" stroke="var(--primary)" strokeOpacity={0.5} />
@@ -91,16 +92,38 @@ export function DossierDiagram() {
                   key={n.label}
                   data-dossier-label
                   style={style}
-                  className={`absolute w-[min(38vw,240px)] ${isEnd ? "pr-3 text-right" : "pl-3"}`}
+                  className={`absolute w-[min(22vw,230px)] ${isEnd ? "pr-3 text-right" : "pl-3"}`}
                 >
-                  <p className="text-sm sm:text-base text-foreground">{n.label}</p>
-                  <p className="font-mono text-[10px] sm:text-xs text-muted-foreground leading-snug mt-1">{n.sub}</p>
+                  <p className="text-sm xl:text-base text-foreground">{n.label}</p>
+                  <p className="font-mono text-[10px] xl:text-xs text-muted-foreground leading-snug mt-1">{n.sub}</p>
                 </div>
               );
             })}
           </div>
         </div>
+
+        {/* Small / medium screens: centered phone + a tidy card grid, nothing clipped */}
+        <div className="lg:hidden">
+          <svg viewBox="0 0 200 340" className="mx-auto h-auto w-[160px]" role="img" aria-label="Phone scanning a photo">
+            <rect x={35} y={10} width={130} height={300} rx={20} fill="var(--surface-elevated)" stroke="var(--primary)" strokeOpacity={0.5} />
+            <rect x={47} y={30} width={106} height={260} rx={10} fill="var(--background)" stroke="var(--border)" />
+            <rect x={69} y={85} width={62} height={62} rx={8} fill="none" stroke="var(--primary)" strokeOpacity={0.8} strokeWidth={3} />
+            <text x={100} y={265} textAnchor="middle" fontSize={13} fill="var(--muted-foreground)" fontFamily="var(--font-mono)">
+              scan
+            </text>
+          </svg>
+
+          <ul className="mt-10 grid gap-4 sm:grid-cols-2">
+            {notes.map((n) => (
+              <li key={n.label} className="rounded-xl border border-border/60 bg-card/40 p-4 text-center sm:text-left">
+                <p className="text-sm text-foreground">{n.label}</p>
+                <p className="font-mono text-[11px] text-muted-foreground leading-snug mt-1">{n.sub}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );
 }
+
