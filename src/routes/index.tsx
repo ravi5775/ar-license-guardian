@@ -280,7 +280,7 @@ function Features() {
 function Pricing() {
   const included = [
     "Full source code, transferred to your GitHub org",
-    "Deployed to your Cloudflare + Supabase Pro (~$25/mo, your account)",
+    "Deployed to your own Cloudflare + Supabase account",
     "Admin dashboard with mandatory TOTP",
     "License agreement + DPA + RUNBOOK",
     "30-day post-handover bug-fix window",
