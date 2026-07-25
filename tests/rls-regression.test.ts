@@ -76,6 +76,14 @@ async function createTenant(label: string): Promise<Tenant> {
   const { error: signInError } = await db.auth.signInWithPassword({ email, password });
   if (signInError) throw new Error(`could not sign in test user: ${signInError.message}`);
 
+  // Content creation requires the editor role (the signup trigger grants
+  // `viewer`), so grant it out-of-band with the service key.
+  const { error: roleError } = await admin
+    .from("user_roles")
+    .insert({ user_id: created.user.id, role: "editor" });
+  if (roleError) throw new Error(`could not grant editor role: ${roleError.message}`);
+
+
   const albumSlug = `rls-${label}-album-${stamp}`;
   const { data: album, error: albumError } = await db
     .from("albums")
