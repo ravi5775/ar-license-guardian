@@ -253,8 +253,19 @@ function ARStage({ experience }: { experience: any }) {
     attemptRef.current += 1;
     setStatus("loading");
     setErrorMsg(null);
+    setRecovering(null);
+    detachRecoveryRef.current?.();
+    detachRecoveryRef.current = null;
+
+    // No WebGL at all → skip the engine entirely and explain why.
+    if (!hasWebglSupport()) {
+      setErrorMsg(WEBGL_UNSUPPORTED_MESSAGE);
+      setStatus("error");
+      return;
+    }
 
     try {
+
       const markerUrl = safeHttpsUrl(experience.marker_url);
       if (!markerUrl || !markerUrl.pathname.endsWith(".mind")) {
         setStatus("no-marker");
