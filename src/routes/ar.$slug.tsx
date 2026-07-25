@@ -268,13 +268,16 @@ function ARStage({ experience }: { experience: any }) {
       const scenEl = document.createElement("a-scene");
       scenEl.setAttribute(
         "mindar-image",
-        `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5;`,
+        `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; maxTrack: 1; filterMinCF: 0.001; filterBeta: 1000; warmupTolerance: 3; missTolerance: 3;`,
       );
       scenEl.setAttribute("color-space", "sRGB");
       scenEl.setAttribute(
         "renderer",
-        "colorManagement: true, physicallyCorrectLights: true, antialias: false, precision: mediump",
+        "colorManagement: true, physicallyCorrectLights: false, antialias: false, precision: mediump, sortObjects: false, logarithmicDepthBuffer: false, maxCanvasWidth: 1280, maxCanvasHeight: 1280",
       );
+      scenEl.setAttribute("shadow", "enabled: false");
+      scenEl.setAttribute("stats", "false");
+
       scenEl.setAttribute("vr-mode-ui", "enabled: false");
       scenEl.setAttribute("device-orientation-permission-ui", "enabled: false");
       scenEl.setAttribute("embedded", "");
