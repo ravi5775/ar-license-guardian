@@ -79,13 +79,18 @@ function AuthPage() {
         if (!data.session) {
           setMode("signin");
           toast.success("Almost there — confirm your email", {
-            description: `We sent a confirmation link to ${email}. Open it, then log in here. Check spam if it doesn't arrive in a minute.`,
+            description: `We sent a confirmation link to ${email}. Open it, then log in here. An administrator approves your account before you can publish.`,
             duration: 9000,
           });
           return;
         }
-        toast.success("Account created. Redirecting…");
+        toast.success("Account created — waiting for admin approval", {
+          description:
+            "Your licence key is issued automatically as soon as an administrator approves the account.",
+          duration: 8000,
+        });
         navigate({ to: "/dashboard" });
+
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
