@@ -62,26 +62,37 @@ function AuthPage() {
           },
         });
         if (error) {
-          // 422 user_already_exists — this email is already registered
-          // (often via Google sign-in) so guide them to log in instead.
-          const code = (error as { code?: string }).code;
-          if (code === "user_already_exists" || error.status === 422) {
-            setMode("signin");
-            toast.error("That email already has an account — please log in (or use Continue with Google).");
-            return;
-          }
+          const handled = handleSignupError(error);
+          if (handled) return;
           throw error;
         }
-        if (!data.session) {
-          toast.success("Check your inbox to confirm your email, then log in.");
+        // Supabase returns a user with an empty identities array when the
+        // email already exists but confirmation is still pending — it does
+        // NOT return an error, to avoid leaking which emails are registered.
+        if (data.user && (data.user.identities?.length ?? 0) === 0) {
           setMode("signin");
+          toast.info(
+            "That email is already registered. Log in below, or use “Forgot password” if you don't remember it.",
+          );
+          return;
+        }
+        if (!data.session) {
+          setMode("signin");
+          toast.success("Almost there — confirm your email", {
+            description: `We sent a confirmation link to ${email}. Open it, then log in here. Check spam if it doesn't arrive in a minute.`,
+            duration: 9000,
+          });
           return;
         }
         toast.success("Account created. Redirecting…");
         navigate({ to: "/dashboard" });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          const handled = handleSigninError(error);
+          if (handled) return;
+          throw error;
+        }
         toast.success("Welcome back");
         navigate({ to: "/dashboard" });
       }
@@ -92,6 +103,92 @@ function AuthPage() {
       setLoading(false);
     }
   }
+
+  /**
+   * Map Supabase auth error codes to specific, actionable copy.
+   * Returns true when the error was fully handled.
+   */
+  function handleSignupError(error: { code?: string; status?: number; message: string }) {
+    const code = error.code ?? "";
+    const msg = error.message.toLowerCase();
+
+    if (code === "user_already_exists" || msg.includes("already registered")) {
+      setMode("signin");
+      toast.error("That email already has an account", {
+        description:
+          "Log in with your password below — or use “Continue with Google” if you originally signed up that way.",
+        duration: 8000,
+      });
+      return true;
+    }
+    if (code === "email_exists") {
+      setMode("signin");
+      toast.error("That email is already in use", { description: "Try logging in instead." });
+      return true;
+    }
+    if (code === "weak_password" || msg.includes("password should be")) {
+      toast.error("Choose a stronger password", {
+        description: "Use at least 8 characters and mix letters, numbers and a symbol.",
+        duration: 8000,
+      });
+      return true;
+    }
+    if (code === "email_address_invalid" || code === "validation_failed") {
+      toast.error("That email address looks invalid", {
+        description: "Double-check the spelling and the part after the @.",
+      });
+      return true;
+    }
+    if (code === "over_email_send_rate_limit" || code === "over_request_rate_limit" || error.status === 429) {
+      toast.error("Too many attempts", {
+        description: "Wait about a minute before requesting another confirmation email.",
+        duration: 8000,
+      });
+      return true;
+    }
+    if (code === "signup_disabled") {
+      toast.error("Sign-ups are closed", {
+        description: "Ask your Aether AR administrator to invite your account.",
+      });
+      return true;
+    }
+    if (error.status === 422) {
+      // Any other 422 is a validation problem — say what to check rather
+      // than dumping the raw API message.
+      toast.error("We couldn't create that account", {
+        description: "Check the email format and use a password of at least 8 characters.",
+        duration: 8000,
+      });
+      return true;
+    }
+    return false;
+  }
+
+  function handleSigninError(error: { code?: string; status?: number; message: string }) {
+    const code = error.code ?? "";
+    const msg = error.message.toLowerCase();
+
+    if (code === "email_not_confirmed" || msg.includes("email not confirmed")) {
+      toast.error("Your email isn't confirmed yet", {
+        description: `Open the confirmation link we sent to ${email}, then log in again.`,
+        duration: 9000,
+      });
+      return true;
+    }
+    if (code === "invalid_credentials" || msg.includes("invalid login credentials")) {
+      toast.error("Email or password is incorrect", {
+        description: "If you signed up with Google, use “Continue with Google” instead.",
+        duration: 8000,
+      });
+      return true;
+    }
+    if (code === "over_request_rate_limit" || error.status === 429) {
+      toast.error("Too many login attempts", { description: "Please wait a minute and try again." });
+      return true;
+    }
+    return false;
+  }
+
 
   async function handleGoogle() {
     setLoading(true);
