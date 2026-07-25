@@ -12,8 +12,11 @@ import { ParallaxDepthSection } from "@/components/scroll/ParallaxDepthSection";
 import { SpecGrid } from "@/components/scroll/SpecGrid";
 import { ProductReveal } from "@/components/scroll/ProductReveal";
 import { workflowMedia } from "@/lib/workflow-media";
+import { TryItNow } from "@/components/home/TryItNow";
+import { TrustSignals } from "@/components/home/TrustSignals";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useReducedMotionPref } from "@/hooks/use-motion-env";
+
 
 import {
   Sparkles,
@@ -77,6 +80,7 @@ function LandingPage() {
       <FilmTexture />
       <PillNav />
       <Hero />
+      <TryItNow />
       <LogoStrip />
       <ConveyorShowcase />
       <ProductReveal />
@@ -98,9 +102,11 @@ function LandingPage() {
         title="Wall labels that speak."
         body="Point a phone at the work and the curator's cut plays over it. No beacons, no app, no hardware on the wall."
       />
+      <TrustSignals />
       <Pricing />
       <FinalCTA />
       <Footer />
+
     </div>
   );
 }
@@ -147,7 +153,7 @@ function Hero() {
         <p data-hero-item className="mt-8 text-lg text-muted-foreground max-w-xl leading-relaxed">
           Open the site, point at a printed photo, and it comes alive as video
           or AR — no QR on the picture, no app install. Sold once for ₹30,000.
-          Deployed to your own Cloudflare + Supabase. Owned by you, forever.
+          Deployed to accounts you own and control. Yours, forever.
         </p>
 
         <div data-hero-item className="mt-12 flex flex-wrap items-center gap-3">
@@ -218,25 +224,26 @@ function Features() {
   const items = [
     {
       icon: Server,
-      title: "Your infrastructure",
-      body: "Deployed to your Cloudflare Pages, your Supabase, your R2. We hand over the keys. No vendor lock-in, no monthly platform fee to us.",
+      title: "Yours to keep",
+      body: "Hosted on fast, reliable infrastructure — fully in your control, under your own accounts. No lock-in and no monthly platform fee to us.",
     },
     {
       icon: Shield,
-      title: "License-locked",
-      body: "Each deploy is fingerprint-bound to prevent casual duplication. Legal contract is the enforcement layer; the code is the tripwire.",
+      title: "Licensed to one buyer",
+      body: "Each delivery is licensed to your business alone, with a signed agreement and a quiet technical check that discourages casual copying.",
     },
     {
       icon: Cpu,
       title: "No app install",
-      body: "WebAR via MindAR + AR.js. Runs in a mobile browser tab. Zero friction between scan and playback.",
+      body: "Runs directly in the phone's browser — nothing to download. Point the camera, the video plays.",
     },
     {
       icon: Sparkles,
       title: "White-label ready",
-      body: "Your brand, your domain, your admin login. Ships with a customizable design system and a full RUNBOOK.",
+      body: "Your brand, your domain, your admin login. Ships with a customizable design system and a full handover guide.",
     },
   ];
+
 
   return (
     <section id="features" className="px-6 py-32 border-t border-border/40">
@@ -281,12 +288,13 @@ function Features() {
 function Pricing() {
   const included = [
     "Full source code, transferred to your GitHub org",
-    "Deployed to your own Cloudflare + Supabase account",
-    "Admin dashboard with mandatory TOTP",
-    "License agreement + DPA + RUNBOOK",
+    "Deployed to accounts you own and control",
+    "Admin dashboard with two-factor sign-in",
+    "License agreement + data-protection addendum + handover guide",
     "30-day post-handover bug-fix window",
-    "MindAR + AR.js WebAR runtime (no per-scan fees)",
+    "Browser-based AR runtime — no per-scan fees",
   ];
+
 
   return (
     <section id="pricing" className="px-6 py-32 border-t border-border/40">
@@ -381,19 +389,62 @@ function FinalCTA() {
 function Footer() {
   return (
     <footer className="px-6 py-10 border-t border-border/40">
-      <div className="mx-auto max-w-7xl mb-8">
-        <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">
+      <div className="mx-auto max-w-7xl mb-10">
+        <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-4">
           AR use cases
         </h2>
-        <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
-          <Link to="/wedding-ar-albums" className="hover:text-primary">Wedding AR albums</Link>
-          <Link to="/augmented-reality-photo-album" className="hover:text-primary">Augmented reality photo album</Link>
-          <Link to="/ar-greeting-cards" className="hover:text-primary">AR greeting cards</Link>
-          <Link to="/ar-business-cards" className="hover:text-primary">AR business cards</Link>
-          <Link to="/ar-wedding-invitations" className="hover:text-primary">AR wedding invitations</Link>
-          <Link to="/gallery" className="hover:text-primary">Gallery</Link>
+        <nav className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {[
+            { to: "/wedding-ar-albums", label: "Wedding AR albums", img: workflowMedia.weddingPhoto },
+            { to: "/augmented-reality-photo-album", label: "AR photo album", img: workflowMedia.albumPhoto },
+            { to: "/ar-greeting-cards", label: "AR greeting cards", img: workflowMedia.greetingCard },
+            { to: "/ar-business-cards", label: "AR business cards", img: workflowMedia.businessCard },
+            { to: "/ar-wedding-invitations", label: "AR invitations", img: workflowMedia.invitationCard },
+            { to: "/gallery", label: "Gallery", img: workflowMedia.weddingRings },
+          ].map((u) => (
+            <Link
+              key={u.to}
+              to={u.to}
+              className="group relative isolate block aspect-[4/3] overflow-hidden rounded-xl border border-border/60"
+            >
+              <img
+                src={u.img}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 z-0 h-full w-full object-cover opacity-45 transition-opacity duration-500 group-hover:opacity-70 motion-reduce:transition-none"
+              />
+              <span className="absolute inset-0 z-10 bg-gradient-to-t from-background via-background/60 to-transparent" />
+              <span className="absolute inset-x-0 bottom-0 z-20 p-3 text-xs text-foreground/90">
+                {u.label}
+              </span>
+            </Link>
+          ))}
         </nav>
       </div>
+
+      <details className="mx-auto max-w-7xl mb-8 rounded-2xl border border-border/60 bg-surface/50 p-5">
+        <summary className="cursor-pointer text-sm text-foreground/90">
+          For the technically curious
+        </summary>
+        <div className="mt-4 grid gap-2 text-xs leading-relaxed text-muted-foreground">
+          <p>
+            Front end: React + TanStack Start, deployed to Cloudflare. Database,
+            auth and file storage: Supabase (Postgres with row-level security).
+            Media served from object storage with short-lived signed URLs.
+          </p>
+          <p>
+            AR runtime: MindAR image tracking with an AR.js fallback, running in
+            the mobile browser — no app, no per-scan fees. Printed photos carry
+            no QR code; the picture itself is the compiled marker.
+          </p>
+          <p>
+            Each delivery is licensed to one buyer and bound to its deployment
+            fingerprint, with the signed agreement as the enforcement layer.
+          </p>
+        </div>
+      </details>
+
       <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/30 flex items-center justify-center">

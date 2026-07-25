@@ -175,3 +175,41 @@ export const signMediaUpload = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return signed; // { signedUrl, token, path }
   });
+
+/**
+ * Signed marker/media URLs for one of the caller's own experiences.
+ * Lets the album builder reuse an existing AR experience instead of
+ * re-uploading its photo and video. RLS on ar_experiences enforces ownership.
+ */
+export const signMyExperienceAssets = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("ar_experiences")
+      .select("id, title, marker_path, media_path, media_type")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("Experience not found");
+    if (!row.marker_path || !row.media_path)
+      throw new Error("That experience has no marker image or video stored");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed, error: signErr } = await supabaseAdmin.storage
+      .from("ar-media")
+      .createSignedUrl(row.marker_path, 60 * 30);
+    if (signErr) throw new Error(signErr.message);
+
+    return {
+      id: row.id,
+      title: row.title,
+      marker_path: row.marker_path,
+      media_path: row.media_path,
+      media_type: (row.media_type === "image" ? "image" : "video") as
+        | "image"
+        | "video",
+      marker_signed_url: signed?.signedUrl ?? null,
+    };
+  });
+

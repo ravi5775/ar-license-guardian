@@ -1,0 +1,111 @@
+import { useEffect, useRef, useState } from "react";
+import QRCode from "qrcode";
+import { ScanLine } from "lucide-react";
+import { workflowMedia } from "@/lib/workflow-media";
+import { useReducedMotionPref } from "@/hooks/use-motion-env";
+
+/** Live gallery experience the demo QR points at. */
+const DEMO_PATH = "/ar/bride-groom-hold-hands";
+
+/**
+ * "See it before you buy it" — a genuinely scannable QR pointing at a live
+ * AR experience, next to a screen-recording of the scan-to-play flow.
+ */
+export function TryItNow() {
+  const [qr, setQr] = useState<string | null>(null);
+  const reduced = useReducedMotionPref();
+  const ref = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    const origin =
+      import.meta.env.VITE_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+      (typeof window !== "undefined" ? window.location.origin : "https://aetherphoto.shop");
+    QRCode.toDataURL(`${origin}${DEMO_PATH}`, {
+      width: 640,
+      margin: 1,
+      color: { dark: "#0b0b0d", light: "#ffffff" },
+    })
+      .then(setQr)
+      .catch(() => setQr(null));
+  }, []);
+
+  useEffect(() => {
+    if (reduced || !ref.current) return setShown(true);
+    const el = ref.current;
+    const io = new IntersectionObserver(
+      ([e]) => e.isIntersecting && setShown(true),
+      { rootMargin: "-80px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [reduced]);
+
+  return (
+    <section
+      id="try-it"
+      ref={ref}
+      className="px-6 py-24 border-t border-border/40"
+    >
+      <div
+        className={`mx-auto max-w-6xl transition-all duration-500 ease-out motion-reduce:transition-none ${
+          shown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        }`}
+      >
+        <div className="max-w-2xl mb-12">
+          <p className="text-xs uppercase tracking-widest text-primary mb-4">
+            Live demo
+          </p>
+          <h2 className="text-4xl sm:text-5xl leading-tight">
+            See it before you buy it.
+          </h2>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)] items-stretch">
+          <div className="rounded-2xl border border-border bg-surface p-6 text-center flex flex-col">
+            <div className="mx-auto w-full max-w-[240px] aspect-square rounded-xl bg-white p-3">
+              {qr ? (
+                <img
+                  src={qr}
+                  alt="QR code linking to a live Aether AR experience"
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <div className="grid h-full w-full place-items-center text-xs text-black/50">
+                  Generating…
+                </div>
+              )}
+            </div>
+            <p className="mt-5 text-sm text-foreground/90">
+              Scan this with your phone right now — no app needed
+            </p>
+            <a
+              href={DEMO_PATH}
+              className="mt-auto pt-5 inline-flex items-center justify-center gap-2 text-xs text-muted-foreground hover:text-primary"
+            >
+              <ScanLine className="h-3.5 w-3.5" /> or open the demo on this
+              device
+            </a>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+            <video
+              src={workflowMedia.weddingVideo}
+              poster={workflowMedia.weddingVideoPoster}
+              controls
+              playsInline
+              muted
+              loop
+              preload="none"
+              className="aspect-video w-full object-cover"
+            />
+            <p className="px-5 py-4 text-xs text-muted-foreground">
+              A recording of the scan-to-play experience: point the camera at a
+              printed photo, the film plays on the print.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

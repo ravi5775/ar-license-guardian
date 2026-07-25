@@ -45,45 +45,66 @@ export const Route = createFileRoute("/gallery")({
   component: Gallery,
 });
 
+/** Builds a responsive srcset for Unsplash-hosted covers so we never upscale. */
+function coverSrcSet(url: string | null) {
+  if (!url || !url.includes("images.unsplash.com")) return undefined;
+  const base = url.split("?")[0];
+  return [600, 1200, 1800]
+    .map((w) => `${base}?auto=format&fit=crop&w=${w}&q=75 ${w}w`)
+    .join(", ");
+}
+
 function Gallery() {
   const items = Route.useLoaderData();
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="h-3 w-3" /> Back
         </Link>
-        <h1 className="text-4xl font-serif italic mb-2">Public gallery</h1>
-        <p className="text-sm text-muted-foreground mb-10">Published AR experiences from every workspace.</p>
+        <h1 className="text-3xl sm:text-4xl font-serif italic mb-2">Public gallery</h1>
+        <p className="text-sm text-muted-foreground mb-10">
+          Published AR experiences. Scan the printed photo — no QR on the picture, no app install.
+        </p>
 
         {items.length === 0 ? (
           <p className="text-sm text-muted-foreground">No published experiences yet.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch">
             {items.map((e: any) => (
               <Link
                 key={e.slug}
                 to="/ar/$slug"
                 params={{ slug: e.slug }}
                 search={{ mode: undefined }}
-                className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden hover:border-primary/60 transition-colors group"
+                className="relative isolate flex h-full min-h-[19rem] flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/40 transition-colors hover:border-primary/60 group"
               >
-                <div className="aspect-video bg-muted">
+                <div className="relative z-0 aspect-[4/3] w-full overflow-hidden bg-muted">
                   {e.cover_image_url ? (
-                    <img src={e.cover_image_url} alt={e.title} className="w-full h-full object-cover" />
+                    <img
+                      src={e.cover_image_url}
+                      srcSet={coverSrcSet(e.cover_image_url)}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      loading="lazy"
+                      decoding="async"
+                      alt={e.title}
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
-                    <div className="w-full h-full grid place-items-center text-muted-foreground text-xs">
+                    <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">
                       AR Experience
                     </div>
                   )}
                 </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="font-semibold">{e.title}</div>
-                    <ExternalLink className="h-3 w-3 text-muted-foreground group-hover:text-primary" />
+                <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-1 p-4">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="truncate font-semibold">{e.title}</span>
+                    <ExternalLink className="ml-auto h-3 w-3 shrink-0 text-muted-foreground group-hover:text-primary" />
                   </div>
                   {e.description && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{e.description}</p>
+                    <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                      {e.description}
+                    </p>
                   )}
                 </div>
               </Link>
@@ -94,3 +115,4 @@ function Gallery() {
     </div>
   );
 }
+
