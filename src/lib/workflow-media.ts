@@ -29,8 +29,8 @@ export const workflowMedia = {
   weddingVideoPoster: portalPoster.url,
 
   /** Trigger image used as the printed photograph in the workflow */
-  weddingPhoto: unsplash("photo-1519741497674-611481863552", 1600),
-  weddingPhotoLarge: unsplash("photo-1519741497674-611481863552", 2400, 85),
+  weddingPhoto: unsplash("photo-1583939003579-730e3918a45a", 1600),
+  weddingPhotoLarge: unsplash("photo-1583939003579-730e3918a45a", 2400, 85),
 
   /** Workflow / how-it-works stage stills */
   uploadShot: unsplash("photo-1498050108023-c5249f4df085", 1800),

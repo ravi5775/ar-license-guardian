@@ -119,7 +119,7 @@ function StaticPortal({ animated = true }: { animated?: boolean }) {
           alt="Printed wedding photograph that opens into an AR video"
           loading="eager"
           decoding="async"
-          className="absolute inset-0 w-full h-full object-cover object-[50%_35%] transition-opacity duration-1000"
+          className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000"
           style={{ opacity: revealed ? 0 : 1 }}
         />
         <video
