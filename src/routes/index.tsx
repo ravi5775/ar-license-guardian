@@ -224,25 +224,26 @@ function Features() {
   const items = [
     {
       icon: Server,
-      title: "Your infrastructure",
-      body: "Deployed to your Cloudflare Pages, your Supabase, your R2. We hand over the keys. No vendor lock-in, no monthly platform fee to us.",
+      title: "Yours to keep",
+      body: "Hosted on fast, reliable infrastructure — fully in your control, under your own accounts. No lock-in and no monthly platform fee to us.",
     },
     {
       icon: Shield,
-      title: "License-locked",
-      body: "Each deploy is fingerprint-bound to prevent casual duplication. Legal contract is the enforcement layer; the code is the tripwire.",
+      title: "Licensed to one buyer",
+      body: "Each delivery is licensed to your business alone, with a signed agreement and a quiet technical check that discourages casual copying.",
     },
     {
       icon: Cpu,
       title: "No app install",
-      body: "WebAR via MindAR + AR.js. Runs in a mobile browser tab. Zero friction between scan and playback.",
+      body: "Runs directly in the phone's browser — nothing to download. Point the camera, the video plays.",
     },
     {
       icon: Sparkles,
       title: "White-label ready",
-      body: "Your brand, your domain, your admin login. Ships with a customizable design system and a full RUNBOOK.",
+      body: "Your brand, your domain, your admin login. Ships with a customizable design system and a full handover guide.",
     },
   ];
+
 
   return (
     <section id="features" className="px-6 py-32 border-t border-border/40">
