@@ -44,18 +44,52 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+// Cache-busting: JS/CSS/asset URLs are content-hashed by the build and can be
+// cached forever, but the HTML document (and server-function/API responses)
+// must always revalidate — otherwise a CDN edge keeps serving an old document
+// that references stale copy/images until users hard-refresh.
+function applyCachePolicy(request: Request, response: Response): Response {
+  const contentType = response.headers.get("content-type") ?? "";
+  const url = new URL(request.url);
+  const isImmutableAsset =
+    /\/_build\/|\/assets\//.test(url.pathname) && /-[A-Za-z0-9_-]{8,}\.\w+$/.test(url.pathname);
+
+  if (isImmutableAsset) {
+    if (!response.headers.has("cache-control")) {
+      const headers = new Headers(response.headers);
+      headers.set("cache-control", "public, max-age=31536000, immutable");
+      return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+    }
+    return response;
+  }
+
+  if (contentType.includes("text/html") || contentType.includes("application/json")) {
+    const headers = new Headers(response.headers);
+    headers.set("cache-control", "no-cache, no-store, must-revalidate");
+    headers.set("pragma", "no-cache");
+    headers.set("expires", "0");
+    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  }
+
+  return response;
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return applyCachePolicy(request, await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
         status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": "no-cache, no-store, must-revalidate",
+        },
       });
     }
   },
 };
+
