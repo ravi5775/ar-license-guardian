@@ -406,9 +406,14 @@ function ARStage({ experience }: { experience: any }) {
           setStatus("error");
         },
       });
-
+      // A session that survives 20s is considered healthy: forgive earlier
+      // GPU hiccups so a long session isn't killed by old strikes.
+      setTimeout(() => {
+        if (sceneElRef.current === scenEl) gpuAttemptsRef.current.current = 0;
+      }, 20_000);
 
       setStatus("ready");
+
     } catch (e: any) {
       // Auto-retry once before surfacing the error (transient CDN or camera race).
       if (attemptRef.current < 2) {
@@ -423,9 +428,12 @@ function ARStage({ experience }: { experience: any }) {
   useEffect(() => {
     start();
     return () => {
+      detachRecoveryRef.current?.();
+      detachRecoveryRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
       } catch {}
+
       document.querySelectorAll("video").forEach((video) => {
         const stream = video.srcObject;
         if (stream instanceof MediaStream) {
