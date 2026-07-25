@@ -393,12 +393,20 @@ function ARStage({ experience }: { experience: any }) {
         scenEl.addEventListener("renderstart", kick, { once: true });
       }
 
-      // Recover from lost WebGL context (common on backgrounded tabs).
-      scenEl.addEventListener("webglcontextlost", (e: any) => {
-        e.preventDefault?.();
-        setErrorMsg("Graphics context lost — reloading engine");
-        setTimeout(() => start(), 300);
+      // Recover gracefully when the GPU drops the WebGL context (backgrounded
+      // tab, thermal throttling, low memory). Restart the session a couple of
+      // times, then fall back to a clear explanation instead of a black screen.
+      detachRecoveryRef.current = attachWebglRecovery(scenEl, {
+        attempts: gpuAttemptsRef.current,
+        onLost: (message) => setRecovering(message),
+        onRestore: () => start(),
+        onFatal: (message) => {
+          setRecovering(null);
+          setErrorMsg(message);
+          setStatus("error");
+        },
       });
+
 
       setStatus("ready");
     } catch (e: any) {
