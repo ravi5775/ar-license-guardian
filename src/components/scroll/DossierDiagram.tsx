@@ -6,9 +6,9 @@ import { useReducedMotionPref } from "@/hooks/use-motion-env";
 type Note = { x: number; y: number; lx: number; ly: number; label: string; sub: string; anchor: "start" | "end" };
 
 const notes: Note[] = [
-  { x: 400, y: 150, lx: 690, ly: 96, label: "WebAR runtime", sub: "No app install — MindAR in a browser tab", anchor: "start" },
+  { x: 400, y: 150, lx: 690, ly: 96, label: "WebAR runtime", sub: "No app install — runs in the phone's browser", anchor: "start" },
   { x: 430, y: 300, lx: 700, ly: 300, label: "Fingerprint-bound licence", sub: "Instance hash checked at activation", anchor: "start" },
-  { x: 400, y: 430, lx: 690, ly: 490, label: "Your own infrastructure", sub: "Cloudflare + Supabase, in your account", anchor: "start" },
+  { x: 400, y: 430, lx: 690, ly: 490, label: "Your own infrastructure", sub: "Fast, reliable hosting in your own accounts", anchor: "start" },
   { x: 260, y: 150, lx: 30, ly: 96, label: "Compiled .mind marker", sub: "Thousands of feature points per photo", anchor: "end" },
   { x: 240, y: 320, lx: 20, ly: 330, label: "Signed media URLs", sub: "Time-boxed access to every asset", anchor: "end" },
   { x: 270, y: 450, lx: 40, ly: 500, label: "Scan telemetry", sub: "Per-photo detection & completion rates", anchor: "end" },

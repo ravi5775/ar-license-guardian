@@ -153,7 +153,7 @@ function Hero() {
         <p data-hero-item className="mt-8 text-lg text-muted-foreground max-w-xl leading-relaxed">
           Open the site, point at a printed photo, and it comes alive as video
           or AR — no QR on the picture, no app install. Sold once for ₹30,000.
-          Deployed to your own Cloudflare + Supabase. Owned by you, forever.
+          Deployed to accounts you own and control. Yours, forever.
         </p>
 
         <div data-hero-item className="mt-12 flex flex-wrap items-center gap-3">
