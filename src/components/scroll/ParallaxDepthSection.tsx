@@ -43,7 +43,7 @@ export function ParallaxDepthSection({
         src={image}
         alt={alt}
         loading="lazy"
-        className="absolute inset-0 w-full h-[115%] -top-[7%] object-cover"
+        className="absolute inset-0 w-full h-[115%] -top-[7%] object-cover object-[50%_35%]"
       />
       <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
       <div className="relative h-full flex items-end">

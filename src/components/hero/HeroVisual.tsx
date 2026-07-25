@@ -113,12 +113,13 @@ function StaticPortal({ animated = true }: { animated?: boolean }) {
 
   return (
     <div className="absolute inset-0 flex items-center justify-center">
-      <div className="glow-ring relative w-full max-w-sm aspect-[3/4] rounded-2xl overflow-hidden border border-border bg-surface-elevated">
+      <div className="glow-ring relative w-full max-w-xl aspect-[16/10] rounded-2xl overflow-hidden border border-border bg-surface-elevated">
         <img
-          src={workflowMedia.weddingPhoto}
+          src={workflowMedia.weddingPhotoLarge}
           alt="Printed wedding photograph that opens into an AR video"
           loading="eager"
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000"
           style={{ opacity: revealed ? 0 : 1 }}
         />
         <video
@@ -130,9 +131,10 @@ function StaticPortal({ animated = true }: { animated?: boolean }) {
           autoPlay
           preload="metadata"
           aria-hidden
-          className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000"
+          className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000"
           style={{ opacity: revealed ? 1 : 0 }}
         />
+
         <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-background/90 to-transparent">
           <p className="font-mono text-xs text-muted-foreground">photo → portal</p>
         </div>
