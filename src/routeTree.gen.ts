@@ -21,6 +21,7 @@ import { Route as ArBusinessCardsRouteImport } from './routes/ar-business-cards'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ArSlugRouteImport } from './routes/ar.$slug'
+import { Route as AuthenticatedPendingRouteImport } from './routes/_authenticated/pending'
 import { Route as AuthenticatedMfaRouteImport } from './routes/_authenticated/mfa'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
@@ -29,6 +30,7 @@ import { Route as AuthenticatedDashboardMarkerTestsRouteImport } from './routes/
 import { Route as AuthenticatedDashboardLicensesRouteImport } from './routes/_authenticated/dashboard.licenses'
 import { Route as AuthenticatedDashboardExperiencesRouteImport } from './routes/_authenticated/dashboard.experiences'
 import { Route as AuthenticatedDashboardAuditRouteImport } from './routes/_authenticated/dashboard.audit'
+import { Route as AuthenticatedDashboardApprovalsRouteImport } from './routes/_authenticated/dashboard.approvals'
 import { Route as AuthenticatedDashboardAnalyticsRouteImport } from './routes/_authenticated/dashboard.analytics'
 import { Route as AuthenticatedDashboardActivationsRouteImport } from './routes/_authenticated/dashboard.activations'
 import { Route as AuthenticatedDashboardAlbumsIndexRouteImport } from './routes/_authenticated/dashboard.albums.index'
@@ -95,6 +97,11 @@ const ArSlugRoute = ArSlugRouteImport.update({
   path: '/ar/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPendingRoute = AuthenticatedPendingRouteImport.update({
+  id: '/pending',
+  path: '/pending',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMfaRoute = AuthenticatedMfaRouteImport.update({
   id: '/mfa',
   path: '/mfa',
@@ -138,6 +145,12 @@ const AuthenticatedDashboardAuditRoute =
   AuthenticatedDashboardAuditRouteImport.update({
     id: '/audit',
     path: '/audit',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardApprovalsRoute =
+  AuthenticatedDashboardApprovalsRouteImport.update({
+    id: '/approvals',
+    path: '/approvals',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedDashboardAnalyticsRoute =
@@ -184,9 +197,11 @@ export interface FileRoutesByFullPath {
   '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/mfa': typeof AuthenticatedMfaRoute
+  '/pending': typeof AuthenticatedPendingRoute
   '/ar/$slug': typeof ArSlugRoute
   '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
   '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
+  '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
@@ -209,9 +224,11 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/mfa': typeof AuthenticatedMfaRoute
+  '/pending': typeof AuthenticatedPendingRoute
   '/ar/$slug': typeof ArSlugRoute
   '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
   '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
+  '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
@@ -237,9 +254,11 @@ export interface FileRoutesById {
   '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/mfa': typeof AuthenticatedMfaRoute
+  '/_authenticated/pending': typeof AuthenticatedPendingRoute
   '/ar/$slug': typeof ArSlugRoute
   '/_authenticated/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
   '/_authenticated/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
+  '/_authenticated/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/_authenticated/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
   '/_authenticated/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/_authenticated/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
@@ -265,9 +284,11 @@ export interface FileRouteTypes {
     | '/wedding-ar-albums'
     | '/dashboard'
     | '/mfa'
+    | '/pending'
     | '/ar/$slug'
     | '/dashboard/activations'
     | '/dashboard/analytics'
+    | '/dashboard/approvals'
     | '/dashboard/audit'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
@@ -290,9 +311,11 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/wedding-ar-albums'
     | '/mfa'
+    | '/pending'
     | '/ar/$slug'
     | '/dashboard/activations'
     | '/dashboard/analytics'
+    | '/dashboard/approvals'
     | '/dashboard/audit'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
@@ -317,9 +340,11 @@ export interface FileRouteTypes {
     | '/wedding-ar-albums'
     | '/_authenticated/dashboard'
     | '/_authenticated/mfa'
+    | '/_authenticated/pending'
     | '/ar/$slug'
     | '/_authenticated/dashboard/activations'
     | '/_authenticated/dashboard/analytics'
+    | '/_authenticated/dashboard/approvals'
     | '/_authenticated/dashboard/audit'
     | '/_authenticated/dashboard/experiences'
     | '/_authenticated/dashboard/licenses'
@@ -434,6 +459,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ArSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/pending': {
+      id: '/_authenticated/pending'
+      path: '/pending'
+      fullPath: '/pending'
+      preLoaderRoute: typeof AuthenticatedPendingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/mfa': {
       id: '/_authenticated/mfa'
       path: '/mfa'
@@ -490,6 +522,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAuditRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/approvals': {
+      id: '/_authenticated/dashboard/approvals'
+      path: '/approvals'
+      fullPath: '/dashboard/approvals'
+      preLoaderRoute: typeof AuthenticatedDashboardApprovalsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/analytics': {
       id: '/_authenticated/dashboard/analytics'
       path: '/analytics'
@@ -531,6 +570,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardActivationsRoute: typeof AuthenticatedDashboardActivationsRoute
   AuthenticatedDashboardAnalyticsRoute: typeof AuthenticatedDashboardAnalyticsRoute
+  AuthenticatedDashboardApprovalsRoute: typeof AuthenticatedDashboardApprovalsRoute
   AuthenticatedDashboardAuditRoute: typeof AuthenticatedDashboardAuditRoute
   AuthenticatedDashboardExperiencesRoute: typeof AuthenticatedDashboardExperiencesRoute
   AuthenticatedDashboardLicensesRoute: typeof AuthenticatedDashboardLicensesRoute
@@ -545,6 +585,7 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardActivationsRoute:
       AuthenticatedDashboardActivationsRoute,
     AuthenticatedDashboardAnalyticsRoute: AuthenticatedDashboardAnalyticsRoute,
+    AuthenticatedDashboardApprovalsRoute: AuthenticatedDashboardApprovalsRoute,
     AuthenticatedDashboardAuditRoute: AuthenticatedDashboardAuditRoute,
     AuthenticatedDashboardExperiencesRoute:
       AuthenticatedDashboardExperiencesRoute,
@@ -565,11 +606,13 @@ const AuthenticatedDashboardRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRouteWithChildren
   AuthenticatedMfaRoute: typeof AuthenticatedMfaRoute
+  AuthenticatedPendingRoute: typeof AuthenticatedPendingRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRouteWithChildren,
   AuthenticatedMfaRoute: AuthenticatedMfaRoute,
+  AuthenticatedPendingRoute: AuthenticatedPendingRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
