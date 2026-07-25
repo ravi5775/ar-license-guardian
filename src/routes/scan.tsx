@@ -294,12 +294,24 @@ function QrScan() {
         muted
         className="absolute inset-0 w-full h-full object-cover"
       />
+      {starting && (
+        <div className="absolute inset-0 z-20 grid place-items-center bg-black/70 px-6 text-center">
+          <div>
+            <Camera className="mx-auto mb-3 h-8 w-8 animate-pulse opacity-80" />
+            <p className="text-sm">Starting camera…</p>
+            <p className="mt-1 text-xs text-white/50">
+              Allow camera access when your browser asks.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="absolute inset-0 grid place-items-center pointer-events-none">
         <div className="relative w-64 h-64">
           <div className="absolute inset-0 border-2 border-white/30 rounded-2xl" />
           <div className="absolute inset-0 border-t-2 border-primary rounded-2xl animate-pulse" />
         </div>
       </div>
+
       <div className="absolute bottom-8 inset-x-0 text-center">
         <p className="text-sm text-white/80">Point at an Aether album QR card</p>
         <p className="text-xs text-white/50 mt-1">
