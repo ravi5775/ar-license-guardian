@@ -467,16 +467,27 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
         });
       }
 
-      scene.addEventListener("webglcontextlost", (e: any) => {
-        e.preventDefault?.();
-        setErrorMsg("Graphics context lost — reloading engine");
-        setTimeout(() => start(), 300);
+      // Graceful WebGL context-loss recovery: restart the session a couple of
+      // times, then surface a clear fallback instead of a frozen black screen.
+      detachRecoveryRef.current = attachWebglRecovery(scene, {
+        attempts: gpuAttemptsRef.current,
+        onLost: (message) => setRecovering(message),
+        onRestore: () => start(),
+        onFatal: (message) => {
+          setRecovering(null);
+          setErrorMsg(message);
+          setStatus("error");
+        },
       });
 
       root.appendChild(scene);
       sceneElRef.current = scene;
       readyAtRef.current = Date.now();
+      setTimeout(() => {
+        if (sceneElRef.current === scene) gpuAttemptsRef.current.current = 0;
+      }, 20_000);
       setStatus("ready");
+
     } catch (e: any) {
       if (attemptRef.current < 2) {
         setTimeout(() => start(), 500);
