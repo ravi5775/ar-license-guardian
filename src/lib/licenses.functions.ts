@@ -1,16 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAdmin } from "@/lib/admin-guard";
 
-async function requireAdmin(ctx: { supabase: any; userId: string }) {
-  const { data } = await ctx.supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", ctx.userId)
-    .eq("role", "admin")
-    .maybeSingle();
-  if (!data) throw new Error("Forbidden: admin only");
-}
 
 function generateKey() {
   const seg = () =>

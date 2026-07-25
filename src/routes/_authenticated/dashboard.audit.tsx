@@ -1,12 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listAuditLog } from "@/lib/licenses.functions";
+import { assertAdmin } from "@/lib/admin.functions";
+import { toast } from "sonner";
 import { QueryState } from "@/components/QueryState";
 
 export const Route = createFileRoute("/_authenticated/dashboard/audit")({
+  beforeLoad: async () => {
+    const ok = await assertAdmin().then(() => true).catch(() => false);
+    if (!ok) {
+      toast.error("You don't have access to the audit log.");
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: AuditPage,
 });
+
 
 function AuditPage() {
   const fn = useServerFn(listAuditLog);

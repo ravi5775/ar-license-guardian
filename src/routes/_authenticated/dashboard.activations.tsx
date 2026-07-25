@@ -1,14 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listActivations, revokeActivation } from "@/lib/licenses.functions";
+import { assertAdmin } from "@/lib/admin.functions";
 import { toast } from "sonner";
 import { QueryState } from "@/components/QueryState";
 import { ShieldOff } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/activations")({
+  beforeLoad: async () => {
+    const ok = await assertAdmin().then(() => true).catch(() => false);
+    if (!ok) {
+      toast.error("You don't have access to device activations.");
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: ActivationsPage,
 });
+
 
 function ActivationsPage() {
   const qc = useQueryClient();

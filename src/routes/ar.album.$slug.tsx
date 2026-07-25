@@ -15,6 +15,12 @@ import {
 } from "lucide-react";
 import { getPublicAlbum } from "@/lib/albums.functions";
 import { logScanEvent } from "@/lib/analytics.functions";
+import {
+  attachWebglRecovery,
+  hasWebglSupport,
+  WEBGL_UNSUPPORTED_MESSAGE,
+} from "@/lib/webgl-recovery";
+
 
 
 export const Route = createFileRoute("/ar/album/$slug")({
@@ -239,9 +245,14 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
   const readyAtRef = useRef<number>(Date.now());
   const completedRef = useRef<Record<number, boolean>>({});
   const startedRef = useRef<Record<number, boolean>>({});
+  const gpuAttemptsRef = useRef({ current: 0 });
+  const detachRecoveryRef = useRef<null | (() => void)>(null);
+
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [recovering, setRecovering] = useState<string | null>(null);
+
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -310,8 +321,18 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
     attemptRef.current += 1;
     setStatus("loading");
     setErrorMsg(null);
+    setRecovering(null);
+    detachRecoveryRef.current?.();
+    detachRecoveryRef.current = null;
+
+    if (!hasWebglSupport()) {
+      setErrorMsg(WEBGL_UNSUPPORTED_MESSAGE);
+      setStatus("error");
+      return;
+    }
 
     try {
+
       const mindUrl = safeHttpsUrl(album.compiled_mind_url);
       if (!mindUrl) throw new Error("This album has no compiled AR marker yet");
 
@@ -446,16 +467,27 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
         });
       }
 
-      scene.addEventListener("webglcontextlost", (e: any) => {
-        e.preventDefault?.();
-        setErrorMsg("Graphics context lost — reloading engine");
-        setTimeout(() => start(), 300);
+      // Graceful WebGL context-loss recovery: restart the session a couple of
+      // times, then surface a clear fallback instead of a frozen black screen.
+      detachRecoveryRef.current = attachWebglRecovery(scene, {
+        attempts: gpuAttemptsRef.current,
+        onLost: (message) => setRecovering(message),
+        onRestore: () => start(),
+        onFatal: (message) => {
+          setRecovering(null);
+          setErrorMsg(message);
+          setStatus("error");
+        },
       });
 
       root.appendChild(scene);
       sceneElRef.current = scene;
       readyAtRef.current = Date.now();
+      setTimeout(() => {
+        if (sceneElRef.current === scene) gpuAttemptsRef.current.current = 0;
+      }, 20_000);
       setStatus("ready");
+
     } catch (e: any) {
       if (attemptRef.current < 2) {
         setTimeout(() => start(), 500);
@@ -469,9 +501,12 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
   useEffect(() => {
     start();
     return () => {
+      detachRecoveryRef.current?.();
+      detachRecoveryRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
       } catch {}
+
       document.querySelectorAll("video").forEach((video) => {
         const stream = video.srcObject;
         if (stream instanceof MediaStream) {
@@ -542,15 +577,24 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
         <div className="max-w-sm">
           <p className="text-lg mb-2">AR couldn't start</p>
           <p className="text-sm text-white/60 mb-6">{errorMsg}</p>
-          <button
-            onClick={() => {
-              attemptRef.current = 0;
-              start();
-            }}
-            className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium"
-          >
-            Try again
-          </button>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => {
+                attemptRef.current = 0;
+                gpuAttemptsRef.current.current = 0;
+                start();
+              }}
+              className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium"
+            >
+              Try again
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-full border border-white/25 px-5 py-2 text-sm text-white/90"
+            >
+              Reload the page
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -565,6 +609,16 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
           </div>
         </div>
       )}
+
+      {recovering && (
+        <div className="absolute inset-x-0 top-16 z-40 flex justify-center px-4 pointer-events-none">
+          <div className="rounded-full bg-amber-500/20 text-amber-100 backdrop-blur px-4 py-2 text-xs text-center">
+            {recovering}
+          </div>
+        </div>
+      )}
+
+
 
       <div ref={sceneRef} onClick={onSceneTap} className="absolute inset-0" />
 

@@ -12,6 +12,12 @@ import {
   VolumeX,
 } from "lucide-react";
 import { getPublicExperience } from "@/lib/experiences.functions";
+import {
+  attachWebglRecovery,
+  hasWebglSupport,
+  WEBGL_UNSUPPORTED_MESSAGE,
+} from "@/lib/webgl-recovery";
+
 
 export const Route = createFileRoute("/ar/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -232,7 +238,12 @@ function ARStage({ experience }: { experience: any }) {
   const [status, setStatus] = useState<
     "loading" | "ready" | "no-marker" | "error"
   >("loading");
+  const gpuAttemptsRef = useRef({ current: 0 });
+  const detachRecoveryRef = useRef<null | (() => void)>(null);
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [recovering, setRecovering] = useState<string | null>(null);
+
   const [tracking, setTracking] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -242,8 +253,19 @@ function ARStage({ experience }: { experience: any }) {
     attemptRef.current += 1;
     setStatus("loading");
     setErrorMsg(null);
+    setRecovering(null);
+    detachRecoveryRef.current?.();
+    detachRecoveryRef.current = null;
+
+    // No WebGL at all → skip the engine entirely and explain why.
+    if (!hasWebglSupport()) {
+      setErrorMsg(WEBGL_UNSUPPORTED_MESSAGE);
+      setStatus("error");
+      return;
+    }
 
     try {
+
       const markerUrl = safeHttpsUrl(experience.marker_url);
       if (!markerUrl || !markerUrl.pathname.endsWith(".mind")) {
         setStatus("no-marker");
@@ -371,14 +393,27 @@ function ARStage({ experience }: { experience: any }) {
         scenEl.addEventListener("renderstart", kick, { once: true });
       }
 
-      // Recover from lost WebGL context (common on backgrounded tabs).
-      scenEl.addEventListener("webglcontextlost", (e: any) => {
-        e.preventDefault?.();
-        setErrorMsg("Graphics context lost — reloading engine");
-        setTimeout(() => start(), 300);
+      // Recover gracefully when the GPU drops the WebGL context (backgrounded
+      // tab, thermal throttling, low memory). Restart the session a couple of
+      // times, then fall back to a clear explanation instead of a black screen.
+      detachRecoveryRef.current = attachWebglRecovery(scenEl, {
+        attempts: gpuAttemptsRef.current,
+        onLost: (message) => setRecovering(message),
+        onRestore: () => start(),
+        onFatal: (message) => {
+          setRecovering(null);
+          setErrorMsg(message);
+          setStatus("error");
+        },
       });
+      // A session that survives 20s is considered healthy: forgive earlier
+      // GPU hiccups so a long session isn't killed by old strikes.
+      setTimeout(() => {
+        if (sceneElRef.current === scenEl) gpuAttemptsRef.current.current = 0;
+      }, 20_000);
 
       setStatus("ready");
+
     } catch (e: any) {
       // Auto-retry once before surfacing the error (transient CDN or camera race).
       if (attemptRef.current < 2) {
@@ -393,9 +428,12 @@ function ARStage({ experience }: { experience: any }) {
   useEffect(() => {
     start();
     return () => {
+      detachRecoveryRef.current?.();
+      detachRecoveryRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
       } catch {}
+
       document.querySelectorAll("video").forEach((video) => {
         const stream = video.srcObject;
         if (stream instanceof MediaStream) {
@@ -461,11 +499,18 @@ function ARStage({ experience }: { experience: any }) {
             <button
               onClick={() => {
                 attemptRef.current = 0;
+                gpuAttemptsRef.current.current = 0;
                 start();
               }}
               className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium"
             >
               Try again
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-full border border-white/25 px-5 py-2 text-sm text-white/90"
+            >
+              Reload the page
             </button>
             <button
               onClick={() => setStatus("no-marker")}
@@ -491,6 +536,16 @@ function ARStage({ experience }: { experience: any }) {
           </div>
         </div>
       )}
+
+      {/* Transient GPU context-loss notice while the session restarts */}
+      {recovering && (
+        <div className="absolute inset-x-0 top-16 z-40 flex justify-center px-4 pointer-events-none">
+          <div className="rounded-full bg-amber-500/20 text-amber-100 backdrop-blur px-4 py-2 text-xs text-center">
+            {recovering}
+          </div>
+        </div>
+      )}
+
       <div
         ref={sceneRef}
         onClick={onSceneTap}

@@ -1,15 +1,25 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listLicenses, createLicense, setLicenseStatus } from "@/lib/licenses.functions";
+import { assertAdmin } from "@/lib/admin.functions";
 import { useState } from "react";
 import { toast } from "sonner";
 import { QueryState } from "@/components/QueryState";
 import { Plus, Copy, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/licenses")({
+  // Server-verified admin gate: the browser-side role flag is never trusted.
+  beforeLoad: async () => {
+    const ok = await assertAdmin().then(() => true).catch(() => false);
+    if (!ok) {
+      toast.error("You don't have access to licence management.");
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: LicensesPage,
 });
+
 
 function LicensesPage() {
   const qc = useQueryClient();
