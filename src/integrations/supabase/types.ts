@@ -215,6 +215,7 @@ export type Database = {
       }
       licenses: {
         Row: {
+          auto_issued: boolean
           client_email: string
           client_name: string
           created_at: string
@@ -224,11 +225,13 @@ export type Database = {
           license_key: string
           max_activations: number
           notes: string | null
+          owner_user_id: string | null
           plan: Database["public"]["Enums"]["license_plan"]
           status: Database["public"]["Enums"]["license_status"]
           updated_at: string
         }
         Insert: {
+          auto_issued?: boolean
           client_email: string
           client_name: string
           created_at?: string
@@ -238,11 +241,13 @@ export type Database = {
           license_key: string
           max_activations?: number
           notes?: string | null
+          owner_user_id?: string | null
           plan?: Database["public"]["Enums"]["license_plan"]
           status?: Database["public"]["Enums"]["license_status"]
           updated_at?: string
         }
         Update: {
+          auto_issued?: boolean
           client_email?: string
           client_name?: string
           created_at?: string
@@ -252,6 +257,7 @@ export type Database = {
           license_key?: string
           max_activations?: number
           notes?: string | null
+          owner_user_id?: string | null
           plan?: Database["public"]["Enums"]["license_plan"]
           status?: Database["public"]["Enums"]["license_status"]
           updated_at?: string
@@ -329,24 +335,39 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_decided_at: string | null
+          approval_status: Database["public"]["Enums"]["approval_status"]
+          approved_by: string | null
           avatar_url: string | null
           created_at: string
           display_name: string | null
+          email: string | null
           id: string
+          rejection_reason: string | null
           updated_at: string
         }
         Insert: {
+          approval_decided_at?: string | null
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id: string
+          rejection_reason?: string | null
           updated_at?: string
         }
         Update: {
+          approval_decided_at?: string | null
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          approved_by?: string | null
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id?: string
+          rejection_reason?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -462,9 +483,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_approved: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "editor" | "viewer"
+      approval_status: "pending" | "approved" | "rejected"
       license_plan: "starter" | "pro" | "enterprise"
       license_status: "active" | "suspended" | "revoked" | "expired"
     }
@@ -595,6 +618,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "editor", "viewer"],
+      approval_status: ["pending", "approved", "rejected"],
       license_plan: ["starter", "pro", "enterprise"],
       license_status: ["active", "suspended", "revoked", "expired"],
     },
