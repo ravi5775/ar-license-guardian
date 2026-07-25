@@ -165,10 +165,12 @@ function QrScan() {
   const controlsRef = useRef<IScannerControls | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState<string | null>(null);
+  const [starting, setStarting] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!window.isSecureContext) {
+      setStarting(false);
       setError("Camera requires HTTPS. Open this page over https:// and try again.");
       return;
     }
@@ -187,8 +189,12 @@ function QrScan() {
           },
         );
         if (cancelled) controls.stop();
-        else controlsRef.current = controls;
+        else {
+          controlsRef.current = controls;
+          setStarting(false);
+        }
       } catch (e: any) {
+        setStarting(false);
         setError(e?.message ?? "Camera unavailable. Grant camera permission and reload.");
       }
     })();
@@ -199,6 +205,7 @@ function QrScan() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   function handleDecoded(text: string, ctl: IScannerControls) {
     let url: URL | null = null;
