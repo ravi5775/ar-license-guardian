@@ -308,12 +308,13 @@ function Pricing() {
           className="glow-ring rounded-3xl border border-border bg-surface-elevated p-10 sm:p-14"
         >
           <div className="flex flex-wrap items-baseline gap-3 mb-2">
-            <span className="font-display text-6xl">$2,500</span>
-            <span className="text-muted-foreground text-lg">– $5,000</span>
+            <span className="font-display text-6xl">₹30,000</span>
+            <span className="text-muted-foreground text-lg">one-time</span>
           </div>
           <p className="text-sm text-muted-foreground mb-10">
-            One-time · scoped per client · optional $99–299/mo maintenance retainer
+            ₹30,000 one-time · per client deployment · optional ₹6,000–₹12,000/year maintenance retainer
           </p>
+
 
           <ul className="space-y-4 mb-10">
             {included.map((item) => (
