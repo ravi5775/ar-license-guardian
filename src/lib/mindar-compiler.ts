@@ -1,39 +1,59 @@
 // Browser-side MindAR image-target compiler. Compiles multiple photos into a
 // single .mind file so one QR code can cover a whole album.
-const COMPILER_SCRIPT =
-  "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js";
+//
+// NOTE: mind-ar's dist bundles are ES modules (they `import` sibling chunks),
+// so they can NOT be loaded with a classic <script> tag — doing so throws a
+// syntax error and leaves window.MINDAR undefined ("AR compiler unavailable").
+// We load them with a real dynamic import instead, with CDN fallbacks.
+const COMPILER_URLS = [
+  "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js",
+  "https://unpkg.com/mind-ar@1.2.5/dist/mindar-image.prod.js",
+  "https://esm.sh/mind-ar@1.2.5/dist/mindar-image.prod.js",
+];
 
-let scriptPromise: Promise<void> | null = null;
+type CompilerCtor = new () => {
+  compileImageTargets: (
+    images: HTMLImageElement[],
+    onProgress: (p: number) => void,
+  ) => Promise<unknown>;
+  exportData: () => Promise<ArrayBuffer>;
+};
 
-function loadCompilerScript() {
-  if (scriptPromise) return scriptPromise;
-  scriptPromise = new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector(
-      `script[src="${COMPILER_SCRIPT}"]`,
-    ) as HTMLScriptElement | null;
-    if (existing && existing.dataset.loaded === "true") return resolve();
-    const s = existing ?? document.createElement("script");
-    s.src = COMPILER_SCRIPT;
-    s.async = true;
-    s.addEventListener(
-      "load",
-      () => {
-        s.dataset.loaded = "true";
-        resolve();
-      },
-      { once: true },
+let compilerPromise: Promise<CompilerCtor> | null = null;
+
+async function loadCompiler(): Promise<CompilerCtor> {
+  if (compilerPromise) return compilerPromise;
+
+  compilerPromise = (async () => {
+    // Already loaded by the AR viewer on this page?
+    const existing = (window as any).MINDAR?.IMAGE?.Compiler;
+    if (existing) return existing as CompilerCtor;
+
+    let lastError: unknown = null;
+    for (const url of COMPILER_URLS) {
+      try {
+        const mod: any = await import(/* @vite-ignore */ url);
+        const Compiler =
+          mod?.Compiler ??
+          mod?.default?.Compiler ??
+          (window as any).MINDAR?.IMAGE?.Compiler;
+        if (Compiler) return Compiler as CompilerCtor;
+        lastError = new Error(`No Compiler export from ${url}`);
+      } catch (e) {
+        lastError = e;
+      }
+    }
+    throw new Error(
+      `Could not load the AR compiler — check your internet connection and try again. (${
+        lastError instanceof Error ? lastError.message : String(lastError)
+      })`,
     );
-    s.addEventListener(
-      "error",
-      () => reject(new Error("Failed to load the AR compiler")),
-      { once: true },
-    );
-    if (!existing) document.head.appendChild(s);
+  })();
+
+  compilerPromise.catch(() => {
+    compilerPromise = null;
   });
-  scriptPromise.catch(() => {
-    scriptPromise = null;
-  });
-  return scriptPromise;
+  return compilerPromise;
 }
 
 function fileToImage(file: File) {
@@ -60,10 +80,7 @@ export async function compileAlbumTargets(
   files: File[],
   onProgress?: (percent: number) => void,
 ): Promise<Blob> {
-  await loadCompilerScript();
-  const MINDAR = (window as any).MINDAR;
-  const Compiler = MINDAR?.IMAGE?.Compiler;
-  if (!Compiler) throw new Error("AR compiler unavailable — please reload");
+  const Compiler = await loadCompiler();
 
   const images = await Promise.all(files.map(fileToImage));
   const compiler = new Compiler();
