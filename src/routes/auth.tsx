@@ -66,7 +66,7 @@ function AuthPage() {
           // (often via Google sign-in) so guide them to log in instead.
           const code = (error as { code?: string }).code;
           if (code === "user_already_exists" || error.status === 422) {
-            setMode("login");
+            setMode("signin");
             toast.error("That email already has an account — please log in (or use Continue with Google).");
             return;
           }
@@ -74,7 +74,7 @@ function AuthPage() {
         }
         if (!data.session) {
           toast.success("Check your inbox to confirm your email, then log in.");
-          setMode("login");
+          setMode("signin");
           return;
         }
         toast.success("Account created. Redirecting…");
