@@ -110,47 +110,46 @@ function LandingPage() {
 /* ------------------------------ Hero ------------------------------- */
 
 function Hero() {
+  const reduced = useReducedMotionPref();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (reduced || !ref.current) return;
+    const ctx = gsap.context(() => {
+      gsap.from("[data-hero-item]", {
+        opacity: 0,
+        y: 22,
+        duration: 0.9,
+        stagger: 0.1,
+        ease: "expo.out",
+      });
+    }, ref);
+    return () => ctx.revert();
+  }, [reduced]);
+
   return (
     <HeroVisual>
-      <div className="relative text-left">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+      <div ref={ref} className="relative text-left">
+        <div
+          data-hero-item
           className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted-foreground mb-8"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           White-label AR platform · v1 shipping Q1
-        </motion.div>
+        </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-5xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-tight"
-        >
+        <h1 data-hero-item className="text-5xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-tight">
           Turn any photo <br />
           into a <em className="text-primary not-italic font-display italic">portal</em>.
-        </motion.h1>
+        </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-8 text-lg text-muted-foreground max-w-xl leading-relaxed"
-        >
+        <p data-hero-item className="mt-8 text-lg text-muted-foreground max-w-xl leading-relaxed">
           Open the site, point at a printed photo, and it comes alive as video
-          or AR — no QR on the picture, no app install. Sold once. Deployed to
-          your own Cloudflare + Supabase. Owned by you, forever.
+          or AR — no QR on the picture, no app install. Sold once for ₹30,000.
+          Deployed to your own Cloudflare + Supabase. Owned by you, forever.
+        </p>
 
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-12 flex flex-wrap items-center gap-3"
-        >
+        <div data-hero-item className="mt-12 flex flex-wrap items-center gap-3">
           <a
             href="#pricing"
             className="glow-ring inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity"
@@ -166,16 +165,17 @@ function Hero() {
             Scan a photo
           </Link>
           <a
-            href="#demo"
+            href="#how"
             className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             See how it works
           </a>
-        </motion.div>
+        </div>
       </div>
     </HeroVisual>
   );
 }
+
 
 
 /* --------------------------- Logo strip ---------------------------- */
