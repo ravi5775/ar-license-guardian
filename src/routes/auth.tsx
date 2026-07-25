@@ -53,7 +53,7 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -61,7 +61,22 @@ function AuthPage() {
             data: { name: `${firstName} ${lastName}`.trim(), first_name: firstName, last_name: lastName },
           },
         });
-        if (error) throw error;
+        if (error) {
+          // 422 user_already_exists — this email is already registered
+          // (often via Google sign-in) so guide them to log in instead.
+          const code = (error as { code?: string }).code;
+          if (code === "user_already_exists" || error.status === 422) {
+            setMode("login");
+            toast.error("That email already has an account — please log in (or use Continue with Google).");
+            return;
+          }
+          throw error;
+        }
+        if (!data.session) {
+          toast.success("Check your inbox to confirm your email, then log in.");
+          setMode("login");
+          return;
+        }
         toast.success("Account created. Redirecting…");
         navigate({ to: "/dashboard" });
       } else {
@@ -70,6 +85,7 @@ function AuthPage() {
         toast.success("Welcome back");
         navigate({ to: "/dashboard" });
       }
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
