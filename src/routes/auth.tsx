@@ -3,18 +3,39 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { workflowMedia } from "@/lib/workflow-media";
+
+const TITLE = "Sign in — Aether AR admin workspace";
+const DESC =
+  "Sign in or create your Aether AR workspace to manage AR albums, markers, licences and scan analytics.";
 
 export const Route = createFileRoute("/auth")({
+  head: () => ({
+    meta: [
+      { title: TITLE },
+      { name: "description", content: DESC },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESC },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: TITLE },
+      { name: "twitter:description", content: DESC },
+    ],
+  }),
   component: AuthPage,
 });
 
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -25,6 +46,10 @@ function AuthPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (mode === "signup" && !agreeToTerms) {
+      toast.error("Please accept the licence terms to continue.");
+      return;
+    }
     setLoading(true);
     try {
       if (mode === "signup") {
@@ -33,7 +58,7 @@ function AuthPage() {
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { name },
+            data: { name: `${firstName} ${lastName}`.trim(), first_name: firstName, last_name: lastName },
           },
         });
         if (error) throw error;
@@ -66,19 +91,54 @@ function AuthPage() {
     navigate({ to: "/dashboard" });
   }
 
+  const field =
+    "w-full rounded-md border border-border bg-background/60 px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/50 placeholder:text-muted-foreground/70";
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <Link to="/" className="flex items-center gap-2 mb-8 justify-center">
-          <Sparkles className="h-5 w-5 text-primary" />
-          <span className="text-lg font-serif italic">Aether AR</span>
+    <div className="min-h-screen bg-background text-foreground grid lg:grid-cols-2">
+      {/* Brand panel */}
+      <div className="relative hidden lg:block overflow-hidden border-r border-border/60">
+        <img
+          src={workflowMedia.weddingPhotoLarge}
+          alt="A printed wedding photograph coming alive as augmented reality"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
+        <span aria-hidden className="absolute left-6 top-6 h-6 w-6 border-l border-t border-primary/50" />
+        <span aria-hidden className="absolute right-6 bottom-6 h-6 w-6 border-r border-b border-primary/50" />
+
+        <Link
+          to="/"
+          className="absolute left-8 top-8 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/60 backdrop-blur px-3 py-1.5 text-xs hover:bg-background transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back to site
         </Link>
 
-        <div className="rounded-2xl border border-border/60 bg-card/40 backdrop-blur-xl p-8 shadow-xl">
-          <h1 className="text-2xl font-serif italic mb-1">
-            {mode === "signin" ? "Welcome back" : "Create your workspace"}
+        <div className="absolute inset-x-0 bottom-0 p-12">
+          <p className="font-mono text-xs uppercase tracking-widest text-primary mb-4">Aether AR</p>
+          <h2 className="text-4xl leading-tight max-w-sm">
+            The photo is the marker. The memory is the payload.
+          </h2>
+          <p className="mt-4 text-sm text-muted-foreground max-w-sm">
+            Manage albums, compiled markers, licences and scan analytics from one workspace.
+          </p>
+        </div>
+      </div>
+
+      {/* Form panel */}
+      <div className="relative flex items-center justify-center px-6 py-16">
+        <span aria-hidden className="absolute right-6 top-6 h-6 w-6 border-r border-t border-primary/30" />
+        <div className="w-full max-w-md">
+          <Link to="/" className="lg:hidden flex items-center gap-2 mb-8">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <span className="text-lg font-display">Aether AR</span>
+          </Link>
+
+          <h1 className="text-3xl font-display mb-1">
+            {mode === "signin" ? "Log in" : "Create an account"}
           </h1>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground mb-8">
             {mode === "signin"
               ? "Sign in to manage your AR experiences."
               : "Start building AR experiences in minutes."}
@@ -87,7 +147,7 @@ function AuthPage() {
           <button
             onClick={handleGoogle}
             disabled={loading}
-            className="w-full mb-4 flex items-center justify-center gap-2 rounded-md border border-border bg-background hover:bg-accent px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50"
+            className="w-full mb-5 flex items-center justify-center gap-2 rounded-md border border-border bg-surface/60 hover:bg-surface px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary/50 outline-none"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -98,46 +158,76 @@ function AuthPage() {
             Continue with Google
           </button>
 
-          <div className="relative my-4">
+          <div className="relative my-5">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/60" /></div>
-            <div className="relative flex justify-center text-xs"><span className="bg-card/40 px-2 text-muted-foreground">or</span></div>
+            <div className="relative flex justify-center text-xs"><span className="bg-background px-2 text-muted-foreground">or</span></div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {mode === "signup" && (
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Full name"
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="firstName" className="block text-xs text-muted-foreground mb-1.5">First name</label>
+                  <input id="firstName" type="text" required autoComplete="given-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Aarav" className={field} />
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="block text-xs text-muted-foreground mb-1.5">Last name</label>
+                  <input id="lastName" type="text" required autoComplete="family-name" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Sharma" className={field} />
+                </div>
+              </div>
             )}
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
-            />
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password (min 8 chars)"
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
-            />
+
+            <div>
+              <label htmlFor="email" className="block text-xs text-muted-foreground mb-1.5">Email</label>
+              <input id="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" className={field} />
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-xs text-muted-foreground mb-1.5">Password</label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Minimum 8 characters"
+                  className={field + " pr-11"}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/50 outline-none"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {mode === "signup" && (
+              <label className="flex items-start gap-2.5 text-xs text-muted-foreground pt-1">
+                <input
+                  type="checkbox"
+                  checked={agreeToTerms}
+                  onChange={(e) => setAgreeToTerms(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-border accent-[var(--primary)]"
+                />
+                <span>
+                  I agree to the Aether AR licence agreement and data-processing terms.
+                </span>
+              </label>
+            )}
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary/50 outline-none"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              {mode === "signin" ? "Sign in" : "Create account"}
+              {mode === "signin" ? "Log in" : "Create account"}
             </button>
           </form>
 
@@ -147,7 +237,7 @@ function AuthPage() {
               onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
               className="text-primary hover:underline font-medium"
             >
-              {mode === "signin" ? "Sign up" : "Sign in"}
+              {mode === "signin" ? "Create an account" : "Log in"}
             </button>
           </p>
         </div>

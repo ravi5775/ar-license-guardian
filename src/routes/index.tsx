@@ -1,30 +1,35 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
 import { HeroVisual } from "@/components/hero/HeroVisual";
 import { WorkflowDemo } from "@/components/WorkflowDemo";
+import { PillNav } from "@/components/PillNav";
+import { FilmTexture } from "@/components/FilmTexture";
+import { ConveyorShowcase } from "@/components/scroll/ConveyorShowcase";
+import { DossierDiagram } from "@/components/scroll/DossierDiagram";
+import { ParallaxDepthSection } from "@/components/scroll/ParallaxDepthSection";
+import { SpecGrid } from "@/components/scroll/SpecGrid";
+import { ProductReveal } from "@/components/scroll/ProductReveal";
+import { workflowMedia } from "@/lib/workflow-media";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useReducedMotionPref } from "@/hooks/use-motion-env";
 
 import {
-  QrCode,
-  ScanLine,
   Sparkles,
   Shield,
   Server,
-  Wand2,
   ArrowUpRight,
   Check,
-  Camera,
   Cpu,
-  LayoutDashboard,
-  LogIn,
+  ScanLine,
 } from "lucide-react";
+
 
 const HOME_TITLE = "Aether AR — Wedding AR Albums & Augmented Reality Photo Platform";
 const HOME_DESC =
-  "Aether AR turns printed photos into video. Wedding AR albums, AR greeting cards, AR business cards and AR invitations — the photo itself is the marker, no QR printed on it, no app install, one-time white-label licence.";
+  "Aether AR turns printed photos into video. Wedding AR albums, AR greeting cards, AR business cards and AR invitations — the photo itself is the marker, no QR printed on it, no app install. One-time white-label licence at ₹30,000.";
+
 
 
 export const Route = createFileRoute("/")({
@@ -69,12 +74,30 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      <Nav />
+      <FilmTexture />
+      <PillNav />
       <Hero />
       <LogoStrip />
+      <ConveyorShowcase />
+      <ProductReveal />
       <WorkflowDemo />
-      <HowItWorks />
+      <DossierDiagram />
+      <ParallaxDepthSection
+        image={workflowMedia.albumPhoto}
+        alt="A printed wedding album spread"
+        kicker="Wedding albums"
+        title="The album stops being a shelf object."
+        body="Twenty prints, one compiled marker, every page holding the film it came from — handed to the couple as their own branded site."
+      />
+      <SpecGrid />
       <Features />
+      <ParallaxDepthSection
+        image={workflowMedia.museumImage}
+        alt="A gallery wall of framed works"
+        kicker="Galleries & museums"
+        title="Wall labels that speak."
+        body="Point a phone at the work and the curator's cut plays over it. No beacons, no app, no hardware on the wall."
+      />
       <Pricing />
       <FinalCTA />
       <Footer />
@@ -83,123 +106,51 @@ function LandingPage() {
 }
 
 
-/* ------------------------------- Nav ------------------------------- */
-
-function Nav() {
-  const navigate = useNavigate();
-  const [signedIn, setSignedIn] = useState(false);
-
-  useEffect(() => {
-    // Handle OAuth callback tokens left in the URL hash after redirect.
-    // supabase-js will auto-detect and set the session; then route to /dashboard.
-    supabase.auth.getSession().then(({ data }) => {
-      setSignedIn(!!data.session);
-      if (data.session && window.location.hash.includes("access_token")) {
-        window.history.replaceState(null, "", window.location.pathname);
-        navigate({ to: "/dashboard" });
-      }
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setSignedIn(!!session);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [navigate]);
-
-  return (
-    <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/60 border-b border-border/40">
-      <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-primary" />
-          </div>
-          <span className="font-display text-xl tracking-tight">Aether<span className="text-primary">.</span></span>
-        </Link>
-
-        <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
-          <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-          <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
-          <Link to="/scan" className="hover:text-foreground transition-colors inline-flex items-center gap-1"><ScanLine className="w-3.5 h-3.5" />Scan a photo</Link>
-        </nav>
-
-        <div className="flex items-center gap-2">
-          {signedIn ? (
-            <Link
-              to="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              Dashboard
-            </Link>
-          ) : (
-            <>
-              <Link
-                to="/auth"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-accent transition-colors"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                Sign in
-              </Link>
-              <a
-                href="#pricing"
-                className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
-              >
-                Get a quote
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </a>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
-  );
-}
 
 
 /* ------------------------------ Hero ------------------------------- */
 
 function Hero() {
+  const reduced = useReducedMotionPref();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (reduced || !ref.current) return;
+    const ctx = gsap.context(() => {
+      gsap.from("[data-hero-item]", {
+        opacity: 0,
+        y: 22,
+        duration: 0.9,
+        stagger: 0.1,
+        ease: "expo.out",
+      });
+    }, ref);
+    return () => ctx.revert();
+  }, [reduced]);
+
   return (
     <HeroVisual>
-      <div className="relative text-left">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+      <div ref={ref} className="relative text-left">
+        <div
+          data-hero-item
           className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-3 py-1 text-xs text-muted-foreground mb-8"
         >
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           White-label AR platform · v1 shipping Q1
-        </motion.div>
+        </div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-5xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-tight"
-        >
+        <h1 data-hero-item className="text-5xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-tight">
           Turn any photo <br />
           into a <em className="text-primary not-italic font-display italic">portal</em>.
-        </motion.h1>
+        </h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-8 text-lg text-muted-foreground max-w-xl leading-relaxed"
-        >
+        <p data-hero-item className="mt-8 text-lg text-muted-foreground max-w-xl leading-relaxed">
           Open the site, point at a printed photo, and it comes alive as video
-          or AR — no QR on the picture, no app install. Sold once. Deployed to
-          your own Cloudflare + Supabase. Owned by you, forever.
+          or AR — no QR on the picture, no app install. Sold once for ₹30,000.
+          Deployed to your own Cloudflare + Supabase. Owned by you, forever.
+        </p>
 
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-12 flex flex-wrap items-center gap-3"
-        >
+        <div data-hero-item className="mt-12 flex flex-wrap items-center gap-3">
           <a
             href="#pricing"
             className="glow-ring inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 text-sm font-medium hover:opacity-90 transition-opacity"
@@ -215,16 +166,17 @@ function Hero() {
             Scan a photo
           </Link>
           <a
-            href="#demo"
+            href="#how"
             className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             See how it works
           </a>
-        </motion.div>
+        </div>
       </div>
     </HeroVisual>
   );
 }
+
 
 
 /* --------------------------- Logo strip ---------------------------- */
@@ -256,75 +208,9 @@ function LogoStrip() {
   );
 }
 
-/* --------------------------- How it works -------------------------- */
+/* How it works now lives in <ProductReveal /> (cinematic pinned beats). */
 
-function HowItWorks() {
-  const steps = [
-    {
-      n: "01",
-      icon: Wand2,
-      title: "Upload the moment",
-      body: "Your client drops in each photo with the video that belongs to it. The admin compiles one .mind marker file for the album.",
-    },
-    {
-      n: "02",
-      icon: QrCode,
-      title: "Print the photos clean",
-      body: "Nothing is printed on the pictures — the photograph itself is the marker. An optional album card carries the link for guests.",
-    },
-    {
-      n: "03",
-      icon: Camera,
-      title: "Point the phone, AR plays",
-      body: "Guest opens the site, points at any printed photo, and the matching video locks onto it. No app install. iOS Safari and Android Chrome.",
-    },
 
-  ];
-
-  return (
-    <section id="how" className="px-6 py-32">
-      <div className="mx-auto max-w-7xl">
-        <div className="max-w-2xl mb-20">
-          <p className="text-xs uppercase tracking-widest text-primary mb-4">
-            How it works
-          </p>
-          <h2 className="text-4xl sm:text-5xl leading-tight">
-            Three steps between paper and augmented reality.
-          </h2>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {steps.map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <motion.div
-                key={s.n}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group relative rounded-2xl border border-border bg-surface p-8 hover:border-primary/40 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-8">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {s.n}
-                  </span>
-                </div>
-                <h3 className="text-2xl mb-3">{s.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {s.body}
-                </p>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ---------------------------- Features ----------------------------- */
 
@@ -395,7 +281,7 @@ function Features() {
 function Pricing() {
   const included = [
     "Full source code, transferred to your GitHub org",
-    "Deployed to your Cloudflare + Supabase Pro (~$25/mo, your account)",
+    "Deployed to your own Cloudflare + Supabase account",
     "Admin dashboard with mandatory TOTP",
     "License agreement + DPA + RUNBOOK",
     "30-day post-handover bug-fix window",
@@ -423,12 +309,13 @@ function Pricing() {
           className="glow-ring rounded-3xl border border-border bg-surface-elevated p-10 sm:p-14"
         >
           <div className="flex flex-wrap items-baseline gap-3 mb-2">
-            <span className="font-display text-6xl">$2,500</span>
-            <span className="text-muted-foreground text-lg">– $5,000</span>
+            <span className="font-display text-6xl">₹30,000</span>
+            <span className="text-muted-foreground text-lg">one-time</span>
           </div>
           <p className="text-sm text-muted-foreground mb-10">
-            One-time · scoped per client · optional $99–299/mo maintenance retainer
+            ₹30,000 one-time · per client deployment · optional ₹6,000–₹12,000/year maintenance retainer
           </p>
+
 
           <ul className="space-y-4 mb-10">
             {included.map((item) => (
