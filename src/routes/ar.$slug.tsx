@@ -12,6 +12,12 @@ import {
   VolumeX,
 } from "lucide-react";
 import { getPublicExperience } from "@/lib/experiences.functions";
+import {
+  attachWebglRecovery,
+  hasWebglSupport,
+  WEBGL_UNSUPPORTED_MESSAGE,
+} from "@/lib/webgl-recovery";
+
 
 export const Route = createFileRoute("/ar/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -232,7 +238,12 @@ function ARStage({ experience }: { experience: any }) {
   const [status, setStatus] = useState<
     "loading" | "ready" | "no-marker" | "error"
   >("loading");
+  const gpuAttemptsRef = useRef({ current: 0 });
+  const detachRecoveryRef = useRef<null | (() => void)>(null);
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [recovering, setRecovering] = useState<string | null>(null);
+
   const [tracking, setTracking] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
