@@ -577,15 +577,24 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
         <div className="max-w-sm">
           <p className="text-lg mb-2">AR couldn't start</p>
           <p className="text-sm text-white/60 mb-6">{errorMsg}</p>
-          <button
-            onClick={() => {
-              attemptRef.current = 0;
-              start();
-            }}
-            className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium"
-          >
-            Try again
-          </button>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => {
+                attemptRef.current = 0;
+                gpuAttemptsRef.current.current = 0;
+                start();
+              }}
+              className="rounded-full bg-white text-black px-5 py-2 text-sm font-medium"
+            >
+              Try again
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="rounded-full border border-white/25 px-5 py-2 text-sm text-white/90"
+            >
+              Reload the page
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -600,6 +609,16 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
           </div>
         </div>
       )}
+
+      {recovering && (
+        <div className="absolute inset-x-0 top-16 z-40 flex justify-center px-4 pointer-events-none">
+          <div className="rounded-full bg-amber-500/20 text-amber-100 backdrop-blur px-4 py-2 text-xs text-center">
+            {recovering}
+          </div>
+        </div>
+      )}
+
+
 
       <div ref={sceneRef} onClick={onSceneTap} className="absolute inset-0" />
 
