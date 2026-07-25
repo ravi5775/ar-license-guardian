@@ -1,0 +1,3 @@
+UPDATE public.ar_experiences SET description = 'A wedding hands close-up, ready to scan and play.', cover_image_url = 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=3000&q=80' WHERE slug = 'bride-groom-hold-hands';
+
+UPDATE public.ar_experiences SET description = 'A beach sunset postcard that plays its own film.', cover_image_url = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=3000&q=80' WHERE slug = 'sunset-beach-ar-postcard';
