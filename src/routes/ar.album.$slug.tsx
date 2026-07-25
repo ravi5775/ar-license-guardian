@@ -321,8 +321,18 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
     attemptRef.current += 1;
     setStatus("loading");
     setErrorMsg(null);
+    setRecovering(null);
+    detachRecoveryRef.current?.();
+    detachRecoveryRef.current = null;
+
+    if (!hasWebglSupport()) {
+      setErrorMsg(WEBGL_UNSUPPORTED_MESSAGE);
+      setStatus("error");
+      return;
+    }
 
     try {
+
       const mindUrl = safeHttpsUrl(album.compiled_mind_url);
       if (!mindUrl) throw new Error("This album has no compiled AR marker yet");
 
