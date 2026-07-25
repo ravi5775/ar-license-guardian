@@ -1,26 +1,30 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useRef } from "react";
+import { gsap } from "gsap";
 import { HeroVisual } from "@/components/hero/HeroVisual";
 import { WorkflowDemo } from "@/components/WorkflowDemo";
+import { PillNav } from "@/components/PillNav";
+import { FilmTexture } from "@/components/FilmTexture";
+import { ConveyorShowcase } from "@/components/scroll/ConveyorShowcase";
+import { DossierDiagram } from "@/components/scroll/DossierDiagram";
+import { ParallaxDepthSection } from "@/components/scroll/ParallaxDepthSection";
+import { SpecGrid } from "@/components/scroll/SpecGrid";
+import { ProductReveal } from "@/components/scroll/ProductReveal";
+import { workflowMedia } from "@/lib/workflow-media";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useReducedMotionPref } from "@/hooks/use-motion-env";
 
 import {
-  QrCode,
-  ScanLine,
   Sparkles,
   Shield,
   Server,
-  Wand2,
   ArrowUpRight,
   Check,
-  Camera,
   Cpu,
-  LayoutDashboard,
-  LogIn,
+  ScanLine,
 } from "lucide-react";
+
 
 const HOME_TITLE = "Aether AR — Wedding AR Albums & Augmented Reality Photo Platform";
 const HOME_DESC =
