@@ -73,12 +73,30 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      <Nav />
+      <FilmTexture />
+      <PillNav />
       <Hero />
       <LogoStrip />
+      <ConveyorShowcase />
+      <ProductReveal />
       <WorkflowDemo />
-      <HowItWorks />
+      <DossierDiagram />
+      <ParallaxDepthSection
+        image={workflowMedia.albumPhoto}
+        alt="A printed wedding album spread"
+        kicker="Wedding albums"
+        title="The album stops being a shelf object."
+        body="Twenty prints, one compiled marker, every page holding the film it came from — handed to the couple as their own branded site."
+      />
+      <SpecGrid />
       <Features />
+      <ParallaxDepthSection
+        image={workflowMedia.museumImage}
+        alt="A gallery wall of framed works"
+        kicker="Galleries & museums"
+        title="Wall labels that speak."
+        body="Point a phone at the work and the curator's cut plays over it. No beacons, no app, no hardware on the wall."
+      />
       <Pricing />
       <FinalCTA />
       <Footer />
@@ -87,77 +105,6 @@ function LandingPage() {
 }
 
 
-/* ------------------------------- Nav ------------------------------- */
-
-function Nav() {
-  const navigate = useNavigate();
-  const [signedIn, setSignedIn] = useState(false);
-
-  useEffect(() => {
-    // Handle OAuth callback tokens left in the URL hash after redirect.
-    // supabase-js will auto-detect and set the session; then route to /dashboard.
-    supabase.auth.getSession().then(({ data }) => {
-      setSignedIn(!!data.session);
-      if (data.session && window.location.hash.includes("access_token")) {
-        window.history.replaceState(null, "", window.location.pathname);
-        navigate({ to: "/dashboard" });
-      }
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setSignedIn(!!session);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [navigate]);
-
-  return (
-    <header className="fixed top-0 inset-x-0 z-50 backdrop-blur-xl bg-background/60 border-b border-border/40">
-      <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-primary" />
-          </div>
-          <span className="font-display text-xl tracking-tight">Aether<span className="text-primary">.</span></span>
-        </Link>
-
-        <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-          <a href="#how" className="hover:text-foreground transition-colors">How it works</a>
-          <a href="#features" className="hover:text-foreground transition-colors">Features</a>
-          <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
-          <Link to="/scan" className="hover:text-foreground transition-colors inline-flex items-center gap-1"><ScanLine className="w-3.5 h-3.5" />Scan a photo</Link>
-        </nav>
-
-        <div className="flex items-center gap-2">
-          {signedIn ? (
-            <Link
-              to="/dashboard"
-              className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              Dashboard
-            </Link>
-          ) : (
-            <>
-              <Link
-                to="/auth"
-                className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-accent transition-colors"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                Sign in
-              </Link>
-              <a
-                href="#pricing"
-                className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity"
-              >
-                Get a quote
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </a>
-            </>
-          )}
-        </div>
-      </div>
-    </header>
-  );
-}
 
 
 /* ------------------------------ Hero ------------------------------- */
