@@ -207,75 +207,9 @@ function LogoStrip() {
   );
 }
 
-/* --------------------------- How it works -------------------------- */
+/* How it works now lives in <ProductReveal /> (cinematic pinned beats). */
 
-function HowItWorks() {
-  const steps = [
-    {
-      n: "01",
-      icon: Wand2,
-      title: "Upload the moment",
-      body: "Your client drops in each photo with the video that belongs to it. The admin compiles one .mind marker file for the album.",
-    },
-    {
-      n: "02",
-      icon: QrCode,
-      title: "Print the photos clean",
-      body: "Nothing is printed on the pictures — the photograph itself is the marker. An optional album card carries the link for guests.",
-    },
-    {
-      n: "03",
-      icon: Camera,
-      title: "Point the phone, AR plays",
-      body: "Guest opens the site, points at any printed photo, and the matching video locks onto it. No app install. iOS Safari and Android Chrome.",
-    },
 
-  ];
-
-  return (
-    <section id="how" className="px-6 py-32">
-      <div className="mx-auto max-w-7xl">
-        <div className="max-w-2xl mb-20">
-          <p className="text-xs uppercase tracking-widest text-primary mb-4">
-            How it works
-          </p>
-          <h2 className="text-4xl sm:text-5xl leading-tight">
-            Three steps between paper and augmented reality.
-          </h2>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {steps.map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <motion.div
-                key={s.n}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="group relative rounded-2xl border border-border bg-surface p-8 hover:border-primary/40 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-8">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
-                  <span className="font-mono text-xs text-muted-foreground">
-                    {s.n}
-                  </span>
-                </div>
-                <h3 className="text-2xl mb-3">{s.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {s.body}
-                </p>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ---------------------------- Features ----------------------------- */
 
