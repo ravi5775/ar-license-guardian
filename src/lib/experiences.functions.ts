@@ -21,7 +21,10 @@ const ExperienceInput = z.object({
   autoplay: z.boolean().default(true),
   loop_playback: z.boolean().default(true),
   published: z.boolean().default(false),
+  /** Public gallery visibility is opt-in and always defaults to OFF. */
+  show_in_gallery: z.boolean().default(false),
 });
+
 
 export const listMyExperiences = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
