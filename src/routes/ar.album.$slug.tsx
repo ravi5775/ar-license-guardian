@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { getPublicAlbum } from "@/lib/albums.functions";
 import { logScanEvent } from "@/lib/analytics.functions";
+import { PinGate } from "@/components/PinGate";
+
 import {
   attachWebglRecovery,
   hasWebglSupport,
@@ -24,11 +26,18 @@ import {
 
 
 export const Route = createFileRoute("/ar/album/$slug")({
-  loader: async ({ params }) => {
-    const album = await getPublicAlbum({ data: { slug: params.slug } });
+  validateSearch: (search: Record<string, unknown>) => ({
+    tok: typeof search.tok === "string" ? search.tok : undefined,
+  }),
+  loaderDeps: ({ search }) => ({ tok: search.tok }),
+  loader: async ({ params, deps }) => {
+    const album = await getPublicAlbum({
+      data: { slug: params.slug, tok: deps.tok ?? null },
+    });
     if (!album) throw notFound();
     return { album };
   },
+
   head: ({ loaderData }) => ({
     meta: loaderData
       ? [
@@ -162,6 +171,7 @@ function AlbumViewer() {
     })().catch(() => {});
   }, []);
 
+  const albumId = "id" in album ? album.id : null;
   const track = useCallback(
     (
       event_type:
@@ -172,9 +182,10 @@ function AlbumViewer() {
         | "recognition_timeout",
       extra?: { target_index?: number | null; duration_ms?: number | null },
     ) => {
+      if (!albumId) return;
       void logScanEvent({
         data: {
-          album_id: album.id,
+          album_id: albumId,
           target_index: extra?.target_index ?? null,
           event_type,
           session_id: sessionRef.current,
@@ -182,8 +193,15 @@ function AlbumViewer() {
         },
       }).catch(() => {});
     },
-    [album.id],
+    [albumId],
   );
+
+  // Restricted album opened without the signed token from its printed QR.
+  if (album.locked) {
+    return <PinGate kind="album" slug={album.slug} title={album.title} />;
+  }
+
+
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">

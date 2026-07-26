@@ -3,6 +3,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 
+/**
+ * Gallery visibility requires BOTH gates: the content must be public
+ * (no PIN) AND the owner must have explicitly ticked "Show in public
+ * gallery". New experiences default to hidden.
+ */
 const listPublicExperiences = createServerFn({ method: "GET" }).handler(async () => {
   const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
     auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
@@ -11,10 +16,13 @@ const listPublicExperiences = createServerFn({ method: "GET" }).handler(async ()
     .from("ar_experiences")
     .select("slug, title, description, cover_image_url")
     .eq("published", true)
+    .eq("access_mode", "public")
+    .eq("show_in_gallery", true)
     .order("created_at", { ascending: false })
     .limit(60);
   return data ?? [];
 });
+
 
 export const Route = createFileRoute("/gallery")({
   loader: () => listPublicExperiences(),

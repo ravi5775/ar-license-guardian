@@ -16,36 +16,51 @@ export type Database = {
     Tables: {
       albums: {
         Row: {
+          access_mode: string
           compiled_mind_path: string | null
           compiled_mind_url: string | null
           created_at: string
           id: string
           owner_id: string
+          pin_encrypted: string | null
+          pin_hash: string | null
+          pin_updated_at: string | null
           published: boolean
+          show_in_gallery: boolean
           slug: string
           target_count: number
           title: string
           updated_at: string
         }
         Insert: {
+          access_mode?: string
           compiled_mind_path?: string | null
           compiled_mind_url?: string | null
           created_at?: string
           id?: string
           owner_id: string
+          pin_encrypted?: string | null
+          pin_hash?: string | null
+          pin_updated_at?: string | null
           published?: boolean
+          show_in_gallery?: boolean
           slug: string
           target_count?: number
           title: string
           updated_at?: string
         }
         Update: {
+          access_mode?: string
           compiled_mind_path?: string | null
           compiled_mind_url?: string | null
           created_at?: string
           id?: string
           owner_id?: string
+          pin_encrypted?: string | null
+          pin_hash?: string | null
+          pin_updated_at?: string | null
           published?: boolean
+          show_in_gallery?: boolean
           slug?: string
           target_count?: number
           title?: string
@@ -55,6 +70,7 @@ export type Database = {
       }
       ar_experiences: {
         Row: {
+          access_mode: string
           album_id: string | null
           autoplay: boolean
           cover_image_url: string | null
@@ -69,7 +85,11 @@ export type Database = {
           media_type: string
           media_url: string | null
           owner_id: string
+          pin_encrypted: string | null
+          pin_hash: string | null
+          pin_updated_at: string | null
           published: boolean
+          show_in_gallery: boolean
           slug: string | null
           target_index: number | null
           title: string
@@ -77,6 +97,7 @@ export type Database = {
           view_count: number
         }
         Insert: {
+          access_mode?: string
           album_id?: string | null
           autoplay?: boolean
           cover_image_url?: string | null
@@ -91,7 +112,11 @@ export type Database = {
           media_type?: string
           media_url?: string | null
           owner_id: string
+          pin_encrypted?: string | null
+          pin_hash?: string | null
+          pin_updated_at?: string | null
           published?: boolean
+          show_in_gallery?: boolean
           slug?: string | null
           target_index?: number | null
           title: string
@@ -99,6 +124,7 @@ export type Database = {
           view_count?: number
         }
         Update: {
+          access_mode?: string
           album_id?: string | null
           autoplay?: boolean
           cover_image_url?: string | null
@@ -113,7 +139,11 @@ export type Database = {
           media_type?: string
           media_url?: string | null
           owner_id?: string
+          pin_encrypted?: string | null
+          pin_hash?: string | null
+          pin_updated_at?: string | null
           published?: boolean
+          show_in_gallery?: boolean
           slug?: string | null
           target_index?: number | null
           title?: string
@@ -333,6 +363,27 @@ export type Database = {
           },
         ]
       }
+      pin_failed_attempts: {
+        Row: {
+          created_at: string
+          id: number
+          ip: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          ip: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          ip?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           approval_decided_at: string | null
@@ -481,6 +532,32 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_approved: { Args: { _user_id: string }; Returns: boolean }
+      pin_attempts_allowed: {
+        Args: { _ip: string; _slug: string }
+        Returns: boolean
+      }
+      pin_clear_failures: {
+        Args: { _ip: string; _slug: string }
+        Returns: undefined
+      }
+      pin_record_failure: {
+        Args: { _ip: string; _slug: string }
+        Returns: undefined
+      }
+      set_content_pin: {
+        Args: {
+          _id: string
+          _kind: string
+          _pin: string
+          _pin_encrypted: string
+        }
+        Returns: undefined
+      }
+      verify_content_pin: {
+        Args: { _kind: string; _pin: string; _slug: string }
         Returns: boolean
       }
     }

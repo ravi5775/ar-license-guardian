@@ -115,22 +115,22 @@ export const setAlbumPublished = createServerFn({ method: "POST" })
   });
 
 // Public read for the multi-target viewer — no auth middleware.
+// Restricted albums require a valid QR token or a live PIN session cookie.
 export const getPublicAlbum = createServerFn({ method: "GET" })
-  .inputValidator((raw) => z.object({ slug: z.string() }).parse(raw))
+  .inputValidator((raw) =>
+    z
+      .object({ slug: z.string(), tok: z.string().max(200).optional().nullable() })
+      .parse(raw),
+  )
   .handler(async ({ data }) => {
-    const sb = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!,
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          storage: undefined,
-        },
-      },
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { resolveAccess, signMedia } = await import(
+      "@/lib/content-access.server"
     );
 
-    const { data: album } = await sb
+    const { data: album } = await supabaseAdmin
       .from("albums")
       .select("*")
       .eq("slug", data.slug)
@@ -138,25 +138,44 @@ export const getPublicAlbum = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!album) return null;
 
-    const { data: targets } = await sb
+    const allowed = await resolveAccess({
+      kind: "album",
+      slug: album.slug,
+      accessMode: album.access_mode,
+      pinEncrypted: album.pin_encrypted,
+      tok: data.tok,
+    });
+
+    if (!allowed) {
+      return {
+        locked: true as const,
+        slug: album.slug,
+        title: album.title,
+        target_count: album.target_count,
+        compiled_mind_url: null,
+        targets: [] as Array<{
+          id: string;
+          title: string;
+          target_index: number;
+          media_type: string;
+          autoplay: boolean;
+          loop_playback: boolean;
+          media_url: string | null;
+          marker_image_url: string | null;
+        }>,
+      };
+    }
+
+    const { data: targets } = await supabaseAdmin
       .from("ar_experiences")
       .select("*")
       .eq("album_id", album.id)
       .order("target_index", { ascending: true });
 
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    async function sign(path: string | null | undefined) {
-      if (!path) return null;
-      const { data: s } = await supabaseAdmin.storage
-        .from("ar-media")
-        .createSignedUrl(path, 60 * 60);
-      return s?.signedUrl ?? null;
-    }
-
     const compiled_mind_url =
-      (await sign(album.compiled_mind_path)) ?? album.compiled_mind_url ?? null;
+      (await signMedia(album.compiled_mind_path)) ??
+      album.compiled_mind_url ??
+      null;
 
     const signedTargets = await Promise.all(
       (targets ?? []).map(async (t) => ({
@@ -166,12 +185,13 @@ export const getPublicAlbum = createServerFn({ method: "GET" })
         media_type: t.media_type,
         autoplay: t.autoplay,
         loop_playback: t.loop_playback,
-        media_url: (await sign(t.media_path)) ?? t.media_url,
-        marker_image_url: await sign(t.marker_path),
+        media_url: (await signMedia(t.media_path)) ?? t.media_url,
+        marker_image_url: await signMedia(t.marker_path),
       })),
     );
 
     return {
+      locked: false as const,
       id: album.id,
       slug: album.slug,
       title: album.title,
@@ -183,7 +203,7 @@ export const getPublicAlbum = createServerFn({ method: "GET" })
 
 /**
  * Public directory of published albums — powers the QR-free "open the site and
- * point at the photo" entry point. Returns only non-sensitive display fields.
+ * point at the photo" entry point. Restricted albums are never listed.
  */
 export const listPublicAlbums = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -196,9 +216,12 @@ export const listPublicAlbums = createServerFn({ method: "GET" }).handler(
       .from("albums")
       .select("slug, title, target_count, created_at")
       .eq("published", true)
+      .eq("access_mode", "public")
+      .eq("show_in_gallery", true)
       .order("created_at", { ascending: false })
       .limit(50);
     return data ?? [];
   },
 );
+
 
