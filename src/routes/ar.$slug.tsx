@@ -22,34 +22,41 @@ import {
 export const Route = createFileRoute("/ar/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
     mode: search.mode === "video" ? "video" as const : undefined,
+    tok: typeof search.tok === "string" ? search.tok : undefined,
   }),
-  loader: async ({ params }) => {
-    const row = await getPublicExperience({ data: { slug: params.slug } });
+  loaderDeps: ({ search }) => ({ tok: search.tok }),
+  loader: async ({ params, deps }) => {
+    const row = await getPublicExperience({
+      data: { slug: params.slug, tok: deps.tok ?? null },
+    });
     if (!row) throw notFound();
     return { experience: row };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.experience.title} — AR Experience` },
-          {
-            name: "description",
-            content: loaderData.experience.description ?? "View this AR experience",
-          },
-          { property: "og:title", content: loaderData.experience.title },
-          {
-            property: "og:description",
-            content: loaderData.experience.description ?? "View this AR experience",
-          },
-          ...(loaderData.experience.cover_image_url
-            ? [
-                { property: "og:image", content: loaderData.experience.cover_image_url },
-                { name: "twitter:image", content: loaderData.experience.cover_image_url },
-              ]
-            : []),
-        ]
-      : [],
-  }),
+  head: ({ loaderData }) => {
+    const exp = loaderData?.experience;
+    if (!exp) return { meta: [] };
+    const description = exp.locked
+      ? "This AR experience is private — enter the PIN printed on your card."
+      : (exp.description ?? "View this AR experience");
+    const cover = exp.locked ? null : exp.cover_image_url;
+    return {
+      meta: [
+        { title: `${exp.title} — AR Experience` },
+        { name: "description", content: description },
+        { property: "og:title", content: exp.title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        ...(cover
+          ? [
+              { property: "og:image", content: cover },
+              { name: "twitter:image", content: cover },
+            ]
+          : []),
+      ],
+    };
+  },
+
   errorComponent: ({ error }) => (
     <div className="min-h-screen grid place-items-center bg-background text-foreground p-8 text-center">
       <div>
