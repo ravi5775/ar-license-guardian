@@ -88,7 +88,8 @@ function ARViewer() {
   const [started, setStarted] = useState(false);
   const [forceFallback, setForceFallback] = useState(false);
   const locked = experience.locked === true;
-  const hasMarker = !locked && !!experience.marker_url;
+  const hasMarker = "marker_url" in experience && !!experience.marker_url;
+
 
 
   // Preload MindAR scripts while user reads the intro — makes "Launch AR" feel instant.
