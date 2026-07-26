@@ -106,11 +106,12 @@ function ARViewer() {
   // the camera (image tracking when a marker exists, plain camera preview otherwise).
 
   // Restricted content without a valid QR token: PIN wall, nothing else loads.
-  if (locked) {
+  if (experience.locked) {
     return (
       <PinGate kind="experience" slug={experience.slug ?? ""} title={experience.title} />
     );
   }
+
 
   return (
 
