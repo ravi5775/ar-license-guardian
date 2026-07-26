@@ -24,11 +24,18 @@ import {
 
 
 export const Route = createFileRoute("/ar/album/$slug")({
-  loader: async ({ params }) => {
-    const album = await getPublicAlbum({ data: { slug: params.slug } });
+  validateSearch: (search: Record<string, unknown>) => ({
+    tok: typeof search.tok === "string" ? search.tok : undefined,
+  }),
+  loaderDeps: ({ search }) => ({ tok: search.tok }),
+  loader: async ({ params, deps }) => {
+    const album = await getPublicAlbum({
+      data: { slug: params.slug, tok: deps.tok ?? null },
+    });
     if (!album) throw notFound();
     return { album };
   },
+
   head: ({ loaderData }) => ({
     meta: loaderData
       ? [
