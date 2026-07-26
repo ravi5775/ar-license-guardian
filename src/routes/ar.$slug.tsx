@@ -12,6 +12,8 @@ import {
   VolumeX,
 } from "lucide-react";
 import { getPublicExperience } from "@/lib/experiences.functions";
+import { PinGate } from "@/components/PinGate";
+
 import {
   attachWebglRecovery,
   hasWebglSupport,
