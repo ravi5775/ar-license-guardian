@@ -102,10 +102,15 @@ function ARViewer() {
   // NOTE: we never play the media directly on this route. AR mode always opens
   // the camera (image tracking when a marker exists, plain camera preview otherwise).
 
-
-
+  // Restricted content without a valid QR token: PIN wall, nothing else loads.
+  if (locked) {
+    return (
+      <PinGate kind="experience" slug={experience.slug ?? ""} title={experience.title} />
+    );
+  }
 
   return (
+
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <Link
         to="/"
