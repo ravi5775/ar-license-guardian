@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { getPublicAlbum } from "@/lib/albums.functions";
 import { logScanEvent } from "@/lib/analytics.functions";
+import { PinGate } from "@/components/PinGate";
+
 import {
   attachWebglRecovery,
   hasWebglSupport,
