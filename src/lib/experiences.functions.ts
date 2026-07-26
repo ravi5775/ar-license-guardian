@@ -104,17 +104,19 @@ export const getMyRoles = createServerFn({ method: "GET" })
     return (data ?? []).map((r) => r.role);
   });
 
-// Public read: returns experience + signed URLs for private-bucket assets.
-// Called from public /ar/$slug loader — no auth middleware.
+// Public read: returns experience + short-lived signed URLs for private assets.
+// Restricted experiences require a valid QR token or a live PIN session.
 export const getPublicExperience = createServerFn({ method: "GET" })
-  .inputValidator((raw) => z.object({ slug: z.string() }).parse(raw))
+  .inputValidator((raw) =>
+    z
+      .object({ slug: z.string(), tok: z.string().max(200).optional().nullable() })
+      .parse(raw),
+  )
   .handler(async ({ data }) => {
-    const sb = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false, storage: undefined } },
-    );
-    const { data: row } = await sb
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { resolveAccess, signMedia } = await import("@/lib/content-access.server");
+
+    const { data: row } = await supabaseAdmin
       .from("ar_experiences")
       .select("*")
       .eq("slug", data.slug)
@@ -122,24 +124,34 @@ export const getPublicExperience = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!row) return null;
 
-    // Sign private-bucket assets via admin (RLS blocks anon reads on ar-media).
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    async function sign(path: string | null | undefined) {
-      if (!path) return null;
-      const { data: s } = await supabaseAdmin.storage
-        .from("ar-media")
-        .createSignedUrl(path, 60 * 60);
-      return s?.signedUrl ?? null;
+    const allowed = await resolveAccess({
+      kind: "experience",
+      slug: row.slug!,
+      accessMode: row.access_mode,
+      pinEncrypted: row.pin_encrypted,
+      tok: data.tok,
+    });
+
+    if (!allowed) {
+      // Nothing but the title leaks before the PIN is entered.
+      return {
+        locked: true as const,
+        slug: row.slug,
+        title: row.title,
+      };
     }
 
     const marker_signed = row.marker_mind_path
-      ? await sign(row.marker_mind_path)
+      ? await signMedia(row.marker_mind_path)
       : null;
-    const marker_image_signed = row.marker_path ? await sign(row.marker_path) : null;
-    const media_signed = row.media_path ? await sign(row.media_path) : null;
+    const marker_image_signed = row.marker_path ? await signMedia(row.marker_path) : null;
+    const media_signed = row.media_path ? await signMedia(row.media_path) : null;
 
     return {
       ...row,
+      locked: false as const,
+      pin_hash: undefined,
+      pin_encrypted: undefined,
       // Prefer signed private URLs; fall back to any public URLs already stored.
       marker_url: marker_signed ?? row.marker_url,
       marker_image_url: marker_image_signed,
@@ -147,8 +159,8 @@ export const getPublicExperience = createServerFn({ method: "GET" })
       // Cover image is optional — fall back to the printable marker image.
       cover_image_url: row.cover_image_url || marker_image_signed,
     };
-
   });
+
 
 // Signed upload URL for the admin console. Uses admin client because we
 // enforce role at the handler level.
