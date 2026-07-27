@@ -21,7 +21,7 @@ function AlbumsPage() {
   const list = useServerFn(listMyAlbums);
   const del = useServerFn(deleteAlbum);
   const publish = useServerFn(setAlbumPublished);
-  const [qr, setQr] = useState<{ slug: string; title: string } | null>(null);
+  const [qr, setQr] = useState<{ id: string; slug: string; title: string } | null>(null);
 
   const query = useQuery({
     queryKey: ["albums"],
@@ -100,7 +100,7 @@ function AlbumsPage() {
                   {a.published ? "Published" : "Draft"}
                 </button>
                 <button
-                  onClick={() => setQr({ slug: a.slug, title: a.title })}
+                  onClick={() => setQr({ id: a.id, slug: a.slug, title: a.title })}
                   className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-accent"
                 >
                   <QrCode className="h-3.5 w-3.5" /> QR
@@ -121,9 +121,11 @@ function AlbumsPage() {
 
       {qr && (
         <QRCodeDialog
+          id={qr.id}
           slug={qr.slug}
           title={qr.title}
           kind="album"
+          onSlugChange={() => qc.invalidateQueries({ queryKey: ["albums"] })}
           onClose={() => setQr(null)}
         />
       )}
