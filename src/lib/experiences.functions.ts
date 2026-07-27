@@ -162,6 +162,10 @@ export const getPublicExperience = createServerFn({ method: "GET" })
   });
 
 
+/** Hard server-side upload ceiling. Client-side compression is a convenience,
+ *  never the enforcement point. */
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+
 // Signed upload URL for the admin console. Uses admin client because we
 // enforce role at the handler level.
 export const signMediaUpload = createServerFn({ method: "POST" })
@@ -171,6 +175,8 @@ export const signMediaUpload = createServerFn({ method: "POST" })
       .object({
         path: z.string().min(1),
         upsert: z.boolean().optional(),
+        /** Declared byte size — checked again after the upload lands. */
+        size: z.number().int().nonnegative().optional(),
       })
       .parse(raw),
   )
@@ -183,6 +189,12 @@ export const signMediaUpload = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!adminRow) throw new Error("Forbidden: admin only");
 
+    if (data.size != null && data.size > MAX_UPLOAD_BYTES) {
+      throw new Error(
+        `File is too large (${(data.size / 1048576).toFixed(1)} MB). The limit is 50 MB — trim or compress the clip first.`,
+      );
+    }
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: signed, error } = await supabaseAdmin.storage
       .from("ar-media")
@@ -190,6 +202,43 @@ export const signMediaUpload = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return signed; // { signedUrl, token, path }
   });
+
+/**
+ * Backstop run after every upload: reads the object's real size from storage
+ * and deletes it when it exceeds the hard limit, so a tampered or buggy client
+ * cannot park an oversized file in the bucket.
+ */
+export const enforceMediaSize = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) => z.object({ path: z.string().min(1) }).parse(raw))
+  .handler(async ({ data, context }) => {
+    const { data: adminRow } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!adminRow) throw new Error("Forbidden: admin only");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const slash = data.path.lastIndexOf("/");
+    const folder = slash === -1 ? "" : data.path.slice(0, slash);
+    const name = slash === -1 ? data.path : data.path.slice(slash + 1);
+
+    const { data: rows } = await supabaseAdmin.storage
+      .from("ar-media")
+      .list(folder, { search: name, limit: 1 });
+    const size = (rows?.[0] as any)?.metadata?.size as number | undefined;
+
+    if (size != null && size > MAX_UPLOAD_BYTES) {
+      await supabaseAdmin.storage.from("ar-media").remove([data.path]);
+      throw new Error(
+        `Upload rejected: ${(size / 1048576).toFixed(1)} MB exceeds the 50 MB limit.`,
+      );
+    }
+    return { ok: true as const, size: size ?? null };
+  });
+
 
 /**
  * Signed marker/media URLs for one of the caller's own experiences.
