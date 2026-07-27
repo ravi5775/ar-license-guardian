@@ -31,6 +31,7 @@ type Draft = {
   autoplay: boolean;
   loop_playback: boolean;
   published: boolean;
+  show_in_gallery: boolean;
 };
 
 const empty: Draft = {
@@ -45,6 +46,7 @@ const empty: Draft = {
   autoplay: true,
   loop_playback: true,
   published: false,
+  show_in_gallery: false,
 };
 
 function ExperiencesPage() {
@@ -60,7 +62,7 @@ function ExperiencesPage() {
     staleTime: 60_000,
   });
   const [editing, setEditing] = useState<Draft | null>(null);
-  const [qrFor, setQrFor] = useState<{ slug: string; title: string } | null>(null);
+  const [qrFor, setQrFor] = useState<{ id: string; slug: string; title: string } | null>(null);
 
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -157,7 +159,7 @@ function ExperiencesPage() {
                   <ExternalLink className="h-3 w-3" /> View
                 </Link>
                 <button
-                  onClick={() => setQrFor({ slug: e.slug, title: e.title })}
+                  onClick={() => setQrFor({ id: e.id, slug: e.slug, title: e.title })}
                   className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent"
                 >
                   <QrCode className="h-3 w-3" /> QR
@@ -177,6 +179,7 @@ function ExperiencesPage() {
                       autoplay: e.autoplay,
                       loop_playback: e.loop_playback,
                       published: e.published,
+                      show_in_gallery: e.show_in_gallery ?? false,
                     })
                   }
                   className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-md border border-border hover:bg-accent"
@@ -217,7 +220,15 @@ function ExperiencesPage() {
         />
       )}
 
-      {qrFor && <QRCodeDialog slug={qrFor.slug} title={qrFor.title} onClose={() => setQrFor(null)} />}
+      {qrFor && (
+        <QRCodeDialog
+          id={qrFor.id}
+          slug={qrFor.slug}
+          title={qrFor.title}
+          onSlugChange={() => qc.invalidateQueries({ queryKey: ["experiences"] })}
+          onClose={() => setQrFor(null)}
+        />
+      )}
     </div>
   );
 }
@@ -382,6 +393,14 @@ function ExperienceModal({
           <label className="text-sm flex items-center gap-2">
             <input type="checkbox" checked={value.published} onChange={(e) => set("published", e.target.checked)} />
             Published (visible to public)
+          </label>
+          <label className="text-sm flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={value.show_in_gallery}
+              onChange={(e) => set("show_in_gallery", e.target.checked)}
+            />
+            Show in the public gallery (off by default — PIN-protected items are never listed)
           </label>
           {errorText && (
             <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3">
