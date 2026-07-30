@@ -100,6 +100,35 @@ export const deleteAlbum = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * Public gallery visibility. Only ever allowed for albums that are public —
+ * a restricted (PIN-protected) album must never be listed publicly.
+ */
+export const setAlbumGalleryVisibility = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) =>
+    z.object({ id: z.string().uuid(), show: z.boolean() }).parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: row, error: readErr } = await context.supabase
+      .from("albums")
+      .select("access_mode")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (readErr) throw new Error(readErr.message);
+    if (!row) throw new Error("Album not found");
+    if (data.show && row.access_mode !== "public") {
+      throw new Error("PIN-protected albums can't be shown in the public gallery.");
+    }
+
+    const { error } = await context.supabase
+      .from("albums")
+      .update({ show_in_gallery: data.show })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const setAlbumPublished = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
