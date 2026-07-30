@@ -22,6 +22,19 @@ import {
   hasWebglSupport,
   WEBGL_UNSUPPORTED_MESSAGE,
 } from "@/lib/webgl-recovery";
+import {
+  applyLeanSceneFlags,
+  applyPlaneFit,
+  attachResizeGovernor,
+  getDeviceTier,
+  installCaptureConstraints,
+  installViewportLock,
+  leanCamera,
+  measureImageAspect,
+  mindarAttr,
+  rendererAttr,
+  videoAspect,
+} from "@/lib/ar-engine";
 
 
 
