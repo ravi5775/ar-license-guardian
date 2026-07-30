@@ -265,6 +265,12 @@ function ARStage({ experience }: { experience: any }) {
   const sceneElRef = useRef<any>(null);
   const attemptRef = useRef(0);
   const lastTapRef = useRef(0);
+  const planeRef = useRef<Element | null>(null);
+  const markerAspectRef = useRef<number | null>(null);
+  const mediaAspectRef = useRef<number | null>(null);
+  const fitModeRef = useRef<"contain" | "cover">("contain");
+  const detachGovernorRef = useRef<null | (() => void)>(null);
+  const detachCaptureRef = useRef<null | (() => void)>(null);
 
   const [status, setStatus] = useState<
     "loading" | "ready" | "no-marker" | "error"
@@ -416,6 +422,12 @@ function ARStage({ experience }: { experience: any }) {
       sceneElRef.current = scenEl;
       videoElRef.current = videoEl;
 
+      // Own every size-dependent value from here on: drawing buffer, pixel
+      // ratio, projection aspect and the feed's cover transform, on every
+      // resize / rotation / URL-bar collapse.
+      detachGovernorRef.current?.();
+      detachGovernorRef.current = attachResizeGovernor(scenEl, { tier });
+
       if (videoEl) {
         videoEl.addEventListener("play", () => setPlaying(true));
         videoEl.addEventListener("pause", () => setPlaying(false));
@@ -460,11 +472,24 @@ function ARStage({ experience }: { experience: any }) {
     }
   }, [experience]);
 
+  // Viewport lock + capped camera capture live for the whole AR session.
+  useEffect(() => {
+    const releaseViewport = installViewportLock();
+    detachCaptureRef.current = installCaptureConstraints(getDeviceTier());
+    return () => {
+      releaseViewport();
+      detachCaptureRef.current?.();
+      detachCaptureRef.current = null;
+    };
+  }, []);
+
   useEffect(() => {
     start();
     return () => {
       detachRecoveryRef.current?.();
       detachRecoveryRef.current = null;
+      detachGovernorRef.current?.();
+      detachGovernorRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
       } catch {}
