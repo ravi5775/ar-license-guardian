@@ -22,6 +22,7 @@ function AlbumsPage() {
   const list = useServerFn(listMyAlbums);
   const del = useServerFn(deleteAlbum);
   const publish = useServerFn(setAlbumPublished);
+  const setGallery = useServerFn(setAlbumGalleryVisibility);
   const [qr, setQr] = useState<{ id: string; slug: string; title: string } | null>(null);
 
   const query = useQuery({
