@@ -19,6 +19,19 @@ import {
   hasWebglSupport,
   WEBGL_UNSUPPORTED_MESSAGE,
 } from "@/lib/webgl-recovery";
+import {
+  applyLeanSceneFlags,
+  applyPlaneFit,
+  attachResizeGovernor,
+  getDeviceTier,
+  installCaptureConstraints,
+  installViewportLock,
+  leanCamera,
+  measureImageAspect,
+  mindarAttr,
+  rendererAttr,
+  videoAspect,
+} from "@/lib/ar-engine";
 
 
 export const Route = createFileRoute("/ar/$slug")({
@@ -305,24 +318,15 @@ function ARStage({ experience }: { experience: any }) {
       } catch {}
       root.replaceChildren();
 
+      const tier = getDeviceTier();
       const scenEl = document.createElement("a-scene");
-      scenEl.setAttribute(
-        "mindar-image",
-        `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; maxTrack: 1; filterMinCF: 0.001; filterBeta: 1000; warmupTolerance: 3; missTolerance: 3;`,
-      );
-      scenEl.setAttribute("color-space", "sRGB");
-      scenEl.setAttribute(
-        "renderer",
-        "colorManagement: true, physicallyCorrectLights: false, antialias: false, precision: mediump, sortObjects: false, logarithmicDepthBuffer: false, maxCanvasWidth: 1280, maxCanvasHeight: 1280",
-      );
-      scenEl.setAttribute("shadow", "enabled: false");
-      scenEl.setAttribute("stats", "false");
-
-      scenEl.setAttribute("vr-mode-ui", "enabled: false");
-      scenEl.setAttribute("device-orientation-permission-ui", "enabled: false");
-      scenEl.setAttribute("embedded", "");
+      scenEl.setAttribute("mindar-image", mindarAttr(markerUrl.href, { maxTrack: 1, tier }));
+      scenEl.setAttribute("renderer", rendererAttr(tier));
+      applyLeanSceneFlags(scenEl);
+      // Real pixels, not 100vh: mobile Safari's vh includes the URL bar, which
+      // pushes the bottom of the camera feed off-screen.
       scenEl.style.width = "100%";
-      scenEl.style.height = "100vh";
+      scenEl.style.height = "var(--ar-vh, 100dvh)";
 
       const assets = document.createElement("a-assets");
       let videoEl: HTMLVideoElement | null = null;
@@ -354,13 +358,12 @@ function ARStage({ experience }: { experience: any }) {
       }
       scenEl.appendChild(assets);
 
-      const cam = document.createElement("a-camera");
-      cam.setAttribute("position", "0 0 0");
-      cam.setAttribute("look-controls", "enabled: false");
+      const cam = leanCamera();
       scenEl.appendChild(cam);
 
       const target = document.createElement("a-entity");
       target.setAttribute("mindar-image-target", "targetIndex: 0");
+      let plane: Element | null = null;
       if (mediaUrl) {
         if (experience.media_type === "video") {
           const av = document.createElement("a-video");
@@ -369,18 +372,32 @@ function ARStage({ experience }: { experience: any }) {
           av.setAttribute("playsinline", "");
           av.setAttribute("autoplay", String(experience.autoplay !== false));
           av.setAttribute("loop", String(experience.loop_playback !== false));
-          av.setAttribute("width", "1");
-          av.setAttribute("height", "0.5625");
-          av.setAttribute("position", "0 0 0");
+          av.setAttribute("material", "shader: flat; npot: true; transparent: false");
           target.appendChild(av);
+          plane = av;
         } else if (experience.media_type === "image") {
           const ai = document.createElement("a-image");
           ai.setAttribute("src", "#ar-media");
-          ai.setAttribute("width", "1");
-          ai.setAttribute("height", "1");
-          ai.setAttribute("position", "0 0 0");
+          ai.setAttribute("material", "shader: flat; npot: true");
           target.appendChild(ai);
+          plane = ai;
         }
+      }
+
+      // The overlay plane must be derived from BOTH the marker aspect (MindAR
+      // target space is 1 x 1/markerAspect) and the media aspect. A hardcoded
+      // 16:9 plane is why the film overflowed / cropped on portrait prints.
+      if (plane) {
+        applyPlaneFit(plane, 1, 1, "contain");
+        void (async () => {
+          const [ma, va] = await Promise.all([
+            measureImageAspect(experience.marker_image_url ?? experience.cover_image_url ?? ""),
+            videoEl ? videoAspect(videoEl) : Promise.resolve(null),
+          ]);
+          if (plane!.isConnected || true) applyPlaneFit(plane!, ma, va, fitModeRef.current);
+        })();
+        planeRef.current = plane;
+        markerAspectRef.current = null;
       }
 
       const onFound = () => {
