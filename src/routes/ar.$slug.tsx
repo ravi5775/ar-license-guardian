@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Camera,
+  Expand,
   Maximize2,
   Minimize2,
   Pause,
@@ -285,6 +286,21 @@ function ARStage({ experience }: { experience: any }) {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const [cinema, setCinema] = useState(false); // fullscreen video overlay
+  const [fitMode, setFitMode] = useState<"contain" | "cover">("contain");
+
+  // Re-fits the in-scene plane without rebuilding geometry or materials.
+  const toggleFit = () => {
+    const next = fitModeRef.current === "contain" ? "cover" : "contain";
+    fitModeRef.current = next;
+    setFitMode(next);
+    if (planeRef.current)
+      applyPlaneFit(
+        planeRef.current,
+        markerAspectRef.current,
+        mediaAspectRef.current,
+        next,
+      );
+  };
 
   const start = useCallback(async () => {
     attemptRef.current += 1;
@@ -676,6 +692,12 @@ function ARStage({ experience }: { experience: any }) {
             </IconBtn>
             <IconBtn label={muted ? "Unmute" : "Mute"} onClick={toggleMute}>
               {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            </IconBtn>
+            <IconBtn
+              label={fitMode === "contain" ? "Fill the print" : "Fit inside the print"}
+              onClick={toggleFit}
+            >
+              <Expand className="h-4 w-4" />
             </IconBtn>
             <IconBtn
               label={cinema ? "Exit fullscreen" : "Fullscreen"}
