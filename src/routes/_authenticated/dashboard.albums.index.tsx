@@ -46,6 +46,14 @@ function AlbumsPage() {
     onError: (e: any) => toast.error(e.message ?? "Update failed"),
   });
 
+  const galleryMut = useMutation({
+    mutationFn: (v: { id: string; show: boolean }) => setGallery({ data: v }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["albums"] }),
+    onError: (e: any) => toast.error(e.message ?? "Update failed"),
+  });
+
+
+
   return (
     <div className="p-4 md:p-8 max-w-5xl">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
