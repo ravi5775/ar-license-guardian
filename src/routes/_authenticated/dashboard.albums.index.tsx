@@ -6,10 +6,11 @@ import {
   listMyAlbums,
   deleteAlbum,
   setAlbumPublished,
+  setAlbumGalleryVisibility,
 } from "@/lib/albums.functions";
 import { QueryState } from "@/components/QueryState";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
-import { Images, Plus, QrCode, Trash2 } from "lucide-react";
+import { Images, Plus, QrCode, Trash2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/albums/")({
@@ -21,6 +22,7 @@ function AlbumsPage() {
   const list = useServerFn(listMyAlbums);
   const del = useServerFn(deleteAlbum);
   const publish = useServerFn(setAlbumPublished);
+  const setGallery = useServerFn(setAlbumGalleryVisibility);
   const [qr, setQr] = useState<{ id: string; slug: string; title: string } | null>(null);
 
   const query = useQuery({
@@ -43,6 +45,14 @@ function AlbumsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["albums"] }),
     onError: (e: any) => toast.error(e.message ?? "Update failed"),
   });
+
+  const galleryMut = useMutation({
+    mutationFn: (v: { id: string; show: boolean }) => setGallery({ data: v }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["albums"] }),
+    onError: (e: any) => toast.error(e.message ?? "Update failed"),
+  });
+
+
 
   return (
     <div className="p-4 md:p-8 max-w-5xl">
@@ -98,6 +108,29 @@ function AlbumsPage() {
                   }`}
                 >
                   {a.published ? "Published" : "Draft"}
+                </button>
+                <button
+                  disabled={galleryMut.isPending}
+                  onClick={() =>
+                    galleryMut.mutate({ id: a.id, show: !a.show_in_gallery })
+                  }
+                  title={
+                    a.show_in_gallery
+                      ? "Listed in the public gallery"
+                      : "Hidden from the public gallery"
+                  }
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs border disabled:opacity-50 ${
+                    a.show_in_gallery
+                      ? "border-primary/40 text-primary bg-primary/10"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {a.show_in_gallery ? (
+                    <Eye className="h-3.5 w-3.5" />
+                  ) : (
+                    <EyeOff className="h-3.5 w-3.5" />
+                  )}
+                  Gallery
                 </button>
                 <button
                   onClick={() => setQr({ id: a.id, slug: a.slug, title: a.title })}
