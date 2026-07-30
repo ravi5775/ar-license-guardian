@@ -22,19 +22,6 @@ import {
   hasWebglSupport,
   WEBGL_UNSUPPORTED_MESSAGE,
 } from "@/lib/webgl-recovery";
-import {
-  applyLeanSceneFlags,
-  applyPlaneFit,
-  attachResizeGovernor,
-  getDeviceTier,
-  installCaptureConstraints,
-  installViewportLock,
-  leanCamera,
-  measureImageAspect,
-  mindarAttr,
-  rendererAttr,
-  videoAspect,
-} from "@/lib/ar-engine";
 
 
 
@@ -278,7 +265,6 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
   const startedRef = useRef<Record<number, boolean>>({});
   const gpuAttemptsRef = useRef({ current: 0 });
   const detachRecoveryRef = useRef<null | (() => void)>(null);
-  const detachGovernorRef = useRef<null | (() => void)>(null);
 
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -383,16 +369,24 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
       root.replaceChildren();
       videosRef.current = {};
 
-      const tier = getDeviceTier();
       const scene = document.createElement("a-scene");
       scene.setAttribute(
         "mindar-image",
-        mindarAttr(mindUrl.href, { maxTrack: 1, tier }),
+        `imageTargetSrc: ${mindUrl.href}; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; maxTrack: 1; filterMinCF: 0.001; filterBeta: 1000; warmupTolerance: 3; missTolerance: 3;`,
       );
-      scene.setAttribute("renderer", rendererAttr(tier));
-      applyLeanSceneFlags(scene);
+      scene.setAttribute("color-space", "sRGB");
+      scene.setAttribute(
+        "renderer",
+        "colorManagement: true, physicallyCorrectLights: false, antialias: false, precision: mediump, sortObjects: false, logarithmicDepthBuffer: false, maxCanvasWidth: 1280, maxCanvasHeight: 1280",
+      );
+      scene.setAttribute("shadow", "enabled: false");
+      scene.setAttribute("stats", "false");
+
+      scene.setAttribute("vr-mode-ui", "enabled: false");
+      scene.setAttribute("device-orientation-permission-ui", "enabled: false");
+      scene.setAttribute("embedded", "");
       scene.style.width = "100%";
-      scene.style.height = "var(--ar-vh, 100dvh)";
+      scene.style.height = "100vh";
 
       const assets = document.createElement("a-assets");
       for (const t of album.targets) {
@@ -416,7 +410,9 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
       }
       scene.appendChild(assets);
 
-      const cam = leanCamera();
+      const cam = document.createElement("a-camera");
+      cam.setAttribute("position", "0 0 0");
+      cam.setAttribute("look-controls", "enabled: false");
       scene.appendChild(cam);
 
       for (const t of album.targets) {
@@ -431,20 +427,10 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
           av.setAttribute("playsinline", "");
           av.setAttribute("webkit-playsinline", "");
           av.setAttribute("loop", String(t.loop_playback !== false));
-          av.setAttribute("material", "shader: flat; npot: true; transparent: false");
-          applyPlaneFit(av, 1, 1, "contain");
+          av.setAttribute("width", "1");
+          av.setAttribute("height", "0.5625");
+          av.setAttribute("position", "0 0 0");
           entity.appendChild(av);
-          // Each printed photo has its own aspect; MindAR target space is
-          // 1 x 1/markerAspect, so the plane is derived per target.
-          void (async () => {
-            const [ma, va] = await Promise.all([
-              measureImageAspect(t.marker_image_url ?? t.cover_image_url ?? ""),
-              videosRef.current[t.target_index]
-                ? videoAspect(videosRef.current[t.target_index])
-                : Promise.resolve(null),
-            ]);
-            applyPlaneFit(av, ma, va, "contain");
-          })();
         }
 
         entity.addEventListener("targetFound", () => {
@@ -514,8 +500,6 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
 
       root.appendChild(scene);
       sceneElRef.current = scene;
-      detachGovernorRef.current?.();
-      detachGovernorRef.current = attachResizeGovernor(scene, { tier });
       readyAtRef.current = Date.now();
       setTimeout(() => {
         if (sceneElRef.current === scene) gpuAttemptsRef.current.current = 0;
@@ -533,21 +517,10 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
   }, [album, playVideo, track]);
 
   useEffect(() => {
-    const releaseViewport = installViewportLock();
-    const releaseCapture = installCaptureConstraints(getDeviceTier());
-    return () => {
-      releaseViewport();
-      releaseCapture();
-    };
-  }, []);
-
-  useEffect(() => {
     start();
     return () => {
       detachRecoveryRef.current?.();
       detachRecoveryRef.current = null;
-      detachGovernorRef.current?.();
-      detachGovernorRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
       } catch {}

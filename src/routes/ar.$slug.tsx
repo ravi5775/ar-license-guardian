@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Camera,
-  Expand,
   Maximize2,
   Minimize2,
   Pause,
@@ -20,19 +19,6 @@ import {
   hasWebglSupport,
   WEBGL_UNSUPPORTED_MESSAGE,
 } from "@/lib/webgl-recovery";
-import {
-  applyLeanSceneFlags,
-  applyPlaneFit,
-  attachResizeGovernor,
-  getDeviceTier,
-  installCaptureConstraints,
-  installViewportLock,
-  leanCamera,
-  measureImageAspect,
-  mindarAttr,
-  rendererAttr,
-  videoAspect,
-} from "@/lib/ar-engine";
 
 
 export const Route = createFileRoute("/ar/$slug")({
@@ -266,12 +252,6 @@ function ARStage({ experience }: { experience: any }) {
   const sceneElRef = useRef<any>(null);
   const attemptRef = useRef(0);
   const lastTapRef = useRef(0);
-  const planeRef = useRef<Element | null>(null);
-  const markerAspectRef = useRef<number | null>(null);
-  const mediaAspectRef = useRef<number | null>(null);
-  const fitModeRef = useRef<"contain" | "cover">("contain");
-  const detachGovernorRef = useRef<null | (() => void)>(null);
-  const detachCaptureRef = useRef<null | (() => void)>(null);
 
   const [status, setStatus] = useState<
     "loading" | "ready" | "no-marker" | "error"
@@ -286,21 +266,6 @@ function ARStage({ experience }: { experience: any }) {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const [cinema, setCinema] = useState(false); // fullscreen video overlay
-  const [fitMode, setFitMode] = useState<"contain" | "cover">("contain");
-
-  // Re-fits the in-scene plane without rebuilding geometry or materials.
-  const toggleFit = () => {
-    const next = fitModeRef.current === "contain" ? "cover" : "contain";
-    fitModeRef.current = next;
-    setFitMode(next);
-    if (planeRef.current)
-      applyPlaneFit(
-        planeRef.current,
-        markerAspectRef.current,
-        mediaAspectRef.current,
-        next,
-      );
-  };
 
   const start = useCallback(async () => {
     attemptRef.current += 1;
@@ -340,15 +305,24 @@ function ARStage({ experience }: { experience: any }) {
       } catch {}
       root.replaceChildren();
 
-      const tier = getDeviceTier();
       const scenEl = document.createElement("a-scene");
-      scenEl.setAttribute("mindar-image", mindarAttr(markerUrl.href, { maxTrack: 1, tier }));
-      scenEl.setAttribute("renderer", rendererAttr(tier));
-      applyLeanSceneFlags(scenEl);
-      // Real pixels, not 100vh: mobile Safari's vh includes the URL bar, which
-      // pushes the bottom of the camera feed off-screen.
+      scenEl.setAttribute(
+        "mindar-image",
+        `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; maxTrack: 1; filterMinCF: 0.001; filterBeta: 1000; warmupTolerance: 3; missTolerance: 3;`,
+      );
+      scenEl.setAttribute("color-space", "sRGB");
+      scenEl.setAttribute(
+        "renderer",
+        "colorManagement: true, physicallyCorrectLights: false, antialias: false, precision: mediump, sortObjects: false, logarithmicDepthBuffer: false, maxCanvasWidth: 1280, maxCanvasHeight: 1280",
+      );
+      scenEl.setAttribute("shadow", "enabled: false");
+      scenEl.setAttribute("stats", "false");
+
+      scenEl.setAttribute("vr-mode-ui", "enabled: false");
+      scenEl.setAttribute("device-orientation-permission-ui", "enabled: false");
+      scenEl.setAttribute("embedded", "");
       scenEl.style.width = "100%";
-      scenEl.style.height = "var(--ar-vh, 100dvh)";
+      scenEl.style.height = "100vh";
 
       const assets = document.createElement("a-assets");
       let videoEl: HTMLVideoElement | null = null;
@@ -380,12 +354,13 @@ function ARStage({ experience }: { experience: any }) {
       }
       scenEl.appendChild(assets);
 
-      const cam = leanCamera();
+      const cam = document.createElement("a-camera");
+      cam.setAttribute("position", "0 0 0");
+      cam.setAttribute("look-controls", "enabled: false");
       scenEl.appendChild(cam);
 
       const target = document.createElement("a-entity");
       target.setAttribute("mindar-image-target", "targetIndex: 0");
-      let plane: Element | null = null;
       if (mediaUrl) {
         if (experience.media_type === "video") {
           const av = document.createElement("a-video");
@@ -394,36 +369,18 @@ function ARStage({ experience }: { experience: any }) {
           av.setAttribute("playsinline", "");
           av.setAttribute("autoplay", String(experience.autoplay !== false));
           av.setAttribute("loop", String(experience.loop_playback !== false));
-          av.setAttribute("material", "shader: flat; npot: true; transparent: false");
+          av.setAttribute("width", "1");
+          av.setAttribute("height", "0.5625");
+          av.setAttribute("position", "0 0 0");
           target.appendChild(av);
-          plane = av;
         } else if (experience.media_type === "image") {
           const ai = document.createElement("a-image");
           ai.setAttribute("src", "#ar-media");
-          ai.setAttribute("material", "shader: flat; npot: true");
+          ai.setAttribute("width", "1");
+          ai.setAttribute("height", "1");
+          ai.setAttribute("position", "0 0 0");
           target.appendChild(ai);
-          plane = ai;
         }
-      }
-
-      // The overlay plane must be derived from BOTH the marker aspect (MindAR
-      // target space is 1 x 1/markerAspect) and the media aspect. A hardcoded
-      // 16:9 plane is why the film overflowed / cropped on portrait prints.
-      if (plane) {
-        planeRef.current = plane;
-        applyPlaneFit(plane, 1, 1, fitModeRef.current);
-        void (async () => {
-          const [ma, va] = await Promise.all([
-            measureImageAspect(
-              experience.marker_image_url ?? experience.cover_image_url ?? "",
-            ),
-            videoEl ? videoAspect(videoEl) : Promise.resolve(null),
-          ]);
-          markerAspectRef.current = ma;
-          mediaAspectRef.current = va;
-          if (planeRef.current === plane)
-            applyPlaneFit(plane, ma, va, fitModeRef.current);
-        })();
       }
 
       const onFound = () => {
@@ -441,12 +398,6 @@ function ARStage({ experience }: { experience: any }) {
       root.appendChild(scenEl);
       sceneElRef.current = scenEl;
       videoElRef.current = videoEl;
-
-      // Own every size-dependent value from here on: drawing buffer, pixel
-      // ratio, projection aspect and the feed's cover transform, on every
-      // resize / rotation / URL-bar collapse.
-      detachGovernorRef.current?.();
-      detachGovernorRef.current = attachResizeGovernor(scenEl, { tier });
 
       if (videoEl) {
         videoEl.addEventListener("play", () => setPlaying(true));
@@ -492,24 +443,11 @@ function ARStage({ experience }: { experience: any }) {
     }
   }, [experience]);
 
-  // Viewport lock + capped camera capture live for the whole AR session.
-  useEffect(() => {
-    const releaseViewport = installViewportLock();
-    detachCaptureRef.current = installCaptureConstraints(getDeviceTier());
-    return () => {
-      releaseViewport();
-      detachCaptureRef.current?.();
-      detachCaptureRef.current = null;
-    };
-  }, []);
-
   useEffect(() => {
     start();
     return () => {
       detachRecoveryRef.current?.();
       detachRecoveryRef.current = null;
-      detachGovernorRef.current?.();
-      detachGovernorRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
       } catch {}
@@ -692,12 +630,6 @@ function ARStage({ experience }: { experience: any }) {
             </IconBtn>
             <IconBtn label={muted ? "Unmute" : "Mute"} onClick={toggleMute}>
               {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            </IconBtn>
-            <IconBtn
-              label={fitMode === "contain" ? "Fill the print" : "Fit inside the print"}
-              onClick={toggleFit}
-            >
-              <Expand className="h-4 w-4" />
             </IconBtn>
             <IconBtn
               label={cinema ? "Exit fullscreen" : "Fullscreen"}
