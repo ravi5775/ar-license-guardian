@@ -6,10 +6,11 @@ import {
   listMyAlbums,
   deleteAlbum,
   setAlbumPublished,
+  setAlbumGalleryVisibility,
 } from "@/lib/albums.functions";
 import { QueryState } from "@/components/QueryState";
 import { QRCodeDialog } from "@/components/QRCodeDialog";
-import { Images, Plus, QrCode, Trash2 } from "lucide-react";
+import { Images, Plus, QrCode, Trash2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/albums/")({
