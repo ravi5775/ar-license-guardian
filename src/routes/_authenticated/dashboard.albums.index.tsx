@@ -110,6 +110,28 @@ function AlbumsPage() {
                   {a.published ? "Published" : "Draft"}
                 </button>
                 <button
+                  disabled={galleryMut.isPending}
+                  onClick={() =>
+                    galleryMut.mutate({ id: a.id, show: !a.show_in_gallery })
+                  }
+                  title={
+                    a.show_in_gallery
+                      ? "Listed in the public gallery"
+                      : "Hidden from the public gallery"
+                  }
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs border disabled:opacity-50 ${
+                    a.show_in_gallery
+                      ? "border-primary/40 text-primary bg-primary/10"
+                      : "border-border text-muted-foreground"
+                  }`}
+                >
+                  {a.show_in_gallery ? (
+                    <Eye className="h-3.5 w-3.5" />
+                  ) : (
+                    <EyeOff className="h-3.5 w-3.5" />
+                  )}
+                  Gallery
+                <button
                   onClick={() => setQr({ id: a.id, slug: a.slug, title: a.title })}
                   className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-accent"
                 >
