@@ -394,16 +394,20 @@ function ARStage({ experience }: { experience: any }) {
       // target space is 1 x 1/markerAspect) and the media aspect. A hardcoded
       // 16:9 plane is why the film overflowed / cropped on portrait prints.
       if (plane) {
-        applyPlaneFit(plane, 1, 1, "contain");
+        planeRef.current = plane;
+        applyPlaneFit(plane, 1, 1, fitModeRef.current);
         void (async () => {
           const [ma, va] = await Promise.all([
-            measureImageAspect(experience.marker_image_url ?? experience.cover_image_url ?? ""),
+            measureImageAspect(
+              experience.marker_image_url ?? experience.cover_image_url ?? "",
+            ),
             videoEl ? videoAspect(videoEl) : Promise.resolve(null),
           ]);
-          if (plane!.isConnected || true) applyPlaneFit(plane!, ma, va, fitModeRef.current);
+          markerAspectRef.current = ma;
+          mediaAspectRef.current = va;
+          if (planeRef.current === plane)
+            applyPlaneFit(plane, ma, va, fitModeRef.current);
         })();
-        planeRef.current = plane;
-        markerAspectRef.current = null;
       }
 
       const onFound = () => {
