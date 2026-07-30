@@ -131,6 +131,7 @@ function AlbumsPage() {
                     <EyeOff className="h-3.5 w-3.5" />
                   )}
                   Gallery
+                </button>
                 <button
                   onClick={() => setQr({ id: a.id, slug: a.slug, title: a.title })}
                   className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-accent"
