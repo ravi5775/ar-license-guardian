@@ -379,24 +379,18 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
       root.replaceChildren();
       videosRef.current = {};
 
+      const tier = detectDeviceTier();
       const scene = document.createElement("a-scene");
       scene.setAttribute(
         "mindar-image",
-        `imageTargetSrc: ${mindUrl.href}; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; maxTrack: 1; filterMinCF: 0.001; filterBeta: 1000; warmupTolerance: 3; missTolerance: 3;`,
+        // maxTrack stays 1: every extra simultaneous target costs a full
+        // tracking pass per frame, and an album is scanned one print at a time.
+        mindarConfig({ imageTargetSrc: mindUrl.href, tier, maxTrack: 1 }),
       );
-      scene.setAttribute("color-space", "sRGB");
-      scene.setAttribute(
-        "renderer",
-        "colorManagement: true, physicallyCorrectLights: false, antialias: false, precision: mediump, sortObjects: false, logarithmicDepthBuffer: false, maxCanvasWidth: 1280, maxCanvasHeight: 1280",
-      );
-      scene.setAttribute("shadow", "enabled: false");
-      scene.setAttribute("stats", "false");
+      scene.setAttribute("renderer", rendererConfig(tier));
+      applySceneHygiene(scene);
+      // Sizing comes from the scoped `.ar-stage-root` stylesheet (100dvh).
 
-      scene.setAttribute("vr-mode-ui", "enabled: false");
-      scene.setAttribute("device-orientation-permission-ui", "enabled: false");
-      scene.setAttribute("embedded", "");
-      scene.style.width = "100%";
-      scene.style.height = "100vh";
 
       const assets = document.createElement("a-assets");
       for (const t of album.targets) {
