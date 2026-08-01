@@ -19,6 +19,18 @@ import {
   hasWebglSupport,
   WEBGL_UNSUPPORTED_MESSAGE,
 } from "@/lib/webgl-recovery";
+import {
+  AR_STAGE_CLASS,
+  applySceneHygiene,
+  attachArViewportFit,
+  detectDeviceTier,
+  ensureArStageStyles,
+  isImmersiveVrSupported,
+  mindarConfig,
+  releaseCameraStreams,
+  rendererConfig,
+} from "@/lib/ar-runtime";
+import { VrStage } from "@/components/ar/VrStage";
 
 
 export const Route = createFileRoute("/ar/$slug")({
