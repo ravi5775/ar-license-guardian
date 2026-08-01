@@ -350,8 +350,11 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
     setStatus("loading");
     setErrorMsg(null);
     setRecovering(null);
+    ensureArStageStyles();
     detachRecoveryRef.current?.();
     detachRecoveryRef.current = null;
+    detachFitRef.current?.();
+    detachFitRef.current = null;
 
     if (!hasWebglSupport()) {
       setErrorMsg(WEBGL_UNSUPPORTED_MESSAGE);
