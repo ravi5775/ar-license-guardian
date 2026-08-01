@@ -22,6 +22,16 @@ import {
   hasWebglSupport,
   WEBGL_UNSUPPORTED_MESSAGE,
 } from "@/lib/webgl-recovery";
+import {
+  AR_STAGE_CLASS,
+  applySceneHygiene,
+  attachArViewportFit,
+  detectDeviceTier,
+  ensureArStageStyles,
+  mindarConfig,
+  releaseCameraStreams,
+  rendererConfig,
+} from "@/lib/ar-runtime";
 
 
 
