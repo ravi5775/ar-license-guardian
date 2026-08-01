@@ -22,6 +22,16 @@ import {
   hasWebglSupport,
   WEBGL_UNSUPPORTED_MESSAGE,
 } from "@/lib/webgl-recovery";
+import {
+  AR_STAGE_CLASS,
+  applySceneHygiene,
+  attachArViewportFit,
+  detectDeviceTier,
+  ensureArStageStyles,
+  mindarConfig,
+  releaseCameraStreams,
+  rendererConfig,
+} from "@/lib/ar-runtime";
 
 
 
@@ -265,6 +275,7 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
   const startedRef = useRef<Record<number, boolean>>({});
   const gpuAttemptsRef = useRef({ current: 0 });
   const detachRecoveryRef = useRef<null | (() => void)>(null);
+  const detachFitRef = useRef<null | (() => void)>(null);
 
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -340,8 +351,11 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
     setStatus("loading");
     setErrorMsg(null);
     setRecovering(null);
+    ensureArStageStyles();
     detachRecoveryRef.current?.();
     detachRecoveryRef.current = null;
+    detachFitRef.current?.();
+    detachFitRef.current = null;
 
     if (!hasWebglSupport()) {
       setErrorMsg(WEBGL_UNSUPPORTED_MESSAGE);
@@ -369,24 +383,18 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
       root.replaceChildren();
       videosRef.current = {};
 
+      const tier = detectDeviceTier();
       const scene = document.createElement("a-scene");
       scene.setAttribute(
         "mindar-image",
-        `imageTargetSrc: ${mindUrl.href}; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; maxTrack: 1; filterMinCF: 0.001; filterBeta: 1000; warmupTolerance: 3; missTolerance: 3;`,
+        // maxTrack stays 1: every extra simultaneous target costs a full
+        // tracking pass per frame, and an album is scanned one print at a time.
+        mindarConfig({ imageTargetSrc: mindUrl.href, tier, maxTrack: 1 }),
       );
-      scene.setAttribute("color-space", "sRGB");
-      scene.setAttribute(
-        "renderer",
-        "colorManagement: true, physicallyCorrectLights: false, antialias: false, precision: mediump, sortObjects: false, logarithmicDepthBuffer: false, maxCanvasWidth: 1280, maxCanvasHeight: 1280",
-      );
-      scene.setAttribute("shadow", "enabled: false");
-      scene.setAttribute("stats", "false");
+      scene.setAttribute("renderer", rendererConfig(tier));
+      applySceneHygiene(scene);
+      // Sizing comes from the scoped `.ar-stage-root` stylesheet (100dvh).
 
-      scene.setAttribute("vr-mode-ui", "enabled: false");
-      scene.setAttribute("device-orientation-permission-ui", "enabled: false");
-      scene.setAttribute("embedded", "");
-      scene.style.width = "100%";
-      scene.style.height = "100vh";
 
       const assets = document.createElement("a-assets");
       for (const t of album.targets) {
@@ -500,6 +508,9 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
 
       root.appendChild(scene);
       sceneElRef.current = scene;
+      // Keep canvas + projection + camera feed locked to the visible viewport
+      // across rotation / URL-bar collapse, and cap the camera track.
+      detachFitRef.current = attachArViewportFit(scene, tier);
       readyAtRef.current = Date.now();
       setTimeout(() => {
         if (sceneElRef.current === scene) gpuAttemptsRef.current.current = 0;
@@ -521,23 +532,22 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
     return () => {
       detachRecoveryRef.current?.();
       detachRecoveryRef.current = null;
+      detachFitRef.current?.();
+      detachFitRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
+        sceneElRef.current?.renderer?.dispose?.();
       } catch {}
 
-      document.querySelectorAll("video").forEach((video) => {
-        const stream = video.srcObject;
-        if (stream instanceof MediaStream) {
-          stream.getTracks().forEach((track) => track.stop());
-          video.srcObject = null;
-        }
-      });
+      releaseCameraStreams();
       document
         .querySelectorAll(
           "[data-mindar-image-camera], .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning, .mindar-ui-compatibility",
         )
         .forEach((el) => el.remove());
       if (sceneRef.current) sceneRef.current.replaceChildren();
+      sceneElRef.current = null;
+
     };
   }, [start]);
 
@@ -638,7 +648,7 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
 
 
 
-      <div ref={sceneRef} onClick={onSceneTap} className="absolute inset-0" />
+      <div ref={sceneRef} onClick={onSceneTap} className={AR_STAGE_CLASS} />
 
       {status === "ready" && !primed && (
         <div className="absolute inset-x-0 bottom-28 z-30 flex justify-center px-6">

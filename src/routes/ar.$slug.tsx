@@ -19,6 +19,18 @@ import {
   hasWebglSupport,
   WEBGL_UNSUPPORTED_MESSAGE,
 } from "@/lib/webgl-recovery";
+import {
+  AR_STAGE_CLASS,
+  applySceneHygiene,
+  attachArViewportFit,
+  detectDeviceTier,
+  ensureArStageStyles,
+  isImmersiveVrSupported,
+  mindarConfig,
+  releaseCameraStreams,
+  rendererConfig,
+} from "@/lib/ar-runtime";
+import { VrStage } from "@/components/ar/VrStage";
 
 
 export const Route = createFileRoute("/ar/$slug")({
@@ -87,10 +99,24 @@ function ARViewer() {
   const { experience } = Route.useLoaderData();
   const [started, setStarted] = useState(false);
   const [forceFallback, setForceFallback] = useState(false);
+  const [vrMode, setVrMode] = useState(false);
+  const [vrSupported, setVrSupported] = useState(false);
   const locked = experience.locked === true;
   const hasMarker = "marker_url" in experience && !!experience.marker_url;
 
+  const ensureEngine = useCallback(async () => {
+    for (const src of MINDAR_SCRIPTS) await loadScript(src);
+    await waitFor(() => typeof (window as any).AFRAME !== "undefined");
+  }, []);
 
+  // Feature-detect immersive VR once; the button never renders without it.
+  useEffect(() => {
+    let alive = true;
+    void isImmersiveVrSupported().then((ok) => alive && setVrSupported(ok));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Preload MindAR scripts while user reads the intro — makes "Launch AR" feel instant.
   // NOTE: must run before any conditional return (React hooks rules).
@@ -101,6 +127,7 @@ function ARViewer() {
       for (const src of MINDAR_SCRIPTS) await loadScript(src);
     })().catch(() => {});
   }, [hasMarker]);
+
 
   // NOTE: we never play the media directly on this route. AR mode always opens
   // the camera (image tracking when a marker exists, plain camera preview otherwise).
@@ -169,11 +196,28 @@ function ARViewer() {
             )}
           </div>
         </div>
+      ) : vrMode ? (
+        /* AR stage is unmounted here: camera released + WebGL context disposed
+           before the VR scene creates its own. No double context, no leak. */
+        <VrStage
+          mediaUrl={experience.media_url}
+          mediaType={experience.media_type}
+          loop={experience.loop_playback !== false}
+          ensureEngine={ensureEngine}
+          onExit={() => setVrMode(false)}
+        />
       ) : (
         forceFallback || !hasMarker
           ? <PlainCameraFallback experience={experience} />
-          : <ARStage experience={experience} />
+          : (
+            <ARStage
+              experience={experience}
+              vrSupported={vrSupported}
+              onEnterVr={() => setVrMode(true)}
+            />
+          )
       )}
+
     </div>
   );
 }
@@ -246,7 +290,15 @@ function waitFor(check: () => boolean, timeoutMs = 10000, intervalMs = 50) {
   });
 }
 
-function ARStage({ experience }: { experience: any }) {
+function ARStage({
+  experience,
+  vrSupported,
+  onEnterVr,
+}: {
+  experience: any;
+  vrSupported: boolean;
+  onEnterVr: () => void;
+}) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const videoElRef = useRef<HTMLVideoElement | null>(null);
   const sceneElRef = useRef<any>(null);
@@ -258,6 +310,7 @@ function ARStage({ experience }: { experience: any }) {
   >("loading");
   const gpuAttemptsRef = useRef({ current: 0 });
   const detachRecoveryRef = useRef<null | (() => void)>(null);
+  const detachFitRef = useRef<null | (() => void)>(null);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [recovering, setRecovering] = useState<string | null>(null);
@@ -272,8 +325,13 @@ function ARStage({ experience }: { experience: any }) {
     setStatus("loading");
     setErrorMsg(null);
     setRecovering(null);
+    ensureArStageStyles();
     detachRecoveryRef.current?.();
     detachRecoveryRef.current = null;
+    detachFitRef.current?.();
+    detachFitRef.current = null;
+
+
 
     // No WebGL at all → skip the engine entirely and explain why.
     if (!hasWebglSupport()) {
@@ -305,24 +363,17 @@ function ARStage({ experience }: { experience: any }) {
       } catch {}
       root.replaceChildren();
 
+      const tier = detectDeviceTier();
       const scenEl = document.createElement("a-scene");
       scenEl.setAttribute(
         "mindar-image",
-        `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; maxTrack: 1; filterMinCF: 0.001; filterBeta: 1000; warmupTolerance: 3; missTolerance: 3;`,
+        mindarConfig({ imageTargetSrc: markerUrl.href, tier, maxTrack: 1 }),
       );
-      scenEl.setAttribute("color-space", "sRGB");
-      scenEl.setAttribute(
-        "renderer",
-        "colorManagement: true, physicallyCorrectLights: false, antialias: false, precision: mediump, sortObjects: false, logarithmicDepthBuffer: false, maxCanvasWidth: 1280, maxCanvasHeight: 1280",
-      );
-      scenEl.setAttribute("shadow", "enabled: false");
-      scenEl.setAttribute("stats", "false");
+      scenEl.setAttribute("renderer", rendererConfig(tier));
+      applySceneHygiene(scenEl);
+      // Sizing comes from the scoped `.ar-stage-root` stylesheet (100dvh),
+      // not an inline 100vh which overshoots the visible viewport on mobile.
 
-      scenEl.setAttribute("vr-mode-ui", "enabled: false");
-      scenEl.setAttribute("device-orientation-permission-ui", "enabled: false");
-      scenEl.setAttribute("embedded", "");
-      scenEl.style.width = "100%";
-      scenEl.style.height = "100vh";
 
       const assets = document.createElement("a-assets");
       let videoEl: HTMLVideoElement | null = null;
@@ -424,6 +475,10 @@ function ARStage({ experience }: { experience: any }) {
           setStatus("error");
         },
       });
+      // Keep canvas + projection + camera-feed transform locked to the visible
+      // viewport on rotate / URL-bar collapse, and cap the camera track.
+      detachFitRef.current = attachArViewportFit(scenEl, tier);
+
       // A session that survives 20s is considered healthy: forgive earlier
       // GPU hiccups so a long session isn't killed by old strikes.
       setTimeout(() => {
@@ -431,6 +486,7 @@ function ARStage({ experience }: { experience: any }) {
       }, 20_000);
 
       setStatus("ready");
+
 
     } catch (e: any) {
       // Auto-retry once before surfacing the error (transient CDN or camera race).
@@ -448,23 +504,22 @@ function ARStage({ experience }: { experience: any }) {
     return () => {
       detachRecoveryRef.current?.();
       detachRecoveryRef.current = null;
+      detachFitRef.current?.();
+      detachFitRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
+        sceneElRef.current?.renderer?.dispose?.();
       } catch {}
 
-      document.querySelectorAll("video").forEach((video) => {
-        const stream = video.srcObject;
-        if (stream instanceof MediaStream) {
-          stream.getTracks().forEach((track) => track.stop());
-          video.srcObject = null;
-        }
-      });
+      releaseCameraStreams();
       document
         .querySelectorAll("[data-mindar-image-camera], .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning, .mindar-ui-compatibility")
         .forEach((element) => element.remove());
       if (sceneRef.current) sceneRef.current.replaceChildren();
+      sceneElRef.current = null;
     };
   }, [start]);
+
 
   // Pause when tab hidden, resume on return.
   useEffect(() => {
@@ -567,8 +622,19 @@ function ARStage({ experience }: { experience: any }) {
       <div
         ref={sceneRef}
         onClick={onSceneTap}
-        className="absolute inset-0"
+        className={AR_STAGE_CLASS}
       />
+
+      {/* VR entry — only rendered when a headset session is actually available */}
+      {status === "ready" && vrSupported && (
+        <button
+          onClick={onEnterVr}
+          className="absolute top-4 right-4 z-30 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-2 text-xs text-white hover:bg-white/20"
+        >
+          View in VR
+        </button>
+      )}
+
 
       {/* Tracking indicator */}
       {status === "ready" && (
