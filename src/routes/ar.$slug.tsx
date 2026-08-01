@@ -293,8 +293,13 @@ function ARStage({
     setStatus("loading");
     setErrorMsg(null);
     setRecovering(null);
+    ensureArStageStyles();
     detachRecoveryRef.current?.();
     detachRecoveryRef.current = null;
+    detachFitRef.current?.();
+    detachFitRef.current = null;
+
+
 
     // No WebGL at all → skip the engine entirely and explain why.
     if (!hasWebglSupport()) {
