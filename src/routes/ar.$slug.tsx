@@ -99,10 +99,24 @@ function ARViewer() {
   const { experience } = Route.useLoaderData();
   const [started, setStarted] = useState(false);
   const [forceFallback, setForceFallback] = useState(false);
+  const [vrMode, setVrMode] = useState(false);
+  const [vrSupported, setVrSupported] = useState(false);
   const locked = experience.locked === true;
   const hasMarker = "marker_url" in experience && !!experience.marker_url;
 
+  const ensureEngine = useCallback(async () => {
+    for (const src of MINDAR_SCRIPTS) await loadScript(src);
+    await waitFor(() => typeof (window as any).AFRAME !== "undefined");
+  }, []);
 
+  // Feature-detect immersive VR once; the button never renders without it.
+  useEffect(() => {
+    let alive = true;
+    void isImmersiveVrSupported().then((ok) => alive && setVrSupported(ok));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Preload MindAR scripts while user reads the intro — makes "Launch AR" feel instant.
   // NOTE: must run before any conditional return (React hooks rules).
@@ -113,6 +127,7 @@ function ARViewer() {
       for (const src of MINDAR_SCRIPTS) await loadScript(src);
     })().catch(() => {});
   }, [hasMarker]);
+
 
   // NOTE: we never play the media directly on this route. AR mode always opens
   // the camera (image tracking when a marker exists, plain camera preview otherwise).
