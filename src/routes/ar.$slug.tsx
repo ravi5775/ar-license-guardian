@@ -443,6 +443,10 @@ function ARStage({
           setStatus("error");
         },
       });
+      // Keep canvas + projection + camera-feed transform locked to the visible
+      // viewport on rotate / URL-bar collapse, and cap the camera track.
+      detachFitRef.current = attachArViewportFit(scenEl, tier);
+
       // A session that survives 20s is considered healthy: forgive earlier
       // GPU hiccups so a long session isn't killed by old strikes.
       setTimeout(() => {
@@ -450,6 +454,7 @@ function ARStage({
       }, 20_000);
 
       setStatus("ready");
+
 
     } catch (e: any) {
       // Auto-retry once before surfacing the error (transient CDN or camera race).
