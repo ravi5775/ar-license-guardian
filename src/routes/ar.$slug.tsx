@@ -472,23 +472,22 @@ function ARStage({
     return () => {
       detachRecoveryRef.current?.();
       detachRecoveryRef.current = null;
+      detachFitRef.current?.();
+      detachFitRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
+        sceneElRef.current?.renderer?.dispose?.();
       } catch {}
 
-      document.querySelectorAll("video").forEach((video) => {
-        const stream = video.srcObject;
-        if (stream instanceof MediaStream) {
-          stream.getTracks().forEach((track) => track.stop());
-          video.srcObject = null;
-        }
-      });
+      releaseCameraStreams();
       document
         .querySelectorAll("[data-mindar-image-camera], .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning, .mindar-ui-compatibility")
         .forEach((element) => element.remove());
       if (sceneRef.current) sceneRef.current.replaceChildren();
+      sceneElRef.current = null;
     };
   }, [start]);
+
 
   // Pause when tab hidden, resume on return.
   useEffect(() => {
