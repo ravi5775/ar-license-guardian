@@ -508,6 +508,9 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
 
       root.appendChild(scene);
       sceneElRef.current = scene;
+      // Keep canvas + projection + camera feed locked to the visible viewport
+      // across rotation / URL-bar collapse, and cap the camera track.
+      detachFitRef.current = attachArViewportFit(scene, tier);
       readyAtRef.current = Date.now();
       setTimeout(() => {
         if (sceneElRef.current === scene) gpuAttemptsRef.current.current = 0;
@@ -529,23 +532,22 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
     return () => {
       detachRecoveryRef.current?.();
       detachRecoveryRef.current = null;
+      detachFitRef.current?.();
+      detachFitRef.current = null;
       try {
         sceneElRef.current?.systems?.["mindar-image-system"]?.stop?.();
+        sceneElRef.current?.renderer?.dispose?.();
       } catch {}
 
-      document.querySelectorAll("video").forEach((video) => {
-        const stream = video.srcObject;
-        if (stream instanceof MediaStream) {
-          stream.getTracks().forEach((track) => track.stop());
-          video.srcObject = null;
-        }
-      });
+      releaseCameraStreams();
       document
         .querySelectorAll(
           "[data-mindar-image-camera], .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning, .mindar-ui-compatibility",
         )
         .forEach((el) => el.remove());
       if (sceneRef.current) sceneRef.current.replaceChildren();
+      sceneElRef.current = null;
+
     };
   }, [start]);
 
