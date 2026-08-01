@@ -275,6 +275,7 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
   const startedRef = useRef<Record<number, boolean>>({});
   const gpuAttemptsRef = useRef({ current: 0 });
   const detachRecoveryRef = useRef<null | (() => void)>(null);
+  const detachFitRef = useRef<null | (() => void)>(null);
 
 
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
