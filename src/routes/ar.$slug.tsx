@@ -258,7 +258,15 @@ function waitFor(check: () => boolean, timeoutMs = 10000, intervalMs = 50) {
   });
 }
 
-function ARStage({ experience }: { experience: any }) {
+function ARStage({
+  experience,
+  vrSupported,
+  onEnterVr,
+}: {
+  experience: any;
+  vrSupported: boolean;
+  onEnterVr: () => void;
+}) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const videoElRef = useRef<HTMLVideoElement | null>(null);
   const sceneElRef = useRef<any>(null);
@@ -270,6 +278,7 @@ function ARStage({ experience }: { experience: any }) {
   >("loading");
   const gpuAttemptsRef = useRef({ current: 0 });
   const detachRecoveryRef = useRef<null | (() => void)>(null);
+  const detachFitRef = useRef<null | (() => void)>(null);
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [recovering, setRecovering] = useState<string | null>(null);
