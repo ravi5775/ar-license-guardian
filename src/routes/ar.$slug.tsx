@@ -590,8 +590,19 @@ function ARStage({
       <div
         ref={sceneRef}
         onClick={onSceneTap}
-        className="absolute inset-0"
+        className={AR_STAGE_CLASS}
       />
+
+      {/* VR entry — only rendered when a headset session is actually available */}
+      {status === "ready" && vrSupported && (
+        <button
+          onClick={onEnterVr}
+          className="absolute top-4 right-4 z-30 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-2 text-xs text-white hover:bg-white/20"
+        >
+          View in VR
+        </button>
+      )}
+
 
       {/* Tracking indicator */}
       {status === "ready" && (
