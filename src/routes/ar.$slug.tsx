@@ -317,24 +317,17 @@ function ARStage({ experience }: { experience: any }) {
       } catch {}
       root.replaceChildren();
 
+      const tier = detectDeviceTier();
       const scenEl = document.createElement("a-scene");
       scenEl.setAttribute(
         "mindar-image",
-        `imageTargetSrc: ${markerUrl.href}; autoStart: true; uiScanning: no; uiLoading: no; uiError: no; maxTrack: 1; filterMinCF: 0.001; filterBeta: 1000; warmupTolerance: 3; missTolerance: 3;`,
+        mindarConfig({ imageTargetSrc: markerUrl.href, tier, maxTrack: 1 }),
       );
-      scenEl.setAttribute("color-space", "sRGB");
-      scenEl.setAttribute(
-        "renderer",
-        "colorManagement: true, physicallyCorrectLights: false, antialias: false, precision: mediump, sortObjects: false, logarithmicDepthBuffer: false, maxCanvasWidth: 1280, maxCanvasHeight: 1280",
-      );
-      scenEl.setAttribute("shadow", "enabled: false");
-      scenEl.setAttribute("stats", "false");
+      scenEl.setAttribute("renderer", rendererConfig(tier));
+      applySceneHygiene(scenEl);
+      // Sizing comes from the scoped `.ar-stage-root` stylesheet (100dvh),
+      // not an inline 100vh which overshoots the visible viewport on mobile.
 
-      scenEl.setAttribute("vr-mode-ui", "enabled: false");
-      scenEl.setAttribute("device-orientation-permission-ui", "enabled: false");
-      scenEl.setAttribute("embedded", "");
-      scenEl.style.width = "100%";
-      scenEl.style.height = "100vh";
 
       const assets = document.createElement("a-assets");
       let videoEl: HTMLVideoElement | null = null;
