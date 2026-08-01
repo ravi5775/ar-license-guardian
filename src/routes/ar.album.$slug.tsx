@@ -648,7 +648,7 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
 
 
 
-      <div ref={sceneRef} onClick={onSceneTap} className="absolute inset-0" />
+      <div ref={sceneRef} onClick={onSceneTap} className={AR_STAGE_CLASS} />
 
       {status === "ready" && !primed && (
         <div className="absolute inset-x-0 bottom-28 z-30 flex justify-center px-6">
