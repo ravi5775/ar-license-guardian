@@ -196,11 +196,28 @@ function ARViewer() {
             )}
           </div>
         </div>
+      ) : vrMode ? (
+        /* AR stage is unmounted here: camera released + WebGL context disposed
+           before the VR scene creates its own. No double context, no leak. */
+        <VrStage
+          mediaUrl={experience.media_url}
+          mediaType={experience.media_type}
+          loop={experience.loop_playback !== false}
+          ensureEngine={ensureEngine}
+          onExit={() => setVrMode(false)}
+        />
       ) : (
         forceFallback || !hasMarker
           ? <PlainCameraFallback experience={experience} />
-          : <ARStage experience={experience} />
+          : (
+            <ARStage
+              experience={experience}
+              vrSupported={vrSupported}
+              onEnterVr={() => setVrMode(true)}
+            />
+          )
       )}
+
     </div>
   );
 }
