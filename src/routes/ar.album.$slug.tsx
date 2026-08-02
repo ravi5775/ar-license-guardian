@@ -297,7 +297,17 @@ type TrackFn = (
   extra?: { target_index?: number | null; duration_ms?: number | null },
 ) => void;
 
-function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
+function AlbumStage({
+  album,
+  track,
+  vrSupported,
+  onEnterVr,
+}: {
+  album: any;
+  track: TrackFn;
+  vrSupported: boolean;
+  onEnterVr: () => void;
+}) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const sceneElRef = useRef<any>(null);
   const videosRef = useRef<Record<number, HTMLVideoElement>>({});
