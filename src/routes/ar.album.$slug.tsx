@@ -554,7 +554,14 @@ function AlbumStage({
       sceneElRef.current = scene;
       // Keep canvas + projection + camera feed locked to the visible viewport
       // across rotation / URL-bar collapse, and cap the camera track.
-      detachFitRef.current = attachArViewportFit(scene, tier);
+      {
+        const detachFit = attachArViewportFit(scene, tier);
+        const detachTuning = applyRendererTuning(scene, tier);
+        detachFitRef.current = () => {
+          detachFit();
+          detachTuning();
+        };
+      }
       readyAtRef.current = Date.now();
       setTimeout(() => {
         if (sceneElRef.current === scene) gpuAttemptsRef.current.current = 0;
