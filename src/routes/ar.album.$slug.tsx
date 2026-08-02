@@ -701,6 +701,25 @@ function AlbumStage({
 
       <div ref={sceneRef} onClick={onSceneTap} className={AR_STAGE_CLASS} />
 
+      {/* Mode + performance controls */}
+      {status === "ready" && (
+        <div className="absolute top-4 right-4 z-30 flex items-center gap-2 pointer-events-none">
+          <PerfToggle
+            onChanged={() => {
+              attemptRef.current = 0;
+              start();
+            }}
+          />
+          <ArVrToggle
+            mode="ar"
+            headset={vrSupported}
+            onChange={(m) => m === "vr" && onEnterVr()}
+          />
+        </div>
+      )}
+
+
+
       {status === "ready" && !primed && (
         <div className="absolute inset-x-0 bottom-28 z-30 flex justify-center px-6">
           <button
