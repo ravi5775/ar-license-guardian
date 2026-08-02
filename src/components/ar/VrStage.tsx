@@ -142,12 +142,16 @@ export function VrStage({
   return (
     <>
       <div ref={rootRef} className={AR_STAGE_CLASS} />
-      <button
-        onClick={onExit}
-        className="fixed top-4 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-2 text-xs text-white hover:bg-white/20"
-      >
-        <X className="h-3.5 w-3.5" /> Exit VR
-      </button>
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <ArVrToggle mode="vr" onChange={(m) => m === "ar" && onExit()} />
+        <button
+          onClick={onExit}
+          aria-label="Exit VR"
+          className="inline-flex items-center rounded-full bg-black/45 backdrop-blur p-1.5 text-white ring-1 ring-white/15 hover:bg-black/60"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
       {error && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/80 p-6 text-center text-white">
           <div>
