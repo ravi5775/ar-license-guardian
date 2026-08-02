@@ -31,6 +31,8 @@ import {
   rendererConfig,
 } from "@/lib/ar-runtime";
 import { VrStage } from "@/components/ar/VrStage";
+import { ArVrToggle, PerfToggle } from "@/components/ar/ModeToggle";
+import { applyRendererTuning } from "@/lib/ar-runtime";
 
 
 export const Route = createFileRoute("/ar/$slug")({

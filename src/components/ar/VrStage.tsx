@@ -8,6 +8,7 @@ import {
   releaseCameraStreams,
   rendererConfig,
 } from "@/lib/ar-runtime";
+import { ArVrToggle } from "@/components/ar/ModeToggle";
 
 /**
  * Immersive VR viewer.
