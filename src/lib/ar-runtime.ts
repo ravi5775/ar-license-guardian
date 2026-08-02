@@ -320,6 +320,60 @@ export function attachArViewportFit(
 }
 
 /* ------------------------------------------------------------------ */
+/* Renderer tuning                                                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Two cheap but large wins on older phones:
+ *
+ * 1. devicePixelRatio cap. A 3x-DPR budget phone renders ~9x the fragments of
+ *    a 1x canvas for zero perceptible gain over a live camera feed. A-Frame
+ *    defaults to the full device ratio; we clamp it per tier.
+ * 2. Stop the render loop while the tab/app is backgrounded. Otherwise the
+ *    GPU keeps drawing, drains battery and is the usual trigger for the
+ *    "context lost" black screen when the OS reclaims memory.
+ */
+export function applyRendererTuning(scene: any, tier: DeviceTier): () => void {
+  if (typeof window === "undefined") return () => {};
+  const cap = DPR_CAP[tier];
+
+  const clamp = () => {
+    try {
+      const renderer = scene?.renderer;
+      if (!renderer) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, cap);
+      if (Math.abs(renderer.getPixelRatio?.() - dpr) > 0.01) {
+        renderer.setPixelRatio(dpr);
+        scene.resize?.();
+      }
+    } catch {
+      /* renderer torn down */
+    }
+  };
+
+  scene?.addEventListener?.("renderstart", clamp);
+  clamp();
+
+  const onVis = () => {
+    try {
+      if (document.hidden) scene?.pause?.();
+      else {
+        scene?.play?.();
+        clamp();
+      }
+    } catch {
+      /* scene gone */
+    }
+  };
+  document.addEventListener("visibilitychange", onVis);
+
+  return () => {
+    document.removeEventListener("visibilitychange", onVis);
+    scene?.removeEventListener?.("renderstart", clamp);
+  };
+}
+
+/* ------------------------------------------------------------------ */
 /* VR support                                                          */
 /* ------------------------------------------------------------------ */
 
