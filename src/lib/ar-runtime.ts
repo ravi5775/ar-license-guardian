@@ -289,7 +289,7 @@ export function attachArViewportFit(
         const track = stream.getVideoTracks()[0];
         void track?.applyConstraints({
           width: { max: CAMERA_CAP[tier] },
-          frameRate: { max: 30 },
+          frameRate: { max: FPS_CAP[tier] },
         }).catch(() => {});
       }
       video.addEventListener("loadedmetadata", schedule);
