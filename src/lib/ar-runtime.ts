@@ -77,12 +77,29 @@ export function ensureArStageStyles() {
 
 export type DeviceTier = "low" | "mid" | "high";
 
+const PERF_KEY = "aether-ar-perf-mode";
+
+/** User-forced performance mode. "lite" pins the low tier on old hardware. */
+export type PerfMode = "auto" | "lite";
+
+export function getPerfMode(): PerfMode {
+  if (typeof localStorage === "undefined") return "auto";
+  return localStorage.getItem(PERF_KEY) === "lite" ? "lite" : "auto";
+}
+
+export function setPerfMode(mode: PerfMode) {
+  if (typeof localStorage === "undefined") return;
+  if (mode === "lite") localStorage.setItem(PERF_KEY, "lite");
+  else localStorage.removeItem(PERF_KEY);
+}
+
 /**
  * Cheap, synchronous capability probe. deviceMemory/hardwareConcurrency are
  * absent on iOS Safari, so we fall back to DPR × screen size heuristics.
  */
 export function detectDeviceTier(): DeviceTier {
   if (typeof navigator === "undefined") return "mid";
+  if (getPerfMode() === "lite") return "low";
   const nav = navigator as Navigator & {
     deviceMemory?: number;
     hardwareConcurrency?: number;
@@ -98,16 +115,30 @@ export function detectDeviceTier(): DeviceTier {
 
 /** Longest camera edge we let the tracker chew on, per tier. */
 const CAMERA_CAP: Record<DeviceTier, number> = {
-  low: 640,
-  mid: 960,
+  low: 480,
+  mid: 854,
   high: 1280,
+};
+
+/** Camera framerate cap — every extra frame is a full CPU tracking pass. */
+const FPS_CAP: Record<DeviceTier, number> = {
+  low: 24,
+  mid: 30,
+  high: 30,
 };
 
 /** Canvas cap keeps fragment cost bounded on high-DPR phones. */
 const CANVAS_CAP: Record<DeviceTier, number> = {
-  low: 960,
+  low: 720,
   mid: 1280,
   high: 1600,
+};
+
+/** Hard ceiling on devicePixelRatio — the single biggest fragment-cost lever. */
+const DPR_CAP: Record<DeviceTier, number> = {
+  low: 1,
+  mid: 1.5,
+  high: 2,
 };
 
 /**
