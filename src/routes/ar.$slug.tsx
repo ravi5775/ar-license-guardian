@@ -31,6 +31,8 @@ import {
   rendererConfig,
 } from "@/lib/ar-runtime";
 import { VrStage } from "@/components/ar/VrStage";
+import { ArVrToggle, PerfToggle } from "@/components/ar/ModeToggle";
+import { applyRendererTuning } from "@/lib/ar-runtime";
 
 
 export const Route = createFileRoute("/ar/$slug")({
@@ -477,7 +479,12 @@ function ARStage({
       });
       // Keep canvas + projection + camera-feed transform locked to the visible
       // viewport on rotate / URL-bar collapse, and cap the camera track.
-      detachFitRef.current = attachArViewportFit(scenEl, tier);
+      const detachFit = attachArViewportFit(scenEl, tier);
+      const detachTuning = applyRendererTuning(scenEl, tier);
+      detachFitRef.current = () => {
+        detachFit();
+        detachTuning();
+      };
 
       // A session that survives 20s is considered healthy: forgive earlier
       // GPU hiccups so a long session isn't killed by old strikes.
@@ -625,14 +632,22 @@ function ARStage({
         className={AR_STAGE_CLASS}
       />
 
-      {/* VR entry — only rendered when a headset session is actually available */}
-      {status === "ready" && vrSupported && (
-        <button
-          onClick={onEnterVr}
-          className="absolute top-4 right-4 z-30 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-3 py-2 text-xs text-white hover:bg-white/20"
-        >
-          View in VR
-        </button>
+      {/* Mode + performance controls. The VR half always shows: with a headset
+          it opens an immersive session, without one a 360° cinema view. */}
+      {status === "ready" && (
+        <div className="absolute top-4 right-4 z-30 flex items-center gap-2 pointer-events-none">
+          <PerfToggle
+            onChanged={() => {
+              attemptRef.current = 0;
+              start();
+            }}
+          />
+          <ArVrToggle
+            mode="ar"
+            headset={vrSupported}
+            onChange={(m) => m === "vr" && onEnterVr()}
+          />
+        </div>
       )}
 
 

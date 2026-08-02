@@ -24,14 +24,18 @@ import {
 } from "@/lib/webgl-recovery";
 import {
   AR_STAGE_CLASS,
+  applyRendererTuning,
   applySceneHygiene,
   attachArViewportFit,
   detectDeviceTier,
   ensureArStageStyles,
+  isImmersiveVrSupported,
   mindarConfig,
   releaseCameraStreams,
   rendererConfig,
 } from "@/lib/ar-runtime";
+import { VrStage } from "@/components/ar/VrStage";
+import { ArVrToggle, PerfToggle } from "@/components/ar/ModeToggle";
 
 
 
@@ -172,8 +176,23 @@ function newSessionId() {
 function AlbumViewer() {
   const { album } = Route.useLoaderData();
   const [started, setStarted] = useState(false);
+  const [vrMode, setVrMode] = useState(false);
+  const [vrSupported, setVrSupported] = useState(false);
   const sessionRef = useRef<string>("");
   if (!sessionRef.current) sessionRef.current = newSessionId();
+
+  const ensureEngine = useCallback(async () => {
+    for (const src of MINDAR_SCRIPTS) await loadScript(src);
+    await waitFor(() => typeof (window as any).AFRAME !== "undefined");
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    void isImmersiveVrSupported().then((ok) => alive && setVrSupported(ok));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     void (async () => {
@@ -246,8 +265,23 @@ function AlbumViewer() {
             </p>
           </div>
         </div>
+      ) : vrMode ? (
+        /* AR stage unmounts first: camera released and WebGL context disposed
+           before the VR scene creates its own. */
+        <VrStage
+          mediaUrl={album.targets?.[0]?.media_url ?? null}
+          mediaType={album.targets?.[0]?.media_type ?? "video"}
+          loop={album.targets?.[0]?.loop_playback !== false}
+          ensureEngine={ensureEngine}
+          onExit={() => setVrMode(false)}
+        />
       ) : (
-        <AlbumStage album={album} track={track} />
+        <AlbumStage
+          album={album}
+          track={track}
+          vrSupported={vrSupported}
+          onEnterVr={() => setVrMode(true)}
+        />
       )}
     </div>
   );
@@ -263,7 +297,17 @@ type TrackFn = (
   extra?: { target_index?: number | null; duration_ms?: number | null },
 ) => void;
 
-function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
+function AlbumStage({
+  album,
+  track,
+  vrSupported,
+  onEnterVr,
+}: {
+  album: any;
+  track: TrackFn;
+  vrSupported: boolean;
+  onEnterVr: () => void;
+}) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const sceneElRef = useRef<any>(null);
   const videosRef = useRef<Record<number, HTMLVideoElement>>({});
@@ -510,7 +554,14 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
       sceneElRef.current = scene;
       // Keep canvas + projection + camera feed locked to the visible viewport
       // across rotation / URL-bar collapse, and cap the camera track.
-      detachFitRef.current = attachArViewportFit(scene, tier);
+      {
+        const detachFit = attachArViewportFit(scene, tier);
+        const detachTuning = applyRendererTuning(scene, tier);
+        detachFitRef.current = () => {
+          detachFit();
+          detachTuning();
+        };
+      }
       readyAtRef.current = Date.now();
       setTimeout(() => {
         if (sceneElRef.current === scene) gpuAttemptsRef.current.current = 0;
@@ -649,6 +700,25 @@ function AlbumStage({ album, track }: { album: any; track: TrackFn }) {
 
 
       <div ref={sceneRef} onClick={onSceneTap} className={AR_STAGE_CLASS} />
+
+      {/* Mode + performance controls */}
+      {status === "ready" && (
+        <div className="absolute top-4 right-4 z-30 flex items-center gap-2 pointer-events-none">
+          <PerfToggle
+            onChanged={() => {
+              attemptRef.current = 0;
+              start();
+            }}
+          />
+          <ArVrToggle
+            mode="ar"
+            headset={vrSupported}
+            onChange={(m) => m === "vr" && onEnterVr()}
+          />
+        </div>
+      )}
+
+
 
       {status === "ready" && !primed && (
         <div className="absolute inset-x-0 bottom-28 z-30 flex justify-center px-6">
