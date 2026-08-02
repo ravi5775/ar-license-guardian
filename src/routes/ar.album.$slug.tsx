@@ -24,14 +24,18 @@ import {
 } from "@/lib/webgl-recovery";
 import {
   AR_STAGE_CLASS,
+  applyRendererTuning,
   applySceneHygiene,
   attachArViewportFit,
   detectDeviceTier,
   ensureArStageStyles,
+  isImmersiveVrSupported,
   mindarConfig,
   releaseCameraStreams,
   rendererConfig,
 } from "@/lib/ar-runtime";
+import { VrStage } from "@/components/ar/VrStage";
+import { ArVrToggle, PerfToggle } from "@/components/ar/ModeToggle";
 
 
 
@@ -172,8 +176,23 @@ function newSessionId() {
 function AlbumViewer() {
   const { album } = Route.useLoaderData();
   const [started, setStarted] = useState(false);
+  const [vrMode, setVrMode] = useState(false);
+  const [vrSupported, setVrSupported] = useState(false);
   const sessionRef = useRef<string>("");
   if (!sessionRef.current) sessionRef.current = newSessionId();
+
+  const ensureEngine = useCallback(async () => {
+    for (const src of MINDAR_SCRIPTS) await loadScript(src);
+    await waitFor(() => typeof (window as any).AFRAME !== "undefined");
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    void isImmersiveVrSupported().then((ok) => alive && setVrSupported(ok));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     void (async () => {
@@ -246,8 +265,23 @@ function AlbumViewer() {
             </p>
           </div>
         </div>
+      ) : vrMode ? (
+        /* AR stage unmounts first: camera released and WebGL context disposed
+           before the VR scene creates its own. */
+        <VrStage
+          mediaUrl={album.targets?.[0]?.media_url ?? null}
+          mediaType={album.targets?.[0]?.media_type ?? "video"}
+          loop={album.targets?.[0]?.loop_playback !== false}
+          ensureEngine={ensureEngine}
+          onExit={() => setVrMode(false)}
+        />
       ) : (
-        <AlbumStage album={album} track={track} />
+        <AlbumStage
+          album={album}
+          track={track}
+          vrSupported={vrSupported}
+          onEnterVr={() => setVrMode(true)}
+        />
       )}
     </div>
   );
