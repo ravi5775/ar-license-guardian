@@ -261,7 +261,7 @@ function ProjectsPage() {
             )}
           </section>
         </div>
-      </QueryState>
+      )}
     </div>
   );
 }
