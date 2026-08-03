@@ -175,8 +175,10 @@ function ProjectsPage() {
       <QueryState
         isLoading={query.isLoading}
         error={query.error}
-        onRetry={() => query.refetch()}
-      >
+        onRetry={() => void query.refetch()}
+      />
+
+      {query.data && (
         <div className="space-y-6">
           {projects.map((p: any) => {
             const pa = albums.filter((a) => a.project_id === p.id);
