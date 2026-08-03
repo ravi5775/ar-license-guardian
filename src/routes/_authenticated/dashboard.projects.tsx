@@ -172,7 +172,11 @@ function ProjectsPage() {
         </form>
       </header>
 
-      <QueryState query={query} emptyLabel="">
+      <QueryState
+        isLoading={query.isLoading}
+        error={query.error}
+        onRetry={() => query.refetch()}
+      >
         <div className="space-y-6">
           {projects.map((p: any) => {
             const pa = albums.filter((a) => a.project_id === p.id);
