@@ -1,0 +1,10 @@
+REVOKE EXECUTE ON FUNCTION public.set_content_pin(text, uuid, text, text) FROM anon, authenticated, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.verify_content_pin(text, text, text) FROM anon, authenticated, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.pin_clear_failures(text, text) FROM anon, authenticated, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.pin_record_failure(text, text) FROM anon, authenticated, PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.pin_attempts_allowed(text, text) FROM anon, authenticated, PUBLIC;
+GRANT EXECUTE ON FUNCTION public.set_content_pin(text, uuid, text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.verify_content_pin(text, text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.pin_clear_failures(text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.pin_record_failure(text, text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.pin_attempts_allowed(text, text) TO service_role;
