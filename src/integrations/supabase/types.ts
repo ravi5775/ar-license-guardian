@@ -25,6 +25,7 @@ export type Database = {
           pin_encrypted: string | null
           pin_hash: string | null
           pin_updated_at: string | null
+          project_id: string | null
           published: boolean
           show_in_gallery: boolean
           slug: string
@@ -42,6 +43,7 @@ export type Database = {
           pin_encrypted?: string | null
           pin_hash?: string | null
           pin_updated_at?: string | null
+          project_id?: string | null
           published?: boolean
           show_in_gallery?: boolean
           slug: string
@@ -59,6 +61,7 @@ export type Database = {
           pin_encrypted?: string | null
           pin_hash?: string | null
           pin_updated_at?: string | null
+          project_id?: string | null
           published?: boolean
           show_in_gallery?: boolean
           slug?: string
@@ -66,7 +69,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "albums_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ar_experiences: {
         Row: {
@@ -88,6 +99,7 @@ export type Database = {
           pin_encrypted: string | null
           pin_hash: string | null
           pin_updated_at: string | null
+          project_id: string | null
           published: boolean
           show_in_gallery: boolean
           slug: string | null
@@ -115,6 +127,7 @@ export type Database = {
           pin_encrypted?: string | null
           pin_hash?: string | null
           pin_updated_at?: string | null
+          project_id?: string | null
           published?: boolean
           show_in_gallery?: boolean
           slug?: string | null
@@ -142,6 +155,7 @@ export type Database = {
           pin_encrypted?: string | null
           pin_hash?: string | null
           pin_updated_at?: string | null
+          project_id?: string | null
           published?: boolean
           show_in_gallery?: boolean
           slug?: string | null
@@ -156,6 +170,13 @@ export type Database = {
             columns: ["album_id"]
             isOneToOne: false
             referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ar_experiences_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -419,6 +440,36 @@ export type Database = {
           email?: string | null
           id?: string
           rejection_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
           updated_at?: string
         }
         Relationships: []
