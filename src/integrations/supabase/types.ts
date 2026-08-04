@@ -614,30 +614,7 @@ export type Database = {
       }
     }
     Views: {
-      public_experiences: {
-        Row: {
-          cover_image_url: string | null
-          created_at: string | null
-          description: string | null
-          slug: string | null
-          title: string | null
-        }
-        Insert: {
-          cover_image_url?: string | null
-          created_at?: string | null
-          description?: string | null
-          slug?: string | null
-          title?: string | null
-        }
-        Update: {
-          cover_image_url?: string | null
-          created_at?: string | null
-          description?: string | null
-          slug?: string | null
-          title?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       check_and_record_hit: {
