@@ -9,10 +9,11 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
  * gallery". New experiences default to hidden.
  */
 const listPublicExperiences = createServerFn({ method: "GET" }).handler(async () => {
-  const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
-  });
-  const { data } = await sb
+  // Anonymous visitors have no read access to ar_experiences at all — an
+  // RLS policy filters rows, not columns, so a public policy would hand out
+  // pin_hash too. This runs server-side with an explicit safe column list.
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
     .from("ar_experiences")
     .select("slug, title, description, cover_image_url")
     .eq("published", true)
