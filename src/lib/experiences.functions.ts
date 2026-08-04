@@ -128,7 +128,7 @@ export const getPublicExperience = createServerFn({ method: "GET" })
       kind: "experience",
       slug: row.slug!,
       accessMode: row.access_mode,
-      pinEncrypted: row.pin_encrypted,
+      
       tok: data.tok,
     });
 
@@ -151,7 +151,6 @@ export const getPublicExperience = createServerFn({ method: "GET" })
       ...row,
       locked: false as const,
       pin_hash: undefined,
-      pin_encrypted: undefined,
       // Prefer signed private URLs; fall back to any public URLs already stored.
       marker_url: marker_signed ?? row.marker_url,
       marker_image_url: marker_image_signed,

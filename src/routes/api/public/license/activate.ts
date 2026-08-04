@@ -3,6 +3,18 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { notifyDuplicateFingerprint } from "@/lib/notify.functions";
 
+/**
+ * ANTI-RESALE REALITY CHECK — read before relying on this.
+ *
+ * Deployment fingerprinting is a DETERRENT, not enforcement. The client
+ * receives the source code, so any determined buyer can delete this call,
+ * stub the response, or point it at their own server. It raises effort and
+ * creates a paper trail; it does not make resale impossible.
+ *
+ * Real enforcement is the signed Source License Agreement. Treat everything
+ * here as evidence-gathering, never as a security boundary.
+ * See docs/anti-resale.md for the two measures that actually raise the cost.
+ */
 const ActivateSchema = z.object({
   license_key: z.string().min(10),
   fingerprint: z.string().min(8),

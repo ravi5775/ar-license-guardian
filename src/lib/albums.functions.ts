@@ -171,7 +171,7 @@ export const getPublicAlbum = createServerFn({ method: "GET" })
       kind: "album",
       slug: album.slug,
       accessMode: album.access_mode,
-      pinEncrypted: album.pin_encrypted,
+      
       tok: data.tok,
     });
 
