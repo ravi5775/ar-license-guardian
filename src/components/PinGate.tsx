@@ -54,7 +54,7 @@ export function PinGate({
         <h1 className="text-2xl font-serif italic mb-1">{title}</h1>
         <p className="text-sm text-muted-foreground mb-6">
           This {kind === "album" ? "album" : "experience"} is private. Enter the
-          4-character PIN printed on your card.
+          PIN printed on your card.
         </p>
 
         <input

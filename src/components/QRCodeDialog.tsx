@@ -26,6 +26,7 @@ interface Share {
   restricted: boolean;
   pin: string | null;
   tok: string | null;
+  pinExpiresAt?: string | null;
 }
 
 export function QRCodeDialog({
@@ -37,7 +38,7 @@ export function QRCodeDialog({
   onClose,
 }: Props) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
-  const [share, setShare] = useState<Share>({ slug, restricted: false, pin: null, tok: null });
+  const [share, setShare] = useState<Share>({ slug, restricted: false, pin: null, tok: null, pinExpiresAt: null });
   const [loading, setLoading] = useState(Boolean(id));
   const [working, setWorking] = useState(false);
 
@@ -47,16 +48,27 @@ export function QRCodeDialog({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const path = kind === "album" ? `/ar/album/${share.slug}` : `/ar/${share.slug}`;
-  const url = `${getPublicOrigin()}${path}${share.tok ? `?tok=${share.tok}` : ""}`;
+  // Always percent-encode: the token alphabet is base64url today, but never
+  // assume a character subset stays URL-safe unencoded.
+  const url = `${getPublicOrigin()}${path}${
+    share.tok ? `?tok=${encodeURIComponent(share.tok)}` : ""
+  }`;
 
-  // Pull the decrypted PIN + signed token for owners of this row.
+  // PINs are stored hashed and QR tokens hashed — neither can be read back.
+  // This only loads the access mode; issuing/rotating returns them once.
   useEffect(() => {
     if (!id) return;
     let alive = true;
     loadShare({ data: { kind, id } })
       .then((r: any) => {
         if (!alive) return;
-        setShare({ slug: r.slug, restricted: r.restricted, pin: r.pin, tok: r.tok });
+        setShare({
+          slug: r.slug,
+          restricted: r.restricted,
+          pin: r.pin,
+          tok: r.tok,
+          pinExpiresAt: r.pinExpiresAt ?? null,
+        });
       })
       .catch((e: any) => toast.error(e?.message ?? "Couldn't load share settings"))
       .finally(() => alive && setLoading(false));
@@ -141,7 +153,13 @@ export function QRCodeDialog({
     setWorking(true);
     try {
       const r: any = await setMode({ data: { kind, id, mode } });
-      setShare({ slug: r.slug, restricted: r.restricted, pin: r.pin, tok: r.tok });
+      setShare({
+        slug: r.slug,
+        restricted: r.restricted,
+        pin: r.pin,
+        tok: r.tok,
+        pinExpiresAt: r.pinExpiresAt ?? null,
+      });
       onSlugChange?.(r.slug);
       toast.success(
         mode === "restricted"
@@ -157,11 +175,17 @@ export function QRCodeDialog({
 
   async function rotatePin() {
     if (!id) return;
-    if (!confirm("Regenerate the PIN? Every previously printed QR stops working immediately.")) return;
+    if (!confirm("Re-issue the PIN and QR token? Every previously printed card stops working immediately.")) return;
     setWorking(true);
     try {
       const r: any = await rotate({ data: { kind, id } });
-      setShare({ slug: r.slug, restricted: true, pin: r.pin, tok: r.tok });
+      setShare({
+        slug: r.slug,
+        restricted: true,
+        pin: r.pin,
+        tok: r.tok,
+        pinExpiresAt: r.pinExpiresAt ?? null,
+      });
       toast.success("New PIN issued — reprint the QR.");
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't regenerate PIN");
@@ -225,7 +249,19 @@ export function QRCodeDialog({
                   <div className="mt-3 flex items-center gap-3">
                     <div>
                       <p className="text-[11px] text-muted-foreground">Access PIN</p>
-                      <p className="font-mono text-lg tracking-[0.3em]">{share.pin ?? "————"}</p>
+                      <p className="font-mono text-lg tracking-[0.3em]">
+                        {share.pin ?? "— hidden —"}
+                      </p>
+                      {!share.pin && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Stored hashed — re-issue to see and print it again.
+                        </p>
+                      )}
+                      {share.pinExpiresAt && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Expires {new Date(share.pinExpiresAt).toLocaleDateString()}
+                        </p>
+                      )}
                     </div>
                     <button
                       disabled={working}
@@ -233,14 +269,14 @@ export function QRCodeDialog({
                       className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-accent disabled:opacity-50"
                     >
                       <RefreshCw className={`h-3.5 w-3.5 ${working ? "animate-spin" : ""}`} />
-                      Regenerate
+                      Re-issue PIN + QR
                     </button>
                   </div>
                 )}
 
                 <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
                   {share.restricted
-                    ? "Scanning the printed QR opens instantly — the card itself is the credential. A forwarded link without the code asks for the 4-character PIN."
+                    ? "Scanning the printed QR opens instantly — the card itself is the credential. A forwarded link without the code asks for the PIN printed on the card."
                     : "Anyone with this link can open the experience. Switch to PIN protected to issue a private link and printable PIN."}
                 </p>
               </>
