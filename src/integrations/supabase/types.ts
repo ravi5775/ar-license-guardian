@@ -22,7 +22,8 @@ export type Database = {
           created_at: string
           id: string
           owner_id: string
-          pin_encrypted: string | null
+          pin_created_at: string | null
+          pin_expires_at: string | null
           pin_hash: string | null
           pin_updated_at: string | null
           project_id: string | null
@@ -40,7 +41,8 @@ export type Database = {
           created_at?: string
           id?: string
           owner_id: string
-          pin_encrypted?: string | null
+          pin_created_at?: string | null
+          pin_expires_at?: string | null
           pin_hash?: string | null
           pin_updated_at?: string | null
           project_id?: string | null
@@ -58,7 +60,8 @@ export type Database = {
           created_at?: string
           id?: string
           owner_id?: string
-          pin_encrypted?: string | null
+          pin_created_at?: string | null
+          pin_expires_at?: string | null
           pin_hash?: string | null
           pin_updated_at?: string | null
           project_id?: string | null
@@ -96,7 +99,8 @@ export type Database = {
           media_type: string
           media_url: string | null
           owner_id: string
-          pin_encrypted: string | null
+          pin_created_at: string | null
+          pin_expires_at: string | null
           pin_hash: string | null
           pin_updated_at: string | null
           project_id: string | null
@@ -124,7 +128,8 @@ export type Database = {
           media_type?: string
           media_url?: string | null
           owner_id: string
-          pin_encrypted?: string | null
+          pin_created_at?: string | null
+          pin_expires_at?: string | null
           pin_hash?: string | null
           pin_updated_at?: string | null
           project_id?: string | null
@@ -152,7 +157,8 @@ export type Database = {
           media_type?: string
           media_url?: string | null
           owner_id?: string
-          pin_encrypted?: string | null
+          pin_created_at?: string | null
+          pin_expires_at?: string | null
           pin_hash?: string | null
           pin_updated_at?: string | null
           project_id?: string | null
@@ -211,6 +217,48 @@ export type Database = {
           metadata?: Json | null
           target_id?: string | null
           target_type?: string | null
+        }
+        Relationships: []
+      }
+      content_access_tokens: {
+        Row: {
+          content_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          kind: string
+          label: string | null
+          last_used_at: string | null
+          revoked_at: string | null
+          slug: string
+          token_hash: string
+        }
+        Insert: {
+          content_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          kind: string
+          label?: string | null
+          last_used_at?: string | null
+          revoked_at?: string | null
+          slug: string
+          token_hash: string
+        }
+        Update: {
+          content_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          kind?: string
+          label?: string | null
+          last_used_at?: string | null
+          revoked_at?: string | null
+          slug?: string
+          token_hash?: string
         }
         Relationships: []
       }
@@ -566,7 +614,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_experiences: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string | null
+          description: string | null
+          slug: string | null
+          title: string | null
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          slug?: string | null
+          title?: string | null
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          slug?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_and_record_hit: {
@@ -578,6 +649,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      generate_content_pin: { Args: { _length?: number }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -586,6 +658,15 @@ export type Database = {
         Returns: boolean
       }
       is_approved: { Args: { _user_id: string }; Returns: boolean }
+      issue_content_access_token: {
+        Args: {
+          _content_id: string
+          _kind: string
+          _label?: string
+          _ttl_days?: number
+        }
+        Returns: string
+      }
       pin_attempts_allowed: {
         Args: { _ip: string; _slug: string }
         Returns: boolean
@@ -598,18 +679,21 @@ export type Database = {
         Args: { _ip: string; _slug: string }
         Returns: undefined
       }
+      revoke_content_access_tokens: {
+        Args: { _content_id: string; _kind: string }
+        Returns: number
+      }
       set_content_pin: {
-        Args: {
-          _id: string
-          _kind: string
-          _pin: string
-          _pin_encrypted: string
-        }
-        Returns: undefined
+        Args: { _id: string; _kind: string; _pin: string; _ttl_days?: number }
+        Returns: string
+      }
+      verify_content_access_token: {
+        Args: { _kind: string; _slug: string; _token: string }
+        Returns: string
       }
       verify_content_pin: {
         Args: { _kind: string; _pin: string; _slug: string }
-        Returns: boolean
+        Returns: string
       }
     }
     Enums: {
