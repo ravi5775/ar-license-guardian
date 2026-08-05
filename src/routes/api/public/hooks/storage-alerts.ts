@@ -12,8 +12,14 @@ export const Route = createFileRoute("/api/public/hooks/storage-alerts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Accept either key name: projects on the new key format expose the
+        // publishable key, older ones expose the anon key.
         const key = request.headers.get("apikey");
-        if (!key || key !== process.env["SUPABASE_ANON_KEY"]) {
+        const expected = [
+          process.env["SUPABASE_PUBLISHABLE_KEY"],
+          process.env["SUPABASE_ANON_KEY"],
+        ].filter(Boolean);
+        if (!key || !expected.includes(key)) {
           return new Response("Unauthorized", { status: 401 });
         }
 
