@@ -145,7 +145,16 @@ export const getPublicExperience = createServerFn({ method: "GET" })
       ? await signMedia(row.marker_mind_path)
       : null;
     const marker_image_signed = row.marker_path ? await signMedia(row.marker_path) : null;
-    const media_signed = row.media_path ? await signMedia(row.media_path) : null;
+    // Only the film itself is eligible for one-time delivery. The .mind target
+    // and the marker image are re-fetched by the tracker on retry/reload, so a
+    // one-shot URL there would break detection, not protect anything.
+    const media_signed = row.media_path
+      ? await signMedia(row.media_path, {
+          singleUse: (row as { single_use_media?: boolean }).single_use_media === true,
+          kind: "experience",
+          slug: row.slug ?? "",
+        })
+      : null;
 
     return {
       ...row,

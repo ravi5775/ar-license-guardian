@@ -214,7 +214,12 @@ export const getPublicAlbum = createServerFn({ method: "GET" })
         media_type: t.media_type,
         autoplay: t.autoplay,
         loop_playback: t.loop_playback,
-        media_url: (await signMedia(t.media_path)) ?? t.media_url,
+        media_url:
+          (await signMedia(t.media_path, {
+            singleUse: (album as { single_use_media?: boolean }).single_use_media === true,
+            kind: "album",
+            slug: album.slug,
+          })) ?? t.media_url,
         marker_image_url: await signMedia(t.marker_path),
       })),
     );
