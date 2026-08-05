@@ -145,7 +145,16 @@ export const getPublicExperience = createServerFn({ method: "GET" })
       ? await signMedia(row.marker_mind_path)
       : null;
     const marker_image_signed = row.marker_path ? await signMedia(row.marker_path) : null;
-    const media_signed = row.media_path ? await signMedia(row.media_path) : null;
+    // Only the film itself is eligible for one-time delivery. The .mind target
+    // and the marker image are re-fetched by the tracker on retry/reload, so a
+    // one-shot URL there would break detection, not protect anything.
+    const media_signed = row.media_path
+      ? await signMedia(row.media_path, {
+          singleUse: (row as { single_use_media?: boolean }).single_use_media === true,
+          kind: "experience",
+          slug: row.slug ?? "",
+        })
+      : null;
 
     return {
       ...row,
@@ -187,6 +196,20 @@ export const signMediaUpload = createServerFn({ method: "POST" })
       .eq("role", "admin")
       .maybeSingle();
     if (!adminRow) throw new Error("Forbidden: admin only");
+
+    // Quota is checked BEFORE handing out an upload URL, so the client gets a
+    // clear refusal instead of a silent storage failure mid-upload.
+    const { data: usage } = await context.supabase.rpc("storage_usage", {
+      _owner: context.userId,
+    });
+    const used = Number(usage?.[0]?.used_bytes ?? 0);
+    const quota = Number(usage?.[0]?.quota_bytes ?? 0);
+    if (quota > 0 && used + (data.size ?? 0) > quota) {
+      const gb = (n: number) => (n / 1073741824).toFixed(2);
+      throw new Error(
+        `Storage full: this would use ${gb(used + (data.size ?? 0))} GB of your ${gb(quota)} GB allowance. Delete an old album or ask us to raise the limit.`,
+      );
+    }
 
     if (data.size != null && data.size > MAX_UPLOAD_BYTES) {
       throw new Error(
@@ -235,6 +258,14 @@ export const enforceMediaSize = createServerFn({ method: "POST" })
         `Upload rejected: ${(size / 1048576).toFixed(1)} MB exceeds the 50 MB limit.`,
       );
     }
+
+    // Record the object against its owner. Service-role write: a client must
+    // never be able to under-report its own usage.
+    await supabaseAdmin.from("media_objects").upsert(
+      { owner_id: context.userId, storage_path: data.path, bytes: size ?? 0 },
+      { onConflict: "storage_path" },
+    );
+
     return { ok: true as const, size: size ?? null };
   });
 

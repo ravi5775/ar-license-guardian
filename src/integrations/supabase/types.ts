@@ -29,6 +29,7 @@ export type Database = {
           project_id: string | null
           published: boolean
           show_in_gallery: boolean
+          single_use_media: boolean
           slug: string
           target_count: number
           title: string
@@ -48,6 +49,7 @@ export type Database = {
           project_id?: string | null
           published?: boolean
           show_in_gallery?: boolean
+          single_use_media?: boolean
           slug: string
           target_count?: number
           title: string
@@ -67,6 +69,7 @@ export type Database = {
           project_id?: string | null
           published?: boolean
           show_in_gallery?: boolean
+          single_use_media?: boolean
           slug?: string
           target_count?: number
           title?: string
@@ -106,6 +109,7 @@ export type Database = {
           project_id: string | null
           published: boolean
           show_in_gallery: boolean
+          single_use_media: boolean
           slug: string | null
           target_index: number | null
           title: string
@@ -135,6 +139,7 @@ export type Database = {
           project_id?: string | null
           published?: boolean
           show_in_gallery?: boolean
+          single_use_media?: boolean
           slug?: string | null
           target_index?: number | null
           title: string
@@ -164,6 +169,7 @@ export type Database = {
           project_id?: string | null
           published?: boolean
           show_in_gallery?: boolean
+          single_use_media?: boolean
           slug?: string | null
           target_index?: number | null
           title?: string
@@ -432,6 +438,93 @@ export type Database = {
           },
         ]
       }
+      media_access_nonces: {
+        Row: {
+          consumed_at: string | null
+          content_slug: string
+          created_at: string
+          expires_at: string
+          id: string
+          kind: string
+          nonce_hash: string
+          storage_path: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          content_slug: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          kind: string
+          nonce_hash: string
+          storage_path: string
+        }
+        Update: {
+          consumed_at?: string | null
+          content_slug?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          kind?: string
+          nonce_hash?: string
+          storage_path?: string
+        }
+        Relationships: []
+      }
+      media_objects: {
+        Row: {
+          bytes: number
+          created_at: string
+          id: string
+          owner_id: string
+          storage_path: string
+        }
+        Insert: {
+          bytes?: number
+          created_at?: string
+          id?: string
+          owner_id: string
+          storage_path: string
+        }
+        Update: {
+          bytes?: number
+          created_at?: string
+          id?: string
+          owner_id?: string
+          storage_path?: string
+        }
+        Relationships: []
+      }
+      media_signing_events: {
+        Row: {
+          content_slug: string
+          created_at: string
+          id: number
+          ip: string | null
+          kind: string
+          single_use: boolean
+          storage_path: string
+        }
+        Insert: {
+          content_slug: string
+          created_at?: string
+          id?: number
+          ip?: string | null
+          kind: string
+          single_use?: boolean
+          storage_path: string
+        }
+        Update: {
+          content_slug?: string
+          created_at?: string
+          id?: number
+          ip?: string | null
+          kind?: string
+          single_use?: boolean
+          storage_path?: string
+        }
+        Relationships: []
+      }
       pin_failed_attempts: {
         Row: {
           created_at: string
@@ -464,6 +557,8 @@ export type Database = {
           email: string | null
           id: string
           rejection_reason: string | null
+          storage_alert_sent_at: string | null
+          storage_quota_bytes: number
           updated_at: string
         }
         Insert: {
@@ -476,6 +571,8 @@ export type Database = {
           email?: string | null
           id: string
           rejection_reason?: string | null
+          storage_alert_sent_at?: string | null
+          storage_quota_bytes?: number
           updated_at?: string
         }
         Update: {
@@ -488,6 +585,8 @@ export type Database = {
           email?: string | null
           id?: string
           rejection_reason?: string | null
+          storage_alert_sent_at?: string | null
+          storage_quota_bytes?: number
           updated_at?: string
         }
         Relationships: []
@@ -626,6 +725,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      consume_media_nonce: {
+        Args: { _nonce_hash: string }
+        Returns: {
+          storage_path: string
+        }[]
+      }
       generate_content_pin: { Args: { _length?: number }; Returns: string }
       has_role: {
         Args: {
@@ -663,6 +768,13 @@ export type Database = {
       set_content_pin: {
         Args: { _id: string; _kind: string; _pin: string; _ttl_days?: number }
         Returns: string
+      }
+      storage_usage: {
+        Args: { _owner: string }
+        Returns: {
+          quota_bytes: number
+          used_bytes: number
+        }[]
       }
       verify_content_access_token: {
         Args: { _kind: string; _slug: string; _token: string }

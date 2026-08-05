@@ -4,12 +4,14 @@
 // NOTE: mind-ar's dist bundles are ES modules (they `import` sibling chunks),
 // so they can NOT be loaded with a classic <script> tag — doing so throws a
 // syntax error and leaves window.MINDAR undefined ("AR compiler unavailable").
-// We load them with a real dynamic import instead, with CDN fallbacks.
-const COMPILER_URLS = [
-  "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js",
-  "https://unpkg.com/mind-ar@1.2.5/dist/mindar-image.prod.js",
-  "https://esm.sh/mind-ar@1.2.5/dist/mindar-image.prod.js",
-];
+// We load them with a real dynamic import instead.
+//
+// SAME-ORIGIN ONLY: the exact mind-ar 1.2.5 build (plus its sibling chunks) is
+// vendored into public/vendor/ar/, so a CDN compromise cannot inject script
+// into the AR routes and CSP can stay at script-src 'self'. There is no CDN
+// fallback on purpose — a fallback would defeat the whole point.
+// See public/vendor/ar/README.md to re-vendor on a version bump.
+const COMPILER_URLS = ["/vendor/ar/mindar-image-1.2.5.prod.js"];
 
 type CompilerCtor = new () => {
   compileImageTargets: (

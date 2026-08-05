@@ -7,6 +7,22 @@ import { accessCookieName, verifyAccessCookie } from "@/lib/access.server";
 
 export type ContentKind = "album" | "experience";
 
+function b64url(bytes: Uint8Array) {
+  let s = "";
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+export async function sha256Hex(input: string) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(input),
+  );
+  return Array.from(new Uint8Array(digest), (b) =>
+    b.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
 /** Short-lived media URLs — 15 minutes, never permanent. */
 export const MEDIA_URL_TTL_SECONDS = 15 * 60;
 
@@ -24,13 +40,58 @@ export function callerIp() {
  * a copy of the file made inside that window. Never describe them as
  * "unshareable" in UI copy.
  */
-export async function signMedia(path: string | null | undefined) {
+/**
+ * Signs a storage object for delivery.
+ *
+ * Two modes:
+ *  - default (singleUse=false): a plain 15-minute signed URL. This is what
+ *    normal gallery viewing uses, because a browser legitimately re-requests
+ *    media (reload, seek/range requests, <video> retry) and a one-shot URL
+ *    would break all of that.
+ *  - singleUse=true: returns a URL to our own /api/public/m/:nonce route. The
+ *    nonce is consumed atomically on first GET, then we 302 to a 60-second
+ *    signed URL. Opt-in per album/experience via `single_use_media`.
+ *
+ * Every signing event is logged either way.
+ */
+export async function signMedia(
+  path: string | null | undefined,
+  opts?: { singleUse?: boolean; kind?: ContentKind; slug?: string },
+) {
   if (!path) return null;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin.storage
-    .from("ar-media")
-    .createSignedUrl(path, MEDIA_URL_TTL_SECONDS);
-  return data?.signedUrl ?? null;
+  const singleUse = opts?.singleUse === true;
+
+  // Best-effort audit; never block delivery on the log write.
+  void supabaseAdmin
+    .from("media_signing_events")
+    .insert({
+      kind: opts?.kind ?? "unknown",
+      content_slug: opts?.slug ?? "unknown",
+      storage_path: path,
+      single_use: singleUse,
+      ip: callerIp(),
+    })
+    .then(() => undefined, () => undefined);
+
+  if (!singleUse) {
+    const { data } = await supabaseAdmin.storage
+      .from("ar-media")
+      .createSignedUrl(path, MEDIA_URL_TTL_SECONDS);
+    return data?.signedUrl ?? null;
+  }
+
+  // 32 random bytes; only the SHA-256 is stored, so a DB read cannot replay it.
+  const raw = b64url(crypto.getRandomValues(new Uint8Array(32)));
+  const { error } = await supabaseAdmin.from("media_access_nonces").insert({
+    nonce_hash: await sha256Hex(raw),
+    storage_path: path,
+    kind: opts?.kind ?? "unknown",
+    content_slug: opts?.slug ?? "unknown",
+    expires_at: new Date(Date.now() + MEDIA_URL_TTL_SECONDS * 1000).toISOString(),
+  });
+  if (error) return null;
+  return `/api/public/m/${raw}`;
 }
 
 /**
