@@ -35,6 +35,7 @@ import { Route as AuthenticatedDashboardApprovalsRouteImport } from './routes/_a
 import { Route as AuthenticatedDashboardAnalyticsRouteImport } from './routes/_authenticated/dashboard.analytics'
 import { Route as AuthenticatedDashboardActivationsRouteImport } from './routes/_authenticated/dashboard.activations'
 import { Route as AuthenticatedDashboardAlbumsIndexRouteImport } from './routes/_authenticated/dashboard.albums.index'
+import { Route as ApiPublicMNonceRouteImport } from './routes/api/public/m.$nonce'
 import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
 import { Route as AuthenticatedDashboardAlbumsNewRouteImport } from './routes/_authenticated/dashboard.albums.new'
 
@@ -178,6 +179,11 @@ const AuthenticatedDashboardAlbumsIndexRoute =
     path: '/albums/',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const ApiPublicMNonceRoute = ApiPublicMNonceRouteImport.update({
+  id: '/api/public/m/$nonce',
+  path: '/api/public/m/$nonce',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicLicenseActivateRoute =
   ApiPublicLicenseActivateRouteImport.update({
     id: '/api/public/license/activate',
@@ -218,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
+  '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
+  '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/dashboard/albums': typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 export interface FileRoutesById {
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
+  '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/_authenticated/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
 }
 export interface FileRouteTypes {
@@ -308,6 +317,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/dashboard/albums/new'
     | '/api/public/license/activate'
+    | '/api/public/m/$nonce'
     | '/dashboard/albums/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -336,6 +346,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/albums/new'
     | '/api/public/license/activate'
+    | '/api/public/m/$nonce'
     | '/dashboard/albums'
   id:
     | '__root__'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/'
     | '/_authenticated/dashboard/albums/new'
     | '/api/public/license/activate'
+    | '/api/public/m/$nonce'
     | '/_authenticated/dashboard/albums/'
   fileRoutesById: FileRoutesById
 }
@@ -384,6 +396,7 @@ export interface RootRouteChildren {
   ArSlugRoute: typeof ArSlugRoute
   ArAlbumSlugRoute: typeof ArAlbumSlugRoute
   ApiPublicLicenseActivateRoute: typeof ApiPublicLicenseActivateRoute
+  ApiPublicMNonceRoute: typeof ApiPublicMNonceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -570,6 +583,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAlbumsIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/api/public/m/$nonce': {
+      id: '/api/public/m/$nonce'
+      path: '/api/public/m/$nonce'
+      fullPath: '/api/public/m/$nonce'
+      preLoaderRoute: typeof ApiPublicMNonceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/license/activate': {
       id: '/api/public/license/activate'
       path: '/api/public/license/activate'
@@ -655,6 +675,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArSlugRoute: ArSlugRoute,
   ArAlbumSlugRoute: ArAlbumSlugRoute,
   ApiPublicLicenseActivateRoute: ApiPublicLicenseActivateRoute,
+  ApiPublicMNonceRoute: ApiPublicMNonceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
