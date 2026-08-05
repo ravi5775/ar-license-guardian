@@ -54,13 +54,27 @@ export async function uploadToArMedia(
   const signed = await signMediaUpload({
     data: { path, upsert: true, size: payload.size },
   });
-  const { error } = await supabase.storage
-    .from("ar-media")
-    .uploadToSignedUrl(signed.path, signed.token, payload, {
-      contentType: payload.type || "application/octet-stream",
-      upsert: true,
+
+  if ((signed as any).provider === "r2" || (signed as any).signedUrl?.includes(".r2.cloudflarestorage.com")) {
+    const res = await fetch((signed as any).signedUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": payload.type || "application/octet-stream",
+      },
+      body: payload,
     });
-  if (error) throw error;
+    if (!res.ok) {
+      throw new Error(`Cloudflare R2 upload failed (${res.status} ${res.statusText})`);
+    }
+  } else {
+    const { error } = await supabase.storage
+      .from("ar-media")
+      .uploadToSignedUrl(signed.path, signed.token, payload, {
+        contentType: payload.type || "application/octet-stream",
+        upsert: true,
+      });
+    if (error) throw error;
+  }
   onProgress?.({ stage: "uploading", percent: 100 });
 
   // Server-side backstop — deletes the object if it exceeds the hard limit.

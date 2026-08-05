@@ -42,18 +42,14 @@ function clientIp(request: Request) {
 }
 
 async function rateLimit(request: Request, bucket: string, key: string, windowSec: number, max: number) {
-  const admin = await adminClient();
-  const { data, error } = await admin.rpc("check_and_record_hit", {
-    _bucket: bucket,
-    _key: key,
-    _window_seconds: windowSec,
-    _max: max,
-  });
-  if (error) {
-    console.error("[rate_limit] rpc error", error);
+  try {
+    const { checkRateLimit } = await import("@/lib/ratelimit.server");
+    const res = await checkRateLimit(`${bucket}:${key}`, max, windowSec * 1000);
+    return res.success;
+  } catch (err) {
+    console.error("[rate_limit] adapter error", err);
     return true; // fail-open
   }
-  return data === true;
 }
 
 // Progressive tiers — if ANY tier trips, request is rejected.

@@ -75,10 +75,8 @@ export async function signMedia(
     .then(() => undefined, () => undefined);
 
   if (!singleUse) {
-    const { data } = await supabaseAdmin.storage
-      .from("ar-media")
-      .createSignedUrl(path, MEDIA_URL_TTL_SECONDS);
-    return data?.signedUrl ?? null;
+    const { createPresignedDownloadUrl } = await import("@/lib/storage.server");
+    return createPresignedDownloadUrl(path, MEDIA_URL_TTL_SECONDS);
   }
 
   // 32 random bytes; only the SHA-256 is stored, so a DB read cannot replay it.

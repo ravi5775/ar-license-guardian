@@ -217,12 +217,8 @@ export const signMediaUpload = createServerFn({ method: "POST" })
       );
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: signed, error } = await supabaseAdmin.storage
-      .from("ar-media")
-      .createSignedUploadUrl(data.path, { upsert: data.upsert ?? true });
-    if (error) throw new Error(error.message);
-    return signed; // { signedUrl, token, path }
+    const { createPresignedUploadUrl } = await import("@/lib/storage.server");
+    return createPresignedUploadUrl(data.path, "application/octet-stream", 900);
   });
 
 /**
@@ -242,23 +238,18 @@ export const enforceMediaSize = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!adminRow) throw new Error("Forbidden: admin only");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const slash = data.path.lastIndexOf("/");
-    const folder = slash === -1 ? "" : data.path.slice(0, slash);
-    const name = slash === -1 ? data.path : data.path.slice(slash + 1);
-
-    const { data: rows } = await supabaseAdmin.storage
-      .from("ar-media")
-      .list(folder, { search: name, limit: 1 });
-    const size = (rows?.[0] as any)?.metadata?.size as number | undefined;
+    const { getStorageObjectMetadata, deleteStorageObject } = await import("@/lib/storage.server");
+    const meta = await getStorageObjectMetadata(data.path);
+    const size = meta?.size;
 
     if (size != null && size > MAX_UPLOAD_BYTES) {
-      await supabaseAdmin.storage.from("ar-media").remove([data.path]);
+      await deleteStorageObject(data.path);
       throw new Error(
         `Upload rejected: ${(size / 1048576).toFixed(1)} MB exceeds the 50 MB limit.`,
       );
     }
 
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Record the object against its owner. Service-role write: a client must
     // never be able to under-report its own usage.
     await supabaseAdmin.from("media_objects").upsert(
