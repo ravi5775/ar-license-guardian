@@ -98,8 +98,11 @@ export const Route = createFileRoute("/ar/album/$slug")({
 });
 
 const MINDAR_SCRIPTS = [
-  "https://aframe.io/releases/1.5.0/aframe.min.js",
-  "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js",
+  // Vendored same-origin (see public/vendor/ar/README.md). Never point these
+  // at a CDN again: CSP is script-src 'self' and a third-party script host is
+  // both a supply-chain risk and an availability dependency mid-event.
+  "/vendor/ar/aframe-1.5.0.min.js",
+  "/vendor/ar/mindar-image-aframe-1.2.5.prod.js",
 ];
 
 const scriptPromises = new Map<string, Promise<void>>();
