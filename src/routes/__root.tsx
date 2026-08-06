@@ -139,6 +139,15 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // No-op unless VITE_LICENCE_API_URL + VITE_LICENCE_KEY are set (client-app branch).
+  useEffect(() => {
+    let stop: (() => void) | undefined;
+    void import("@/lib/adapters/licence.client").then((m) => {
+      stop = m.startLicenceHeartbeat();
+    });
+    return () => stop?.();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
@@ -146,3 +155,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
