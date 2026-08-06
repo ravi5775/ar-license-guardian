@@ -271,39 +271,54 @@ export type Database = {
       license_activations: {
         Row: {
           activated_at: string
+          asset_digest: string | null
+          build_id: string | null
           deployment_domain: string | null
           deployment_platform: string | null
+          device_class: string
           fingerprint: string
           id: string
           ip_address: string | null
           last_seen_at: string
           license_id: string
+          origin_host: string | null
+          released_at: string | null
           revoked_at: string | null
           supabase_ref: string | null
           user_agent: string | null
         }
         Insert: {
           activated_at?: string
+          asset_digest?: string | null
+          build_id?: string | null
           deployment_domain?: string | null
           deployment_platform?: string | null
+          device_class?: string
           fingerprint: string
           id?: string
           ip_address?: string | null
           last_seen_at?: string
           license_id: string
+          origin_host?: string | null
+          released_at?: string | null
           revoked_at?: string | null
           supabase_ref?: string | null
           user_agent?: string | null
         }
         Update: {
           activated_at?: string
+          asset_digest?: string | null
+          build_id?: string | null
           deployment_domain?: string | null
           deployment_platform?: string | null
+          device_class?: string
           fingerprint?: string
           id?: string
           ip_address?: string | null
           last_seen_at?: string
           license_id?: string
+          origin_host?: string | null
+          released_at?: string | null
           revoked_at?: string | null
           supabase_ref?: string | null
           user_agent?: string | null
@@ -318,13 +333,64 @@ export type Database = {
           },
         ]
       }
+      license_violations: {
+        Row: {
+          created_at: string
+          detail: Json
+          fingerprint: string | null
+          id: string
+          ip_address: string | null
+          kind: string
+          license_id: string | null
+          license_key: string | null
+          origin_host: string | null
+          resolved_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          kind: string
+          license_id?: string | null
+          license_key?: string | null
+          origin_host?: string | null
+          resolved_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          kind?: string
+          license_id?: string | null
+          license_key?: string | null
+          origin_host?: string | null
+          resolved_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_violations_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "licenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       licenses: {
         Row: {
+          allowed_desktop: number
+          allowed_mobile: number
+          allowed_origins: string[]
           auto_issued: boolean
           client_email: string
           client_name: string
           created_at: string
           expires_at: string | null
+          grace_hours: number
           id: string
           issued_at: string
           license_key: string
@@ -336,11 +402,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          allowed_desktop?: number
+          allowed_mobile?: number
+          allowed_origins?: string[]
           auto_issued?: boolean
           client_email: string
           client_name: string
           created_at?: string
           expires_at?: string | null
+          grace_hours?: number
           id?: string
           issued_at?: string
           license_key: string
@@ -352,11 +422,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          allowed_desktop?: number
+          allowed_mobile?: number
+          allowed_origins?: string[]
           auto_issued?: boolean
           client_email?: string
           client_name?: string
           created_at?: string
           expires_at?: string | null
+          grace_hours?: number
           id?: string
           issued_at?: string
           license_key?: string
@@ -639,6 +713,39 @@ export type Database = {
           hit_at?: string
           id?: number
           key?: string
+        }
+        Relationships: []
+      }
+      release_manifests: {
+        Row: {
+          asset_digest: string
+          branch: string
+          build_id: string
+          created_at: string
+          id: string
+          published_at: string
+          signature: string
+          updated_at: string
+        }
+        Insert: {
+          asset_digest: string
+          branch?: string
+          build_id: string
+          created_at?: string
+          id?: string
+          published_at?: string
+          signature: string
+          updated_at?: string
+        }
+        Update: {
+          asset_digest?: string
+          branch?: string
+          build_id?: string
+          created_at?: string
+          id?: string
+          published_at?: string
+          signature?: string
+          updated_at?: string
         }
         Relationships: []
       }

@@ -37,6 +37,9 @@ import { Route as AuthenticatedDashboardActivationsRouteImport } from './routes/
 import { Route as AuthenticatedDashboardAlbumsIndexRouteImport } from './routes/_authenticated/dashboard.albums.index'
 import { Route as ApiPublicMNonceRouteImport } from './routes/api/public/m.$nonce'
 import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
+import { Route as ApiPublicLicenceRefreshRouteImport } from './routes/api/public/licence/refresh'
+import { Route as ApiPublicLicenceManifestRouteImport } from './routes/api/public/licence/manifest'
+import { Route as ApiPublicLicenceActivateRouteImport } from './routes/api/public/licence/activate'
 import { Route as ApiPublicHooksStorageAlertsRouteImport } from './routes/api/public/hooks/storage-alerts'
 import { Route as AuthenticatedDashboardAlbumsNewRouteImport } from './routes/_authenticated/dashboard.albums.new'
 
@@ -191,6 +194,23 @@ const ApiPublicLicenseActivateRoute =
     path: '/api/public/license/activate',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicLicenceRefreshRoute = ApiPublicLicenceRefreshRouteImport.update({
+  id: '/api/public/licence/refresh',
+  path: '/api/public/licence/refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicLicenceManifestRoute =
+  ApiPublicLicenceManifestRouteImport.update({
+    id: '/api/public/licence/manifest',
+    path: '/api/public/licence/manifest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicLicenceActivateRoute =
+  ApiPublicLicenceActivateRouteImport.update({
+    id: '/api/public/licence/activate',
+    path: '/api/public/licence/activate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksStorageAlertsRoute =
   ApiPublicHooksStorageAlertsRouteImport.update({
     id: '/api/public/hooks/storage-alerts',
@@ -231,6 +251,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/hooks/storage-alerts': typeof ApiPublicHooksStorageAlertsRoute
+  '/api/public/licence/activate': typeof ApiPublicLicenceActivateRoute
+  '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
+  '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -261,6 +284,9 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/hooks/storage-alerts': typeof ApiPublicHooksStorageAlertsRoute
+  '/api/public/licence/activate': typeof ApiPublicLicenceActivateRoute
+  '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
+  '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/dashboard/albums': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -294,6 +320,9 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/hooks/storage-alerts': typeof ApiPublicHooksStorageAlertsRoute
+  '/api/public/licence/activate': typeof ApiPublicLicenceActivateRoute
+  '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
+  '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/_authenticated/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -327,6 +356,9 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/dashboard/albums/new'
     | '/api/public/hooks/storage-alerts'
+    | '/api/public/licence/activate'
+    | '/api/public/licence/manifest'
+    | '/api/public/licence/refresh'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/dashboard/albums/'
@@ -357,6 +389,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/albums/new'
     | '/api/public/hooks/storage-alerts'
+    | '/api/public/licence/activate'
+    | '/api/public/licence/manifest'
+    | '/api/public/licence/refresh'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/dashboard/albums'
@@ -389,6 +424,9 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/'
     | '/_authenticated/dashboard/albums/new'
     | '/api/public/hooks/storage-alerts'
+    | '/api/public/licence/activate'
+    | '/api/public/licence/manifest'
+    | '/api/public/licence/refresh'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/_authenticated/dashboard/albums/'
@@ -409,6 +447,9 @@ export interface RootRouteChildren {
   ArSlugRoute: typeof ArSlugRoute
   ArAlbumSlugRoute: typeof ArAlbumSlugRoute
   ApiPublicHooksStorageAlertsRoute: typeof ApiPublicHooksStorageAlertsRoute
+  ApiPublicLicenceActivateRoute: typeof ApiPublicLicenceActivateRoute
+  ApiPublicLicenceManifestRoute: typeof ApiPublicLicenceManifestRoute
+  ApiPublicLicenceRefreshRoute: typeof ApiPublicLicenceRefreshRoute
   ApiPublicLicenseActivateRoute: typeof ApiPublicLicenseActivateRoute
   ApiPublicMNonceRoute: typeof ApiPublicMNonceRoute
 }
@@ -611,6 +652,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLicenseActivateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/licence/refresh': {
+      id: '/api/public/licence/refresh'
+      path: '/api/public/licence/refresh'
+      fullPath: '/api/public/licence/refresh'
+      preLoaderRoute: typeof ApiPublicLicenceRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/licence/manifest': {
+      id: '/api/public/licence/manifest'
+      path: '/api/public/licence/manifest'
+      fullPath: '/api/public/licence/manifest'
+      preLoaderRoute: typeof ApiPublicLicenceManifestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/licence/activate': {
+      id: '/api/public/licence/activate'
+      path: '/api/public/licence/activate'
+      fullPath: '/api/public/licence/activate'
+      preLoaderRoute: typeof ApiPublicLicenceActivateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/storage-alerts': {
       id: '/api/public/hooks/storage-alerts'
       path: '/api/public/hooks/storage-alerts'
@@ -696,19 +758,12 @@ const rootRouteChildren: RootRouteChildren = {
   ArSlugRoute: ArSlugRoute,
   ArAlbumSlugRoute: ArAlbumSlugRoute,
   ApiPublicHooksStorageAlertsRoute: ApiPublicHooksStorageAlertsRoute,
+  ApiPublicLicenceActivateRoute: ApiPublicLicenceActivateRoute,
+  ApiPublicLicenceManifestRoute: ApiPublicLicenceManifestRoute,
+  ApiPublicLicenceRefreshRoute: ApiPublicLicenceRefreshRoute,
   ApiPublicLicenseActivateRoute: ApiPublicLicenseActivateRoute,
   ApiPublicMNonceRoute: ApiPublicMNonceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
