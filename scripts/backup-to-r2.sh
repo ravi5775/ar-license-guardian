@@ -12,12 +12,7 @@ FILE="/tmp/aether-${STAMP}.sql.gz"
 
 pg_dump "$DATABASE_URL" | gzip > "$FILE"
 
-# Uses the same SigV4 presign logic as the app adapter.
-URL=$(node -e '
-const { presign } = await import("../src/lib/adapters/storage.server.ts");
-' 2>/dev/null || true)
-
-# Fallback: aws-cli against the R2 S3 endpoint.
+# Upload with aws-cli against the R2 S3 endpoint (R2 is S3-compatible).
 AWS_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID" \
 AWS_SECRET_ACCESS_KEY="$R2_SECRET" \
 aws s3 cp "$FILE" "s3://${R2_BUCKET}/backups/aether-${STAMP}.sql.gz" \
