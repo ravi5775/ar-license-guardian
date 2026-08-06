@@ -84,7 +84,7 @@ function Gallery() {
                 key={e.slug}
                 to="/ar/$slug"
                 params={{ slug: e.slug }}
-                search={{ mode: undefined }}
+                search={{ mode: undefined, tok: undefined }}
                 className="relative isolate flex h-full min-h-[19rem] flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/40 transition-colors hover:border-primary/60 group"
               >
                 <div className="relative z-0 aspect-[4/3] w-full overflow-hidden bg-muted">
