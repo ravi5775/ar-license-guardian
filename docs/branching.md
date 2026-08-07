@@ -41,7 +41,7 @@ If a branch-specific change ever touches a component, that is a mistake.
 | `src/lib/adapters/db.server.ts` | `sql/queryOne/queryMany` | Neon HTTP | `pg` pool | absent |
 | `src/lib/adapters/storage.server.ts` | `put/get/presign` | R2 (SigV4, Web Crypto) | identical | identical, customer's R2 |
 | `src/lib/adapters/ratelimit.server.ts` | `check(key, limit, window)` | Upstash HTTP | Redis container | memory |
-| `src/lib/adapters/licence.server.ts` | `activate/refresh/releaseDevice` | issuer | issuer | **absent** → `licence.client.ts` |
+| `src/lib/adapters/licence.server.ts` | `activate/refresh/releaseDevice` | issuer | issuer | **absent** → `licence-runtime.ts` |
 
 Storage uses a hand-rolled SigV4 signer on Web Crypto — no SDK, no native
 modules, byte-identical on Workers and Node.
