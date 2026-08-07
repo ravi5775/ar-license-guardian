@@ -132,7 +132,7 @@ async function callLicenceApi(path: string, body: Record<string, unknown>) {
 }
 
 async function attest() {
-  const { buildAttestation } = await import("./integrity.client");
+  const { buildAttestation } = await import("./integrity-runtime");
   return buildAttestation();
 }
 

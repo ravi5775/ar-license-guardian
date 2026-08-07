@@ -142,7 +142,7 @@ function RootComponent() {
   // No-op unless VITE_LICENCE_API_URL + VITE_LICENCE_KEY are set (client-app branch).
   useEffect(() => {
     let stop: (() => void) | undefined;
-    void import("@/lib/adapters/licence.client").then((m) => {
+    void import("@/lib/adapters/licence-runtime").then((m) => {
       stop = m.startLicenceHeartbeat();
     });
     return () => stop?.();
