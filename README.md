@@ -1,5 +1,12 @@
 # AR License Guard
 
+**Hosting & branches:** see [docs/hosting.md](docs/hosting.md) — where to host the
+admin platform vs. client apps, Cloudflare Pages + R2 setup, cost plans, and the
+default admin bootstrap credentials (`DEFAULT_ADMIN_EMAIL` / `DEFAULT_ADMIN_PASSWORD`
+in `.env.branches.example`).
+
+
+
 rate plan and identify drawbacks and issues ,AR Photo Platform — Final Project Blueprint
 
 Licensing, Security, Admin Dashboard & Frontend Architecture
