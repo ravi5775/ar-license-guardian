@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { escapeHtml } from "./notify.server";
+
 
 // Fire-and-forget notifier. Never throws — used from public license endpoint
 // where failure to notify must not fail the caller.
