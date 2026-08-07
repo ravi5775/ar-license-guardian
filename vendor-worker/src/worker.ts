@@ -1,4 +1,13 @@
 // Vendor-side activation Worker. Deploys to Cloudflare Workers.
+
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 // NOT part of the client app. See ./README.md.
 
 interface Env {
@@ -92,8 +101,8 @@ async function handleActivate(req: Request, env: Env) {
             from: "Aether Activation <onboarding@resend.dev>",
             to: [env.ALERT_TO_EMAIL],
             subject: `⚠️ Duplicate license activation — ${body.license_key}`,
-            html: `<p>License <b>${body.license_key}</b> (${lic.client_name}) attempted from a new fingerprint.</p>
-                   <p>Domain: ${body.deployment_domain ?? "unknown"}<br/>IP: ${ip}<br/>Fingerprint: <code>${body.fingerprint}</code></p>`,
+            html: `<p>License <b>${esc(body.license_key)}</b> (${esc(lic.client_name)}) attempted from a new fingerprint.</p>
+                   <p>Domain: ${esc(body.deployment_domain ?? "unknown")}<br/>IP: ${esc(ip)}<br/>Fingerprint: <code>${esc(body.fingerprint)}</code></p>`,
           }),
         }).catch(() => {});
       }

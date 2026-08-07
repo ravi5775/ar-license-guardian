@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { escapeHtml } from "./notify.server";
+
 
 // Fire-and-forget notifier. Never throws — used from public license endpoint
 // where failure to notify must not fail the caller.
@@ -30,19 +32,21 @@ export const notifyDuplicateFingerprint = createServerFn({ method: "POST" })
     }
 
     try {
+      const e = escapeHtml;
       const html = `
         <h2>License activation rejected — duplicate fingerprint</h2>
         <p>Someone tried to activate a license on a different deployment fingerprint than the one it is bound to.</p>
         <ul>
-          <li><b>License:</b> ${data.license_key}</li>
-          <li><b>Client:</b> ${data.client_name ?? "unknown"} (${data.client_email ?? "-"})</li>
-          <li><b>Attempted domain:</b> ${data.attempted_domain ?? "unknown"}</li>
-          <li><b>Attempted fingerprint:</b> <code>${data.attempted_fingerprint}</code></li>
-          <li><b>IP:</b> ${data.ip ?? "unknown"}</li>
-          <li><b>Time:</b> ${new Date().toISOString()}</li>
+          <li><b>License:</b> ${e(data.license_key)}</li>
+          <li><b>Client:</b> ${e(data.client_name ?? "unknown")} (${e(data.client_email ?? "-")})</li>
+          <li><b>Attempted domain:</b> ${e(data.attempted_domain ?? "unknown")}</li>
+          <li><b>Attempted fingerprint:</b> <code>${e(data.attempted_fingerprint)}</code></li>
+          <li><b>IP:</b> ${e(data.ip ?? "unknown")}</li>
+          <li><b>Time:</b> ${e(new Date().toISOString())}</li>
         </ul>
         <p>This is evidence of contract breach — see the audit log and license agreement §5.</p>
       `;
+
       const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
         method: "POST",
         headers: {
