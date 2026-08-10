@@ -95,22 +95,45 @@ async function getBackend(): Promise<Backend> {
   if (driver === "upstash") backend = await upstashBackend();
   else if (driver === "redis") backend = await redisBackend();
   else if (driver === "postgres") backend = await postgresBackend();
-  else backend = memoryBackend();
+  else {
+    // `memory` is per-isolate and therefore not a rate limit at all once more
+    // than one worker is running. It must never reach production.
+    if ((readEnv("NODE_ENV") ?? "development") === "production") {
+      throw new Error(
+        "RATELIMIT_DRIVER=memory is a development-only driver and refuses to start in production. " +
+          "Set RATELIMIT_DRIVER to kv/upstash, redis, or postgres.",
+      );
+    }
+    backend = memoryBackend();
+  }
   return backend;
 }
 
-/** Returns allowed=false when the caller has exceeded `limit` in the window. */
+/**
+ * Returns allowed=false when the caller has exceeded `limit` in the window.
+ *
+ * `failMode` decides what happens when the limiter store itself is unreachable:
+ *   "closed" (default) — deny. Correct for every mutation (activate, release,
+ *                        admin writes, PIN attempts): an outage must not become
+ *                        an unlimited brute-force window.
+ *   "open"             — allow. Only for read-only heartbeat/refresh, where a
+ *                        KV outage would otherwise brick every client AR viewer
+ *                        simultaneously. Always logged.
+ */
 export async function check(
   key: string,
   limit: number,
   windowSeconds: number,
+  opts: { failMode?: "closed" | "open" } = {},
 ): Promise<RateLimitResult> {
+  const failMode = opts.failMode ?? "closed";
   try {
     const run = await getBackend();
     return await run(key, limit, windowSeconds);
   } catch (e) {
-    console.error("[ratelimit] backend error, failing open:", e);
-    return { allowed: true, remaining: limit };
+    console.error(`[ratelimit] backend error, failing ${failMode} for ${key}:`, e);
+    if (failMode === "open") return { allowed: true, remaining: limit, degraded: true };
+    return { allowed: false, remaining: 0, degraded: true };
   }
 }
 
