@@ -295,15 +295,25 @@ async function loadLicence(licenceKey: string) {
   return data;
 }
 
-async function commonChecks(input: ActivateInput) {
-  const licence = await loadLicence(input.licenceKey);
-  if (!licence) return { failure: fail(404, "INVALID_LICENCE") } as const;
-  if (licence.status !== "active")
-    return { failure: fail(403, `LICENCE_${String(licence.status).toUpperCase()}`) } as const;
-  if (licence.expires_at && new Date(licence.expires_at) < new Date())
-    return { failure: fail(403, "LICENCE_EXPIRED") } as const;
+type LicenceRow = NonNullable<Awaited<ReturnType<typeof loadLicence>>>;
+type ViolationCtx = {
+  licenseId: string;
+  licenceKey: string;
+  fingerprint: string | null;
+  originHost: string | null;
+  ip: string | null;
+};
+type Checked = { ok: false; failure: Failure } | { ok: true; licence: LicenceRow; ctx: ViolationCtx };
 
-  const ctx = {
+async function commonChecks(input: ActivateInput): Promise<Checked> {
+  const licence = await loadLicence(input.licenceKey);
+  if (!licence) return { ok: false, failure: fail(404, "INVALID_LICENCE") };
+  if (licence.status !== "active")
+    return { ok: false, failure: fail(403, `LICENCE_${String(licence.status).toUpperCase()}`) };
+  if (licence.expires_at && new Date(licence.expires_at) < new Date())
+    return { ok: false, failure: fail(403, "LICENCE_EXPIRED") };
+
+  const ctx: ViolationCtx = {
     licenseId: licence.id,
     licenceKey: input.licenceKey,
     fingerprint: input.fingerprintSignal ?? null,
@@ -317,7 +327,7 @@ async function commonChecks(input: ActivateInput) {
       { originHost: input.originHost, allowed: licence.allowed_origins },
       ctx,
     );
-    return { failure: fail(403, "ORIGIN_NOT_ALLOWED") } as const;
+    return { ok: false, failure: fail(403, "ORIGIN_NOT_ALLOWED") };
   }
 
   const attested = await verifyAttestation(input.attestation);
@@ -330,15 +340,17 @@ async function commonChecks(input: ActivateInput) {
       // must not brick a paid client's viewer over a stale deploy (§10).
       { suspend: attested.kind === "digest_mismatch" },
     );
-    return { failure: fail(403, "ATTESTATION_INVALID") } as const;
+    return { ok: false, failure: fail(403, "ATTESTATION_INVALID") };
   }
 
-  return { licence, ctx } as const;
+  return { ok: true, licence, ctx };
 }
 
-export async function activate(input: ActivateInput): Promise<IssuedLicence & { ok: true } | Failure> {
+export async function activate(
+  input: ActivateInput,
+): Promise<(IssuedLicence & { ok: true }) | Failure> {
   const checked = await commonChecks(input);
-  if ("failure" in checked) return checked.failure;
+  if (!checked.ok) return checked.failure;
   const { licence, ctx } = checked;
   const db = await admin();
   const now = new Date();
