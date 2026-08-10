@@ -122,7 +122,19 @@ async function verifySignature(token: string): Promise<boolean> {
   }
 }
 
-async function callLicenceApi(path: string, body: Record<string, unknown>) {
+interface LicenceApiResult {
+  token: string;
+  plan: string;
+  features: string[];
+  graceHours?: number;
+  deviceId?: string;
+  deviceSecret?: string;
+}
+
+async function callLicenceApi(
+  path: string,
+  body: Record<string, unknown>,
+): Promise<LicenceApiResult> {
   const base = envVar("VITE_LICENCE_API_URL")!.replace(/\/+$/, "");
   const res = await fetch(`${base}${path}`, {
     method: "POST",
@@ -133,12 +145,25 @@ async function callLicenceApi(path: string, body: Record<string, unknown>) {
   if (!res.ok || json["ok"] !== true) {
     throw new Error(String(json["error"] ?? `licence_api_${res.status}`));
   }
-  return json as { token: string; plan: string; features: string[] };
+  return json as unknown as LicenceApiResult;
 }
 
 async function attest() {
   const { buildAttestation } = await import("./integrity-runtime");
   return buildAttestation();
+}
+
+function deviceSecret() {
+  return localStorage.getItem(STORAGE_DEVICE_SECRET);
+}
+
+/** Rough capability hint so the AR runtime can pick a perf tier server-side. */
+function capabilityTier(): string {
+  const cores = navigator.hardwareConcurrency ?? 4;
+  const mem = (navigator as unknown as { deviceMemory?: number }).deviceMemory ?? 4;
+  if (cores <= 4 || mem <= 3) return "lite";
+  if (cores >= 8 && mem >= 8) return "high";
+  return "standard";
 }
 
 /** Activate or refresh, returning the current enforcement state. */
@@ -149,43 +174,90 @@ export async function ensureLicence(): Promise<LicenceState> {
   const cachedPayload = cached ? decode(cached) : null;
   const now = Math.floor(Date.now() / 1000);
   const stillFresh =
-    cachedPayload && cachedPayload.exp - now > (24 * 3600 - REFRESH_EVERY_MS / 1000);
+    cachedPayload && cachedPayload.exp - now > 24 * 3600 - REFRESH_EVERY_MS / 1000;
 
   if (cached && stillFresh && (await verifySignature(cached))) {
     localStorage.setItem(STORAGE_LAST_OK, String(Date.now()));
     return { status: "valid", payload: cachedPayload };
   }
 
+  const secret = deviceSecret();
   try {
-    const fingerprint = await deviceFingerprint();
     const attestation = await attest();
-    const result = await callLicenceApi(cached ? "/api/public/licence/refresh" : "/api/public/licence/activate", {
+    // Refresh only once the server has minted a device identity for us.
+    const path = secret
+      ? "/api/public/licence/refresh"
+      : "/api/public/licence/activate";
+    const result = await callLicenceApi(path, {
       licenceKey: envVar("VITE_LICENCE_KEY"),
-      deviceFingerprint: fingerprint,
       platform: deviceClass(),
-      originHost: location.host,
+      deviceFingerprint: await deviceFingerprint(),
+      capabilityTier: capabilityTier(),
+      ...(secret ? { deviceSecret: secret } : {}),
       ...attestation,
     });
     if (!(await verifySignature(result.token))) {
       return { status: "invalid", payload: null, error: "BAD_SIGNATURE" };
     }
+    if (result.deviceSecret) {
+      localStorage.setItem(STORAGE_DEVICE_SECRET, result.deviceSecret);
+    }
     localStorage.setItem(STORAGE_TOKEN, result.token);
     localStorage.setItem(STORAGE_LAST_OK, String(Date.now()));
     return { status: "valid", payload: decode(result.token) };
   } catch (e) {
-    // Offline grace: the customer gets `grace` hours before a hard stop.
-    const lastOk = Number(localStorage.getItem(STORAGE_LAST_OK) ?? 0);
-    const graceMs = (cachedPayload?.grace ?? DEFAULT_GRACE_HOURS) * 3600 * 1000;
     const error = e instanceof Error ? e.message : "licence_unreachable";
-    const hardFail = ["DEVICE_LIMIT", "BUILD_TAMPERED", "ORIGIN_NOT_ALLOWED", "LICENCE_SUSPENDED", "LICENCE_REVOKED", "INVALID_LICENCE"];
+    const hardFail = [
+      "DEVICE_LIMIT",
+      "DEVICE_UNKNOWN",
+      "DEVICE_CLASS_MISMATCH",
+      "ATTESTATION_INVALID",
+      "ORIGIN_NOT_ALLOWED",
+      "LICENCE_SUSPENDED",
+      "LICENCE_REVOKED",
+      "LICENCE_EXPIRED",
+      "INVALID_LICENCE",
+    ];
     if (hardFail.includes(error)) {
       localStorage.removeItem(STORAGE_TOKEN);
       return { status: "invalid", payload: null, error };
     }
-    if (cachedPayload && lastOk && Date.now() - lastOk < graceMs) {
-      return { status: "grace", payload: cachedPayload, error, graceEndsAt: lastOk + graceMs };
+
+    // Offline grace is anchored to the SIGNED token's `iat`, not to a local
+    // "last ok" timestamp — otherwise the customer extends their own grace
+    // window just by rewriting localStorage.
+    if (cachedPayload && (await verifySignature(cached!))) {
+      const graceHours = cachedPayload.grace ?? DEFAULT_GRACE_HOURS;
+      const graceEndsAt = (cachedPayload.iat + graceHours * 3600) * 1000;
+      if (Date.now() < graceEndsAt) {
+        return { status: "grace", payload: cachedPayload, error, graceEndsAt };
+      }
     }
     return { status: "invalid", payload: null, error };
+  }
+}
+
+/** Hand the device slot back so another machine can activate (§4.4). */
+export async function releaseThisDevice() {
+  const secret = deviceSecret();
+  if (!secret) return { ok: false, error: "NO_DEVICE" as const };
+  try {
+    const base = envVar("VITE_LICENCE_API_URL")!.replace(/\/+$/, "");
+    const res = await fetch(`${base}/api/public/licence/release`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ licenceKey: envVar("VITE_LICENCE_KEY"), deviceSecret: secret }),
+    });
+    const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!res.ok || json["ok"] !== true) {
+      return { ok: false as const, error: String(json["error"] ?? `licence_api_${res.status}`) };
+    }
+    localStorage.removeItem(STORAGE_DEVICE_SECRET);
+    localStorage.removeItem(STORAGE_TOKEN);
+    localStorage.removeItem(STORAGE_LAST_OK);
+    return { ok: true as const, releaseAfter: String(json["releaseAfter"] ?? "") };
+  } catch (e) {
+    return { ok: false as const, error: e instanceof Error ? e.message : "release_failed" };
   }
 }
 
@@ -200,3 +272,4 @@ export function startLicenceHeartbeat() {
 export function currentToken() {
   return localStorage.getItem(STORAGE_TOKEN);
 }
+
