@@ -10,12 +10,17 @@
 const STORAGE_TOKEN = "aether.licence.token";
 const STORAGE_INSTALL = "aether.install.uuid";
 const STORAGE_LAST_OK = "aether.licence.lastOk";
+/** Server-minted device identity. The fingerprint is only a support signal. */
+const STORAGE_DEVICE_SECRET = "aether.licence.deviceSecret";
 const REFRESH_EVERY_MS = 12 * 60 * 60 * 1000; // 12h
 const DEFAULT_GRACE_HOURS = 72;
 
 export interface LicencePayload {
   sub: string;
-  device: string;
+  dep?: string;
+  did?: string;
+  jti?: string;
+  device?: string;
   platform: "mobile" | "desktop";
   plan: string;
   features: string[];
