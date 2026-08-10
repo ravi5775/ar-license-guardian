@@ -37,6 +37,7 @@ import { Route as AuthenticatedDashboardActivationsRouteImport } from './routes/
 import { Route as AuthenticatedDashboardAlbumsIndexRouteImport } from './routes/_authenticated/dashboard.albums.index'
 import { Route as ApiPublicMNonceRouteImport } from './routes/api/public/m.$nonce'
 import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
+import { Route as ApiPublicLicenceReleaseRouteImport } from './routes/api/public/licence/release'
 import { Route as ApiPublicLicenceRefreshRouteImport } from './routes/api/public/licence/refresh'
 import { Route as ApiPublicLicenceManifestRouteImport } from './routes/api/public/licence/manifest'
 import { Route as ApiPublicLicenceActivateRouteImport } from './routes/api/public/licence/activate'
@@ -194,6 +195,11 @@ const ApiPublicLicenseActivateRoute =
     path: '/api/public/license/activate',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicLicenceReleaseRoute = ApiPublicLicenceReleaseRouteImport.update({
+  id: '/api/public/licence/release',
+  path: '/api/public/licence/release',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicLicenceRefreshRoute = ApiPublicLicenceRefreshRouteImport.update({
   id: '/api/public/licence/refresh',
   path: '/api/public/licence/refresh',
@@ -254,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/api/public/licence/activate': typeof ApiPublicLicenceActivateRoute
   '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
   '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
+  '/api/public/licence/release': typeof ApiPublicLicenceReleaseRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -287,6 +294,7 @@ export interface FileRoutesByTo {
   '/api/public/licence/activate': typeof ApiPublicLicenceActivateRoute
   '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
   '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
+  '/api/public/licence/release': typeof ApiPublicLicenceReleaseRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/dashboard/albums': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -323,6 +331,7 @@ export interface FileRoutesById {
   '/api/public/licence/activate': typeof ApiPublicLicenceActivateRoute
   '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
   '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
+  '/api/public/licence/release': typeof ApiPublicLicenceReleaseRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/_authenticated/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -359,6 +368,7 @@ export interface FileRouteTypes {
     | '/api/public/licence/activate'
     | '/api/public/licence/manifest'
     | '/api/public/licence/refresh'
+    | '/api/public/licence/release'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/dashboard/albums/'
@@ -392,6 +402,7 @@ export interface FileRouteTypes {
     | '/api/public/licence/activate'
     | '/api/public/licence/manifest'
     | '/api/public/licence/refresh'
+    | '/api/public/licence/release'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/dashboard/albums'
@@ -427,6 +438,7 @@ export interface FileRouteTypes {
     | '/api/public/licence/activate'
     | '/api/public/licence/manifest'
     | '/api/public/licence/refresh'
+    | '/api/public/licence/release'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/_authenticated/dashboard/albums/'
@@ -450,6 +462,7 @@ export interface RootRouteChildren {
   ApiPublicLicenceActivateRoute: typeof ApiPublicLicenceActivateRoute
   ApiPublicLicenceManifestRoute: typeof ApiPublicLicenceManifestRoute
   ApiPublicLicenceRefreshRoute: typeof ApiPublicLicenceRefreshRoute
+  ApiPublicLicenceReleaseRoute: typeof ApiPublicLicenceReleaseRoute
   ApiPublicLicenseActivateRoute: typeof ApiPublicLicenseActivateRoute
   ApiPublicMNonceRoute: typeof ApiPublicMNonceRoute
 }
@@ -652,6 +665,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLicenseActivateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/licence/release': {
+      id: '/api/public/licence/release'
+      path: '/api/public/licence/release'
+      fullPath: '/api/public/licence/release'
+      preLoaderRoute: typeof ApiPublicLicenceReleaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/licence/refresh': {
       id: '/api/public/licence/refresh'
       path: '/api/public/licence/refresh'
@@ -761,6 +781,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicLicenceActivateRoute: ApiPublicLicenceActivateRoute,
   ApiPublicLicenceManifestRoute: ApiPublicLicenceManifestRoute,
   ApiPublicLicenceRefreshRoute: ApiPublicLicenceRefreshRoute,
+  ApiPublicLicenceReleaseRoute: ApiPublicLicenceReleaseRoute,
   ApiPublicLicenseActivateRoute: ApiPublicLicenseActivateRoute,
   ApiPublicMNonceRoute: ApiPublicMNonceRoute,
 }
