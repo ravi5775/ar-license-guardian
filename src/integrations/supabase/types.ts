@@ -273,15 +273,19 @@ export type Database = {
           activated_at: string
           asset_digest: string | null
           build_id: string | null
+          capability_tier: string | null
           deployment_domain: string | null
           deployment_platform: string | null
           device_class: string
+          device_secret_hash: string | null
           fingerprint: string
           id: string
           ip_address: string | null
+          label: string | null
           last_seen_at: string
           license_id: string
           origin_host: string | null
+          release_after: string | null
           released_at: string | null
           revoked_at: string | null
           supabase_ref: string | null
@@ -291,15 +295,19 @@ export type Database = {
           activated_at?: string
           asset_digest?: string | null
           build_id?: string | null
+          capability_tier?: string | null
           deployment_domain?: string | null
           deployment_platform?: string | null
           device_class?: string
+          device_secret_hash?: string | null
           fingerprint: string
           id?: string
           ip_address?: string | null
+          label?: string | null
           last_seen_at?: string
           license_id: string
           origin_host?: string | null
+          release_after?: string | null
           released_at?: string | null
           revoked_at?: string | null
           supabase_ref?: string | null
@@ -309,15 +317,19 @@ export type Database = {
           activated_at?: string
           asset_digest?: string | null
           build_id?: string | null
+          capability_tier?: string | null
           deployment_domain?: string | null
           deployment_platform?: string | null
           device_class?: string
+          device_secret_hash?: string | null
           fingerprint?: string
           id?: string
           ip_address?: string | null
+          label?: string | null
           last_seen_at?: string
           license_id?: string
           origin_host?: string | null
+          release_after?: string | null
           released_at?: string | null
           revoked_at?: string | null
           supabase_ref?: string | null
@@ -343,8 +355,11 @@ export type Database = {
           kind: string
           license_id: string | null
           license_key: string | null
+          notified_at: string | null
           origin_host: string | null
           resolved_at: string | null
+          resolved_by: string | null
+          severity: string
         }
         Insert: {
           created_at?: string
@@ -355,8 +370,11 @@ export type Database = {
           kind: string
           license_id?: string | null
           license_key?: string | null
+          notified_at?: string | null
           origin_host?: string | null
           resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
         }
         Update: {
           created_at?: string
@@ -367,8 +385,11 @@ export type Database = {
           kind?: string
           license_id?: string | null
           license_key?: string | null
+          notified_at?: string | null
           origin_host?: string | null
           resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
         }
         Relationships: [
           {
