@@ -12,6 +12,8 @@ import { rateLimitDriver, readEnv, requireEnv } from "./env.server";
 export interface RateLimitResult {
   allowed: boolean;
   remaining: number;
+  /** True when the limiter store was unreachable and a fail mode was applied. */
+  degraded?: boolean;
 }
 
 type Backend = (key: string, limit: number, windowSeconds: number) => Promise<RateLimitResult>;
