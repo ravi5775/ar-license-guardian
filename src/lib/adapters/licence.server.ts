@@ -412,7 +412,7 @@ export async function activate(
       license_id: licence.id,
       device_class: input.platform,
       device_secret_hash: await sha256Hex(deviceSecret),
-      fingerprint: input.fingerprintSignal ?? null,
+      fingerprint: input.fingerprintSignal ?? "",
       capability_tier: input.capabilityTier ?? null,
       label: input.label ?? null,
       deployment_domain: input.originHost,
