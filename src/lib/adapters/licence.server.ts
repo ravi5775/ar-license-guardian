@@ -377,7 +377,7 @@ export async function activate(
           build_id: String(input.attestation.buildId ?? ""),
           asset_digest: String(input.attestation.assetDigest ?? ""),
           origin_host: input.originHost,
-          fingerprint: input.fingerprintSignal ?? null,
+          fingerprint: input.fingerprintSignal ?? "",
           capability_tier: input.capabilityTier ?? null,
         })
         .eq("id", match.id);
