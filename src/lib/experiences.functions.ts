@@ -197,6 +197,12 @@ export const signMediaUpload = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!adminRow) throw new Error("Forbidden: admin only");
 
+    // §4.7 — no upload URL without valid licence state + attestation.
+    const { checkPresignLicence } = await import("@/lib/adapters/presign-gate.server");
+    const gate = await checkPresignLicence("upload");
+    if (!gate.ok) throw new Error(gate.message);
+
+
     // Quota is checked BEFORE handing out an upload URL, so the client gets a
     // clear refusal instead of a silent storage failure mid-upload.
     const { data: usage } = await context.supabase.rpc("storage_usage", {
