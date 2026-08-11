@@ -82,6 +82,25 @@ export async function deviceFingerprint() {
   return sha256Hex(parts.join("|"));
 }
 
+/**
+ * Mirror the signed token into a cookie so SSR loaders and server functions
+ * can gate presigning on it (§4.7). The cookie carries no secret — it is the
+ * same publicly verifiable token — and the device secret never leaves
+ * localStorage.
+ */
+const LICENCE_COOKIE = "aether_licence";
+
+function writeLicenceCookie(token: string) {
+  if (typeof document === "undefined") return;
+  const secure = location.protocol === "https:" ? "; secure" : "";
+  document.cookie = `${LICENCE_COOKIE}=${token}; path=/; max-age=86400; samesite=lax${secure}`;
+}
+
+function clearLicenceCookie() {
+  if (typeof document === "undefined") return;
+  document.cookie = `${LICENCE_COOKIE}=; path=/; max-age=0; samesite=lax`;
+}
+
 function decode(token: string): LicencePayload | null {
   try {
     const body = token.split(".")[1];
@@ -178,6 +197,7 @@ export async function ensureLicence(): Promise<LicenceState> {
 
   if (cached && stillFresh && (await verifySignature(cached))) {
     localStorage.setItem(STORAGE_LAST_OK, String(Date.now()));
+    writeLicenceCookie(cached);
     return { status: "valid", payload: cachedPayload };
   }
 
@@ -204,6 +224,7 @@ export async function ensureLicence(): Promise<LicenceState> {
     }
     localStorage.setItem(STORAGE_TOKEN, result.token);
     localStorage.setItem(STORAGE_LAST_OK, String(Date.now()));
+    writeLicenceCookie(result.token);
     return { status: "valid", payload: decode(result.token) };
   } catch (e) {
     const error = e instanceof Error ? e.message : "licence_unreachable";
@@ -220,6 +241,7 @@ export async function ensureLicence(): Promise<LicenceState> {
     ];
     if (hardFail.includes(error)) {
       localStorage.removeItem(STORAGE_TOKEN);
+      clearLicenceCookie();
       return { status: "invalid", payload: null, error };
     }
 
@@ -254,6 +276,7 @@ export async function releaseThisDevice() {
     }
     localStorage.removeItem(STORAGE_DEVICE_SECRET);
     localStorage.removeItem(STORAGE_TOKEN);
+    clearLicenceCookie();
     localStorage.removeItem(STORAGE_LAST_OK);
     return { ok: true as const, releaseAfter: String(json["releaseAfter"] ?? "") };
   } catch (e) {
