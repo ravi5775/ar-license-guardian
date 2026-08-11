@@ -127,3 +127,85 @@ export const listAuditLog = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     return data ?? [];
   });
+
+/**
+ * Admin force-release of a device slot (§4.4 override).
+ *
+ * Two gates, both server-side:
+ *   1. the caller must be an admin under their own RLS-scoped client, and
+ *   2. step-up re-auth — they re-enter their password, which we verify against
+ *      Supabase Auth in a throwaway session. A stolen open tab therefore
+ *      cannot evict a client's live device.
+ *
+ * Clears the 12h cooldown so the customer can activate immediately, and
+ * returns the audit entry it wrote so the UI can show exactly what was logged.
+ */
+export const forceReleaseActivation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        password: z.string().min(1).max(200),
+        reason: z.string().max(500).optional(),
+      })
+      .parse(raw),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+
+    const email = (context.claims as { email?: string } | null)?.email;
+    if (!email) throw new Error("Re-authentication unavailable for this account.");
+
+    const { createClient } = await import("@supabase/supabase-js");
+    const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+    const stepUp = createClient(process.env["SUPABASE_URL"]!, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) => {
+          const h = new Headers(init?.headers);
+          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+            h.delete("Authorization");
+          }
+          h.set("apikey", key);
+          return fetch(input, { ...init, headers: h });
+        },
+      },
+    });
+    const { error: reauthError } = await stepUp.auth.signInWithPassword({
+      email,
+      password: data.password,
+    });
+    if (reauthError) {
+      await context.supabase.from("audit_log").insert({
+        actor_id: context.userId,
+        action: "activation.force_release.denied",
+        target_type: "activation",
+        target_id: data.id,
+        metadata: { reason: "reauth_failed" },
+      });
+      throw new Error("Password incorrect — the device was not released.");
+    }
+    await stepUp.auth.signOut();
+
+    const { adminForceRelease } = await import("@/lib/adapters/licence.server");
+    await adminForceRelease(data.id);
+
+    const { data: entry, error } = await context.supabase
+      .from("audit_log")
+      .insert({
+        actor_id: context.userId,
+        action: "activation.force_release",
+        target_type: "activation",
+        target_id: data.id,
+        metadata: {
+          cooldown_cleared: true,
+          reason: data.reason ?? null,
+          by: email,
+        },
+      })
+      .select("id, action, created_at, metadata, target_id")
+      .single();
+    if (error) throw new Error(error.message);
+    return entry;
+  });
