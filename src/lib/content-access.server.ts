@@ -59,6 +59,14 @@ export async function signMedia(
   opts?: { singleUse?: boolean; kind?: ContentKind; slug?: string },
 ) {
   if (!path) return null;
+
+  // §4.7 — presign gating. On a licence-enforced deployment a device with no
+  // valid licence state, a released slot or a failed attestation simply never
+  // gets a URL, and the bucket has no public read path to fall back on.
+  const { checkPresignLicence } = await import("@/lib/adapters/presign-gate.server");
+  const gate = await checkPresignLicence("media_fetch");
+  if (!gate.ok) return null;
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const singleUse = opts?.singleUse === true;
 
