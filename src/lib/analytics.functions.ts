@@ -18,10 +18,31 @@ const EventInput = z.object({
   duration_ms: z.number().int().min(0).max(6 * 60 * 60 * 1000).optional().nullable(),
 });
 
-/** Public, unauthenticated telemetry from the album viewer. */
+/**
+ * Public, unauthenticated telemetry from the album viewer.
+ *
+ * Being public, it is abuse-hardened three ways:
+ *  1. per-IP and per-session sliding-window rate limits (fail-closed),
+ *  2. the album must actually exist and be published — no writing rows for
+ *     invented UUIDs, which would let anyone inflate the table,
+ *  3. the experience, when supplied, must belong to that album.
+ * A rejected event is silently dropped: telemetry must never surface errors
+ * to a viewer mid-scan.
+ */
 export const logScanEvent = createServerFn({ method: "POST" })
   .inputValidator((raw) => EventInput.parse(raw))
   .handler(async ({ data }) => {
+    const { check } = await import("@/lib/adapters/ratelimit.server");
+    const { callerIp } = await import("@/lib/content-access.server");
+    const ip = callerIp();
+
+    // 120 events / 5 min per IP, 60 / 5 min per viewer session.
+    const [byIp, bySession] = await Promise.all([
+      check(`scan:ip:${ip}`, 120, 300),
+      check(`scan:sid:${data.session_id}`, 60, 300),
+    ]);
+    if (!byIp.allowed || !bySession.allowed) return { ok: false as const };
+
     const sb = createClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_PUBLISHABLE_KEY!,
@@ -33,16 +54,40 @@ export const logScanEvent = createServerFn({ method: "POST" })
         },
       },
     );
+
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+    const { data: album } = await supabaseAdmin
+      .from("albums")
+      .select("id")
+      .eq("id", data.album_id)
+      .eq("published", true)
+      .maybeSingle();
+    if (!album) return { ok: false as const };
+
+    let experienceId: string | null = null;
+    if (data.experience_id) {
+      const { data: exp } = await supabaseAdmin
+        .from("ar_experiences")
+        .select("id")
+        .eq("id", data.experience_id)
+        .eq("album_id", data.album_id)
+        .maybeSingle();
+      experienceId = exp?.id ?? null;
+    }
+
     await sb.from("scan_events").insert({
       album_id: data.album_id,
-      experience_id: data.experience_id ?? null,
+      experience_id: experienceId,
       target_index: data.target_index ?? null,
       event_type: data.event_type,
       session_id: data.session_id,
       duration_ms: data.duration_ms ?? null,
     });
-    return { ok: true };
+    return { ok: true as const };
   });
+
 
 export type PhotoStat = {
   target_index: number;
