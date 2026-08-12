@@ -27,9 +27,22 @@ export type GateResult =
   | { ok: true; enforced: boolean; deviceId?: string; licenceKey?: string }
   | { ok: false; reason: string; message: string };
 
+/**
+ * Enforcement is a deployment decision, never a client-supplied one.
+ *
+ * It defaults to ON for a customer deployment (`LICENCE_ROLE=client`), so a
+ * missing or dropped env var can never silently disable the only control with
+ * real teeth. Turning it off there requires an explicit
+ * `LICENCE_ENFORCE_PRESIGN=false`. On the issuer deployment (our own admin
+ * instance) and in local dev it defaults to OFF.
+ */
 export function presignGatingEnabled() {
-  return (readEnv("LICENCE_ENFORCE_PRESIGN") ?? "").trim().toLowerCase() === "true";
+  const raw = (readEnv("LICENCE_ENFORCE_PRESIGN") ?? "").trim().toLowerCase();
+  if (raw === "true" || raw === "1") return true;
+  if (raw === "false" || raw === "0") return false;
+  return (readEnv("LICENCE_ROLE") ?? "issuer").trim().toLowerCase() === "client";
 }
+
 
 interface TokenPayload {
   sub?: string;
