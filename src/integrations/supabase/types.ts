@@ -268,6 +268,45 @@ export type Database = {
         }
         Relationships: []
       }
+      gate_events: {
+        Row: {
+          approval: string | null
+          created_at: string
+          decision: string
+          deployment_role: string
+          id: string
+          is_admin: boolean
+          meta: Json
+          path: string
+          reason: string
+          user_id: string | null
+        }
+        Insert: {
+          approval?: string | null
+          created_at?: string
+          decision: string
+          deployment_role?: string
+          id?: string
+          is_admin?: boolean
+          meta?: Json
+          path: string
+          reason: string
+          user_id?: string | null
+        }
+        Update: {
+          approval?: string | null
+          created_at?: string
+          decision?: string
+          deployment_role?: string
+          id?: string
+          is_admin?: boolean
+          meta?: Json
+          path?: string
+          reason?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       license_activations: {
         Row: {
           activated_at: string
