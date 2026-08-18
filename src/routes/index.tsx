@@ -423,27 +423,6 @@ function Footer() {
         </nav>
       </div>
 
-      <details className="mx-auto max-w-7xl mb-8 rounded-2xl border border-border/60 bg-surface/50 p-5">
-        <summary className="cursor-pointer text-sm text-foreground/90">
-          For the technically curious
-        </summary>
-        <div className="mt-4 grid gap-2 text-xs leading-relaxed text-muted-foreground">
-          <p>
-            Front end: React + TanStack Start, deployed to Cloudflare. Database,
-            auth and file storage: Supabase (Postgres with row-level security).
-            Media served from object storage with short-lived signed URLs.
-          </p>
-          <p>
-            AR runtime: MindAR image tracking with an AR.js fallback, running in
-            the mobile browser — no app, no per-scan fees. Printed photos carry
-            no QR code; the picture itself is the compiled marker.
-          </p>
-          <p>
-            Each delivery is licensed to one buyer and bound to its deployment
-            fingerprint, with the signed agreement as the enforcement layer.
-          </p>
-        </div>
-      </details>
 
       <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">

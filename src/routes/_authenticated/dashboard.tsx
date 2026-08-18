@@ -83,8 +83,19 @@ function DashboardLayout() {
             );
           })}
         </nav>
-        <div className="hidden md:block p-3 border-t border-border/60">
-          <div className="px-3 py-2 text-xs text-muted-foreground truncate">{email}</div>
+        <div className="p-3 border-t border-border/60">
+          <div className="px-3 py-2 flex items-center justify-between gap-2">
+            <span className="text-xs text-muted-foreground truncate">{email}</span>
+            <span
+              className={`shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                isAdmin
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground"
+              }`}
+            >
+              {isAdmin ? "Admin" : "Client"}
+            </span>
+          </div>
           <button
             onClick={signOut}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
