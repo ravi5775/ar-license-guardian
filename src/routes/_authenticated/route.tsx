@@ -1,14 +1,10 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { getSessionContext, type SessionContext } from "@/lib/session.functions";
 
 const AUTH_CACHE_MS = 60_000;
 
-type AuthCache = {
-  userId: string;
-  isAdmin: boolean;
-  approval: "pending" | "approved" | "rejected";
-  checkedAt: number;
-};
+type AuthCache = SessionContext & { checkedAt: number };
 let roleCache: AuthCache | null = null;
 
 // Drop the cached role whenever the session changes so a sign-out or
@@ -28,41 +24,31 @@ export const Route = createFileRoute("/_authenticated")({
     const user = sessionData.session?.user ?? null;
     if (!user) throw redirect({ to: "/auth" });
 
-    let isAdmin = false;
-    let approval: "pending" | "approved" | "rejected" = "pending";
     const cached =
       roleCache && roleCache.userId === user.id && Date.now() - roleCache.checkedAt < AUTH_CACHE_MS
         ? roleCache
         : null;
 
+    let session: SessionContext;
     if (cached) {
-      isAdmin = cached.isAdmin;
-      approval = cached.approval;
+      session = cached;
     } else {
-      const [{ data: roleRow, error: roleError }, { data: profileRow, error: profileError }] =
-        await Promise.all([
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", user.id)
-            .eq("role", "admin")
-            .maybeSingle(),
-          supabase
-            .from("profiles")
-            .select("approval_status")
-            .eq("id", user.id)
-            .maybeSingle(),
-        ]);
-      // On a transient network/RLS error, fall back to the previous known value
-      // instead of silently downgrading an admin to a viewer.
-      isAdmin = roleError ? (roleCache?.userId === user.id ? roleCache.isAdmin : false) : !!roleRow;
-      approval = profileError
-        ? (roleCache?.userId === user.id ? roleCache.approval : "approved")
-        : ((profileRow?.approval_status as typeof approval) ?? "pending");
-      if (!roleError && !profileError) {
-        roleCache = { userId: user.id, isAdmin, approval, checkedAt: Date.now() };
+      try {
+        // Role + approval are resolved by a server function, never by a
+        // direct table read from the browser.
+        session = await getSessionContext();
+        roleCache = { ...session, checkedAt: Date.now() };
+      } catch {
+        // On a transient network error, fall back to the previous known value
+        // instead of silently downgrading an admin to a viewer.
+        session =
+          roleCache?.userId === user.id
+            ? roleCache
+            : { userId: user.id, email: user.email ?? null, isAdmin: false, approval: "approved" };
       }
     }
+
+    const { isAdmin, approval } = session;
 
     // Accounts awaiting (or refused) admin approval get the holding page only.
     // Admins are exempt so they can never lock themselves out of the queue.
