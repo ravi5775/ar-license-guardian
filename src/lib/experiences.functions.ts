@@ -189,13 +189,11 @@ export const signMediaUpload = createServerFn({ method: "POST" })
       .parse(raw),
   )
   .handler(async ({ data, context }) => {
-    const { data: adminRow } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!adminRow) throw new Error("Forbidden: admin only");
+    const { authorizeUploader, scopeUploadPath } = await import(
+      "@/lib/uploader-guard.server"
+    );
+    const uploader = await authorizeUploader(context.supabase, context.userId);
+    const scopedPath = scopeUploadPath(uploader, data.path);
 
     // §4.7 — no upload URL without valid licence state + attestation.
     const { checkPresignLicence } = await import("@/lib/adapters/presign-gate.server");
@@ -226,7 +224,7 @@ export const signMediaUpload = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: signed, error } = await supabaseAdmin.storage
       .from("ar-media")
-      .createSignedUploadUrl(data.path, { upsert: data.upsert ?? true });
+      .createSignedUploadUrl(scopedPath, { upsert: data.upsert ?? true });
     if (error) throw new Error(error.message);
     return signed; // { signedUrl, token, path }
   });
@@ -240,13 +238,11 @@ export const enforceMediaSize = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) => z.object({ path: z.string().min(1) }).parse(raw))
   .handler(async ({ data, context }) => {
-    const { data: adminRow } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!adminRow) throw new Error("Forbidden: admin only");
+    const { authorizeUploader, ownsUploadPath } = await import(
+      "@/lib/uploader-guard.server"
+    );
+    const uploader = await authorizeUploader(context.supabase, context.userId);
+    if (!ownsUploadPath(uploader, data.path)) throw new Error("Forbidden");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const slash = data.path.lastIndexOf("/");
