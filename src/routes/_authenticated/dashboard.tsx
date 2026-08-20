@@ -39,23 +39,43 @@ function DashboardLayout() {
   }
 
 
+  // Branch-aware features: a customer (client-app) build hides licensing,
+  // approvals and diagnostics entirely, even for an admin account.
+  const profileFn = useServerFn(getDeploymentProfile);
+  const { data: profile } = useQuery({
+    queryKey: ["deployment-profile"],
+    queryFn: () => profileFn(),
+    staleTime: Infinity,
+  });
+  const features = profile?.features;
+  const can = (flag: keyof NonNullable<typeof features>) => !features || features[flag];
+
   const nav = [
     { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
     { to: "/dashboard/projects", label: "Projects", icon: FolderOpen },
     { to: "/dashboard/experiences", label: "AR Experiences", icon: Boxes },
     { to: "/dashboard/albums", label: "Albums", icon: Images },
-    { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-    { to: "/dashboard/marker-tests", label: "Marker Testing", icon: Target },
-    ...(isAdmin
+    ...(can("analytics")
       ? [
-          { to: "/dashboard/approvals", label: "Approvals", icon: UserCheck },
+          { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+          { to: "/dashboard/marker-tests", label: "Marker Testing", icon: Target },
+        ]
+      : []),
+    ...(isAdmin && can("approvals")
+      ? [{ to: "/dashboard/approvals", label: "Approvals", icon: UserCheck }]
+      : []),
+    ...(isAdmin && can("licensing")
+      ? [
           { to: "/dashboard/licenses", label: "Licenses", icon: Key },
           { to: "/dashboard/activations", label: "Activations", icon: ShieldCheck },
+        ]
+      : []),
+    ...(isAdmin && can("diagnostics")
+      ? [
           { to: "/dashboard/audit", label: "Audit Log", icon: ScrollText },
           { to: "/dashboard/diagnostics", label: "Diagnostics", icon: Activity },
         ]
       : []),
-
   ];
 
 
