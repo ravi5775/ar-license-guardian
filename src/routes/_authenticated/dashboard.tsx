@@ -8,7 +8,9 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getDeploymentProfile } from "@/lib/deployment.functions";
 import { Sparkles, LayoutDashboard, Boxes, Images, Key, ShieldCheck, LogOut, ScrollText, BarChart3, Target, UserCheck, FolderOpen, Activity } from "lucide-react";
 import { toast } from "sonner";
 
