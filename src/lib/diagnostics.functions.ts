@@ -13,7 +13,7 @@ export type GateEventRow = {
   is_admin: boolean;
   approval: string | null;
   deployment_role: string;
-  meta: Record<string, unknown> | null;
+  meta: string | null;
 };
 
 /**
@@ -51,5 +51,16 @@ export const listGateEvents = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
-    return (data ?? []) as GateEventRow[];
+    return (data ?? []).map((r) => ({
+      id: String(r.id),
+      created_at: r.created_at,
+      user_id: r.user_id,
+      path: r.path,
+      decision: r.decision,
+      reason: r.reason,
+      is_admin: r.is_admin,
+      approval: r.approval,
+      deployment_role: r.deployment_role,
+      meta: r.meta ? JSON.stringify(r.meta) : null,
+    }));
   });
