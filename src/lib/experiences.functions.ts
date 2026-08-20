@@ -175,12 +175,13 @@ export const getPublicExperience = createServerFn({ method: "GET" })
 
 /** Hard server-side upload ceiling. Client-side compression is a convenience,
  *  never the enforcement point. */
-const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+import { ALLOWED_EXTENSIONS } from "@/lib/upload-security";
+import { uploadRateLimit } from "@/lib/rate-limiter.middleware";
 
 // Signed upload URL for the admin console. Uses admin client because we
 // enforce role at the handler level.
 export const signMediaUpload = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, uploadRateLimit])
   .inputValidator((raw) =>
     z
       .object({
@@ -192,6 +193,11 @@ export const signMediaUpload = createServerFn({ method: "POST" })
       .parse(raw),
   )
   .handler(async ({ data, context }) => {
+    const ext = data.path.split(".").pop()?.toLowerCase() || "";
+    if (!ALLOWED_EXTENSIONS.has(ext)) {
+      throw new Error(`Disallowed file extension .${ext}. Allowed formats: ${Array.from(ALLOWED_EXTENSIONS).join(", ")}`);
+    }
+
     const { authorizeUploader, scopeUploadPath } = await import(
       "@/lib/uploader-guard.server"
     );

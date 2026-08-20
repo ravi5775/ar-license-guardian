@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { enforceRateLimit } from "@/lib/rate-limiter.middleware";
 
 /**
  * One-time media redemption.
@@ -15,7 +16,15 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/api/public/m/$nonce")({
   server: {
     handlers: {
-      GET: async ({ params }) => {
+      GET: async ({ params, request }) => {
+        const throttled = await enforceRateLimit(request, {
+          limit: 30,
+          windowSec: 60,
+          bucket: "nonce_redeem",
+          failMode: "open",
+        });
+        if (throttled) return throttled;
+
         const raw = params.nonce;
         if (!raw || raw.length < 20 || raw.length > 200) {
           return new Response("Not found", { status: 404 });
