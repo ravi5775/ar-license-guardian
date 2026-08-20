@@ -36,5 +36,27 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // UI code must never talk to the database directly: all reads/writes go
+    // through server functions so RLS, role checks and rate limits apply.
+    files: ["src/routes/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    ignores: ["src/routes/api/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "CallExpression[callee.property.name=/^(from|rpc)$/][callee.object.name=/^(supabase|supabaseAdmin|supabasePublic)$/]",
+          message:
+            "Direct database access is not allowed in routes/components. Call a server function in src/lib/*.functions.ts instead.",
+        },
+        {
+          selector: "ImportDeclaration[source.value=/client\\.server$/]",
+          message:
+            "The service-role Supabase client must never be imported from UI code. Use a server function.",
+        },
+      ],
+    },
+  },
   eslintPluginPrettier,
 );

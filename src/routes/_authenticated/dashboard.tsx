@@ -8,8 +8,10 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { Sparkles, LayoutDashboard, Boxes, Images, Key, ShieldCheck, LogOut, ScrollText, BarChart3, Target, UserCheck, FolderOpen } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getDeploymentProfile } from "@/lib/deployment.functions";
+import { Sparkles, LayoutDashboard, Boxes, Images, Key, ShieldCheck, LogOut, ScrollText, BarChart3, Target, UserCheck, FolderOpen, Activity } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -37,22 +39,43 @@ function DashboardLayout() {
   }
 
 
+  // Branch-aware features: a customer (client-app) build hides licensing,
+  // approvals and diagnostics entirely, even for an admin account.
+  const profileFn = useServerFn(getDeploymentProfile);
+  const { data: profile } = useQuery({
+    queryKey: ["deployment-profile"],
+    queryFn: () => profileFn(),
+    staleTime: Infinity,
+  });
+  const features = profile?.features;
+  const can = (flag: keyof NonNullable<typeof features>) => !features || features[flag];
+
   const nav = [
     { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
     { to: "/dashboard/projects", label: "Projects", icon: FolderOpen },
     { to: "/dashboard/experiences", label: "AR Experiences", icon: Boxes },
     { to: "/dashboard/albums", label: "Albums", icon: Images },
-    { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-    { to: "/dashboard/marker-tests", label: "Marker Testing", icon: Target },
-    ...(isAdmin
+    ...(can("analytics")
       ? [
-          { to: "/dashboard/approvals", label: "Approvals", icon: UserCheck },
-          { to: "/dashboard/licenses", label: "Licenses", icon: Key },
-          { to: "/dashboard/activations", label: "Activations", icon: ShieldCheck },
-          { to: "/dashboard/audit", label: "Audit Log", icon: ScrollText },
+          { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+          { to: "/dashboard/marker-tests", label: "Marker Testing", icon: Target },
         ]
       : []),
-
+    ...(isAdmin && can("approvals")
+      ? [{ to: "/dashboard/approvals", label: "Approvals", icon: UserCheck }]
+      : []),
+    ...(isAdmin && can("licensing")
+      ? [
+          { to: "/dashboard/licenses", label: "Licenses", icon: Key },
+          { to: "/dashboard/activations", label: "Activations", icon: ShieldCheck },
+        ]
+      : []),
+    ...(isAdmin && can("diagnostics")
+      ? [
+          { to: "/dashboard/audit", label: "Audit Log", icon: ScrollText },
+          { to: "/dashboard/diagnostics", label: "Diagnostics", icon: Activity },
+        ]
+      : []),
   ];
 
 
@@ -83,8 +106,19 @@ function DashboardLayout() {
             );
           })}
         </nav>
-        <div className="hidden md:block p-3 border-t border-border/60">
-          <div className="px-3 py-2 text-xs text-muted-foreground truncate">{email}</div>
+        <div className="p-3 border-t border-border/60">
+          <div className="px-3 py-2 flex items-center justify-between gap-2">
+            <span className="text-xs text-muted-foreground truncate">{email}</span>
+            <span
+              className={`shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                isAdmin
+                  ? "border-primary/40 bg-primary/10 text-primary"
+                  : "border-border/60 text-muted-foreground"
+              }`}
+            >
+              {isAdmin ? "Admin" : "Client"}
+            </span>
+          </div>
           <button
             onClick={signOut}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"

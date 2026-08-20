@@ -1,27 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 /**
- * Nightly storage check. Called by pg_cron; authenticated with the anon key
- * in the `apikey` header (the documented pattern — no bespoke shared secret).
+ * Nightly storage check. Called by pg_cron / an external scheduler and
+ * authenticated with a dedicated shared secret (STORAGE_ALERTS_CRON_SECRET)
+ * sent as `x-cron-secret` or `Authorization: Bearer <secret>`. The publishable
+ * key is NOT a credential — it ships in the browser bundle.
  *
  * Alerts at 80% of quota, once per crossing: `storage_alert_sent_at` is set
  * when we notify and cleared when usage drops back under the threshold, so a
  * client sitting at 85% for a month gets one email, not thirty.
  */
+function constantTimeEqual(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 export const Route = createFileRoute("/api/public/hooks/storage-alerts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        // Accept either key name: projects on the new key format expose the
-        // publishable key, older ones expose the anon key.
-        const key = request.headers.get("apikey");
-        const expected = [
-          process.env["SUPABASE_PUBLISHABLE_KEY"],
-          process.env["SUPABASE_ANON_KEY"],
-        ].filter(Boolean);
-        if (!key || !expected.includes(key)) {
+        const expected = process.env["STORAGE_ALERTS_CRON_SECRET"];
+        const provided =
+          request.headers.get("x-cron-secret") ??
+          request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
+          "";
+        if (!expected || !provided || !constantTimeEqual(provided, expected)) {
           return new Response("Unauthorized", { status: 401 });
         }
+
 
         const { supabaseAdmin } = await import(
           "@/integrations/supabase/client.server"

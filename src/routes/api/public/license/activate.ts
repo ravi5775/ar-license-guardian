@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { notifyDuplicateFingerprint } from "@/lib/notify.functions";
+import { sendDuplicateFingerprintAlert } from "@/lib/notify.server";
 
 /**
  * ANTI-RESALE REALITY CHECK — read before relying on this.
@@ -169,15 +169,13 @@ async function handleActivate(request: Request) {
       },
     });
     // Fire and forget — must not block response
-    notifyDuplicateFingerprint({
-      data: {
-        license_key: body.license_key,
-        client_name: license.client_name,
-        client_email: license.client_email,
-        attempted_fingerprint: body.fingerprint,
-        attempted_domain: body.deployment_domain,
-        ip,
-      },
+    void sendDuplicateFingerprintAlert({
+      license_key: body.license_key,
+      client_name: license.client_name,
+      client_email: license.client_email,
+      attempted_fingerprint: body.fingerprint,
+      attempted_domain: body.deployment_domain,
+      ip,
     }).catch((e) => console.error("[notify] failed", e));
     return json({ ok: false, error: "activation_limit_reached" }, 403);
   }

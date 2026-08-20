@@ -189,13 +189,17 @@ export const signMediaUpload = createServerFn({ method: "POST" })
       .parse(raw),
   )
   .handler(async ({ data, context }) => {
-    const { data: adminRow } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!adminRow) throw new Error("Forbidden: admin only");
+    const { authorizeUploader, scopeUploadPath } = await import(
+      "@/lib/uploader-guard.server"
+    );
+    const uploader = await authorizeUploader(context.supabase, context.userId);
+    const scopedPath = scopeUploadPath(uploader, data.path);
+
+    // §4.7 — no upload URL without valid licence state + attestation.
+    const { checkPresignLicence } = await import("@/lib/adapters/presign-gate.server");
+    const gate = await checkPresignLicence("upload");
+    if (!gate.ok) throw new Error(gate.message);
+
 
     // Quota is checked BEFORE handing out an upload URL, so the client gets a
     // clear refusal instead of a silent storage failure mid-upload.
@@ -217,8 +221,12 @@ export const signMediaUpload = createServerFn({ method: "POST" })
       );
     }
 
-    const { createPresignedUploadUrl } = await import("@/lib/storage.server");
-    return createPresignedUploadUrl(data.path, "application/octet-stream", 900);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("ar-media")
+      .createSignedUploadUrl(scopedPath, { upsert: data.upsert ?? true });
+    if (error) throw new Error(error.message);
+    return signed; // { signedUrl, token, path }
   });
 
 /**
@@ -230,26 +238,29 @@ export const enforceMediaSize = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) => z.object({ path: z.string().min(1) }).parse(raw))
   .handler(async ({ data, context }) => {
-    const { data: adminRow } = await context.supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", context.userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (!adminRow) throw new Error("Forbidden: admin only");
+    const { authorizeUploader, ownsUploadPath } = await import(
+      "@/lib/uploader-guard.server"
+    );
+    const uploader = await authorizeUploader(context.supabase, context.userId);
+    if (!ownsUploadPath(uploader, data.path)) throw new Error("Forbidden");
 
-    const { getStorageObjectMetadata, deleteStorageObject } = await import("@/lib/storage.server");
-    const meta = await getStorageObjectMetadata(data.path);
-    const size = meta?.size;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const slash = data.path.lastIndexOf("/");
+    const folder = slash === -1 ? "" : data.path.slice(0, slash);
+    const name = slash === -1 ? data.path : data.path.slice(slash + 1);
+
+    const { data: rows } = await supabaseAdmin.storage
+      .from("ar-media")
+      .list(folder, { search: name, limit: 1 });
+    const size = (rows?.[0] as any)?.metadata?.size as number | undefined;
 
     if (size != null && size > MAX_UPLOAD_BYTES) {
-      await deleteStorageObject(data.path);
+      await supabaseAdmin.storage.from("ar-media").remove([data.path]);
       throw new Error(
         `Upload rejected: ${(size / 1048576).toFixed(1)} MB exceeds the 50 MB limit.`,
       );
     }
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Record the object against its owner. Service-role write: a client must
     // never be able to under-report its own usage.
     await supabaseAdmin.from("media_objects").upsert(

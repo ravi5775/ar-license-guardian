@@ -1,0 +1,33 @@
+name: Release client-app (build + signed manifest)
+
+on:
+  push:
+    branches: [client-app]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Build
+        run: bun run build
+        env:
+          LICENCE_ROLE: client
+          DB_DRIVER: none
+          RATELIMIT_DRIVER: memory
+          VITE_BUILD_ID: ${{ github.sha }}
+          VITE_LICENCE_API_URL: ${{ vars.LICENCE_API_URL }}
+          VITE_LICENCE_PUBLIC_KEY: ${{ vars.LICENCE_PUBLIC_KEY }}
+      - name: Sign + publish asset manifest
+        run: node scripts/sign-manifest.mjs dist/client
+        env:
+          BUILD_ID: ${{ github.sha }}
+          LICENCE_PRIVATE_KEY_JWK: ${{ secrets.LICENCE_PRIVATE_KEY_JWK }}
+          LICENCE_API_URL: ${{ vars.LICENCE_API_URL }}
+          RELEASE_MANIFEST_SECRET: ${{ secrets.RELEASE_MANIFEST_SECRET }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-app-${{ github.sha }}
+          path: dist

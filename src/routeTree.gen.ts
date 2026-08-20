@@ -30,6 +30,7 @@ import { Route as AuthenticatedDashboardProjectsRouteImport } from './routes/_au
 import { Route as AuthenticatedDashboardMarkerTestsRouteImport } from './routes/_authenticated/dashboard.marker-tests'
 import { Route as AuthenticatedDashboardLicensesRouteImport } from './routes/_authenticated/dashboard.licenses'
 import { Route as AuthenticatedDashboardExperiencesRouteImport } from './routes/_authenticated/dashboard.experiences'
+import { Route as AuthenticatedDashboardDiagnosticsRouteImport } from './routes/_authenticated/dashboard.diagnostics'
 import { Route as AuthenticatedDashboardAuditRouteImport } from './routes/_authenticated/dashboard.audit'
 import { Route as AuthenticatedDashboardApprovalsRouteImport } from './routes/_authenticated/dashboard.approvals'
 import { Route as AuthenticatedDashboardAnalyticsRouteImport } from './routes/_authenticated/dashboard.analytics'
@@ -37,6 +38,10 @@ import { Route as AuthenticatedDashboardActivationsRouteImport } from './routes/
 import { Route as AuthenticatedDashboardAlbumsIndexRouteImport } from './routes/_authenticated/dashboard.albums.index'
 import { Route as ApiPublicMNonceRouteImport } from './routes/api/public/m.$nonce'
 import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
+import { Route as ApiPublicLicenceReleaseRouteImport } from './routes/api/public/licence/release'
+import { Route as ApiPublicLicenceRefreshRouteImport } from './routes/api/public/licence/refresh'
+import { Route as ApiPublicLicenceManifestRouteImport } from './routes/api/public/licence/manifest'
+import { Route as ApiPublicLicenceActivateRouteImport } from './routes/api/public/licence/activate'
 import { Route as ApiPublicHooksStorageAlertsRouteImport } from './routes/api/public/hooks/storage-alerts'
 import { Route as AuthenticatedDashboardAlbumsNewRouteImport } from './routes/_authenticated/dashboard.albums.new'
 
@@ -150,6 +155,12 @@ const AuthenticatedDashboardExperiencesRoute =
     path: '/experiences',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardDiagnosticsRoute =
+  AuthenticatedDashboardDiagnosticsRouteImport.update({
+    id: '/diagnostics',
+    path: '/diagnostics',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardAuditRoute =
   AuthenticatedDashboardAuditRouteImport.update({
     id: '/audit',
@@ -191,6 +202,28 @@ const ApiPublicLicenseActivateRoute =
     path: '/api/public/license/activate',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicLicenceReleaseRoute = ApiPublicLicenceReleaseRouteImport.update({
+  id: '/api/public/licence/release',
+  path: '/api/public/licence/release',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicLicenceRefreshRoute = ApiPublicLicenceRefreshRouteImport.update({
+  id: '/api/public/licence/refresh',
+  path: '/api/public/licence/refresh',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicLicenceManifestRoute =
+  ApiPublicLicenceManifestRouteImport.update({
+    id: '/api/public/licence/manifest',
+    path: '/api/public/licence/manifest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicLicenceActivateRoute =
+  ApiPublicLicenceActivateRouteImport.update({
+    id: '/api/public/licence/activate',
+    path: '/api/public/licence/activate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksStorageAlertsRoute =
   ApiPublicHooksStorageAlertsRouteImport.update({
     id: '/api/public/hooks/storage-alerts',
@@ -223,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/dashboard/diagnostics': typeof AuthenticatedDashboardDiagnosticsRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
   '/dashboard/marker-tests': typeof AuthenticatedDashboardMarkerTestsRoute
@@ -231,6 +265,10 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/hooks/storage-alerts': typeof ApiPublicHooksStorageAlertsRoute
+  '/api/public/licence/activate': typeof ApiPublicLicenceActivateRoute
+  '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
+  '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
+  '/api/public/licence/release': typeof ApiPublicLicenceReleaseRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -253,6 +291,7 @@ export interface FileRoutesByTo {
   '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/dashboard/diagnostics': typeof AuthenticatedDashboardDiagnosticsRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
   '/dashboard/marker-tests': typeof AuthenticatedDashboardMarkerTestsRoute
@@ -261,6 +300,10 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/hooks/storage-alerts': typeof ApiPublicHooksStorageAlertsRoute
+  '/api/public/licence/activate': typeof ApiPublicLicenceActivateRoute
+  '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
+  '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
+  '/api/public/licence/release': typeof ApiPublicLicenceReleaseRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/dashboard/albums': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -286,6 +329,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/_authenticated/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/_authenticated/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/_authenticated/dashboard/diagnostics': typeof AuthenticatedDashboardDiagnosticsRoute
   '/_authenticated/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/_authenticated/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
   '/_authenticated/dashboard/marker-tests': typeof AuthenticatedDashboardMarkerTestsRoute
@@ -294,6 +338,10 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/dashboard/albums/new': typeof AuthenticatedDashboardAlbumsNewRoute
   '/api/public/hooks/storage-alerts': typeof ApiPublicHooksStorageAlertsRoute
+  '/api/public/licence/activate': typeof ApiPublicLicenceActivateRoute
+  '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
+  '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
+  '/api/public/licence/release': typeof ApiPublicLicenceReleaseRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/_authenticated/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -319,6 +367,7 @@ export interface FileRouteTypes {
     | '/dashboard/analytics'
     | '/dashboard/approvals'
     | '/dashboard/audit'
+    | '/dashboard/diagnostics'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
     | '/dashboard/marker-tests'
@@ -327,6 +376,10 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/dashboard/albums/new'
     | '/api/public/hooks/storage-alerts'
+    | '/api/public/licence/activate'
+    | '/api/public/licence/manifest'
+    | '/api/public/licence/refresh'
+    | '/api/public/licence/release'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/dashboard/albums/'
@@ -349,6 +402,7 @@ export interface FileRouteTypes {
     | '/dashboard/analytics'
     | '/dashboard/approvals'
     | '/dashboard/audit'
+    | '/dashboard/diagnostics'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
     | '/dashboard/marker-tests'
@@ -357,6 +411,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/albums/new'
     | '/api/public/hooks/storage-alerts'
+    | '/api/public/licence/activate'
+    | '/api/public/licence/manifest'
+    | '/api/public/licence/refresh'
+    | '/api/public/licence/release'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/dashboard/albums'
@@ -381,6 +439,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/analytics'
     | '/_authenticated/dashboard/approvals'
     | '/_authenticated/dashboard/audit'
+    | '/_authenticated/dashboard/diagnostics'
     | '/_authenticated/dashboard/experiences'
     | '/_authenticated/dashboard/licenses'
     | '/_authenticated/dashboard/marker-tests'
@@ -389,6 +448,10 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/'
     | '/_authenticated/dashboard/albums/new'
     | '/api/public/hooks/storage-alerts'
+    | '/api/public/licence/activate'
+    | '/api/public/licence/manifest'
+    | '/api/public/licence/refresh'
+    | '/api/public/licence/release'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/_authenticated/dashboard/albums/'
@@ -409,6 +472,10 @@ export interface RootRouteChildren {
   ArSlugRoute: typeof ArSlugRoute
   ArAlbumSlugRoute: typeof ArAlbumSlugRoute
   ApiPublicHooksStorageAlertsRoute: typeof ApiPublicHooksStorageAlertsRoute
+  ApiPublicLicenceActivateRoute: typeof ApiPublicLicenceActivateRoute
+  ApiPublicLicenceManifestRoute: typeof ApiPublicLicenceManifestRoute
+  ApiPublicLicenceRefreshRoute: typeof ApiPublicLicenceRefreshRoute
+  ApiPublicLicenceReleaseRoute: typeof ApiPublicLicenceReleaseRoute
   ApiPublicLicenseActivateRoute: typeof ApiPublicLicenseActivateRoute
   ApiPublicMNonceRoute: typeof ApiPublicMNonceRoute
 }
@@ -562,6 +629,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardExperiencesRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/diagnostics': {
+      id: '/_authenticated/dashboard/diagnostics'
+      path: '/diagnostics'
+      fullPath: '/dashboard/diagnostics'
+      preLoaderRoute: typeof AuthenticatedDashboardDiagnosticsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/audit': {
       id: '/_authenticated/dashboard/audit'
       path: '/audit'
@@ -611,6 +685,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLicenseActivateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/licence/release': {
+      id: '/api/public/licence/release'
+      path: '/api/public/licence/release'
+      fullPath: '/api/public/licence/release'
+      preLoaderRoute: typeof ApiPublicLicenceReleaseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/licence/refresh': {
+      id: '/api/public/licence/refresh'
+      path: '/api/public/licence/refresh'
+      fullPath: '/api/public/licence/refresh'
+      preLoaderRoute: typeof ApiPublicLicenceRefreshRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/licence/manifest': {
+      id: '/api/public/licence/manifest'
+      path: '/api/public/licence/manifest'
+      fullPath: '/api/public/licence/manifest'
+      preLoaderRoute: typeof ApiPublicLicenceManifestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/licence/activate': {
+      id: '/api/public/licence/activate'
+      path: '/api/public/licence/activate'
+      fullPath: '/api/public/licence/activate'
+      preLoaderRoute: typeof ApiPublicLicenceActivateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/storage-alerts': {
       id: '/api/public/hooks/storage-alerts'
       path: '/api/public/hooks/storage-alerts'
@@ -633,6 +735,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAnalyticsRoute: typeof AuthenticatedDashboardAnalyticsRoute
   AuthenticatedDashboardApprovalsRoute: typeof AuthenticatedDashboardApprovalsRoute
   AuthenticatedDashboardAuditRoute: typeof AuthenticatedDashboardAuditRoute
+  AuthenticatedDashboardDiagnosticsRoute: typeof AuthenticatedDashboardDiagnosticsRoute
   AuthenticatedDashboardExperiencesRoute: typeof AuthenticatedDashboardExperiencesRoute
   AuthenticatedDashboardLicensesRoute: typeof AuthenticatedDashboardLicensesRoute
   AuthenticatedDashboardMarkerTestsRoute: typeof AuthenticatedDashboardMarkerTestsRoute
@@ -649,6 +752,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardAnalyticsRoute: AuthenticatedDashboardAnalyticsRoute,
     AuthenticatedDashboardApprovalsRoute: AuthenticatedDashboardApprovalsRoute,
     AuthenticatedDashboardAuditRoute: AuthenticatedDashboardAuditRoute,
+    AuthenticatedDashboardDiagnosticsRoute:
+      AuthenticatedDashboardDiagnosticsRoute,
     AuthenticatedDashboardExperiencesRoute:
       AuthenticatedDashboardExperiencesRoute,
     AuthenticatedDashboardLicensesRoute: AuthenticatedDashboardLicensesRoute,
@@ -696,6 +801,10 @@ const rootRouteChildren: RootRouteChildren = {
   ArSlugRoute: ArSlugRoute,
   ArAlbumSlugRoute: ArAlbumSlugRoute,
   ApiPublicHooksStorageAlertsRoute: ApiPublicHooksStorageAlertsRoute,
+  ApiPublicLicenceActivateRoute: ApiPublicLicenceActivateRoute,
+  ApiPublicLicenceManifestRoute: ApiPublicLicenceManifestRoute,
+  ApiPublicLicenceRefreshRoute: ApiPublicLicenceRefreshRoute,
+  ApiPublicLicenceReleaseRoute: ApiPublicLicenceReleaseRoute,
   ApiPublicLicenseActivateRoute: ApiPublicLicenseActivateRoute,
   ApiPublicMNonceRoute: ApiPublicMNonceRoute,
 }
