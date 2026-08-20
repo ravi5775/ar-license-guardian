@@ -1,0 +1,57 @@
+name: Smoke (all branches)
+
+on:
+  push:
+    branches: [main, self-hosted, client-app]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: ${{ matrix.profile }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - profile: admin-managed
+            RUNTIME: edge
+            DB_DRIVER: neon
+            RATELIMIT_DRIVER: postgres
+            LICENCE_ROLE: issuer
+          - profile: admin-self-hosted
+            RUNTIME: node
+            DB_DRIVER: postgres
+            RATELIMIT_DRIVER: postgres
+            LICENCE_ROLE: issuer
+          - profile: client-app
+            RUNTIME: edge
+            DB_DRIVER: none
+            RATELIMIT_DRIVER: memory
+            LICENCE_ROLE: client
+    env:
+      RUNTIME: ${{ matrix.RUNTIME }}
+      DB_DRIVER: ${{ matrix.DB_DRIVER }}
+      RATELIMIT_DRIVER: ${{ matrix.RATELIMIT_DRIVER }}
+      LICENCE_ROLE: ${{ matrix.LICENCE_ROLE }}
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Lint (blocks direct DB calls in routes/components)
+        run: bun run lint
+      - name: Typecheck
+        run: bunx tsc --noEmit
+      - name: Build
+        run: bun run build
+      - name: RLS regression tests
+        if: matrix.profile != 'client-app'
+        run: bunx vitest run tests/rls-regression.test.ts
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
