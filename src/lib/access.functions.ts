@@ -24,7 +24,7 @@ const TOKEN_TTL_DAYS = 365;
  * generic "incorrect" would send the customer down the wrong path.
  */
 export const submitAccessPin = createServerFn({ method: "POST" })
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({
         kind: Kind,
@@ -145,7 +145,7 @@ async function issueCredentials(kind: "album" | "experience", id: string) {
  */
 export const getShareCredentials = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => z.object({ kind: Kind, id: z.string().uuid() }).parse(raw))
+  .validator((raw) => z.object({ kind: Kind, id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     const row = await loadOwnedRow(context.supabase, data.kind, data.id);
     return {
@@ -166,7 +166,7 @@ export const getShareCredentials = createServerFn({ method: "POST" })
  */
 export const setAccessMode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({ kind: Kind, id: z.string().uuid(), mode: z.enum(["public", "restricted"]) })
       .parse(raw),
@@ -221,7 +221,7 @@ export const setAccessMode = createServerFn({ method: "POST" })
  */
 export const regeneratePin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => z.object({ kind: Kind, id: z.string().uuid() }).parse(raw))
+  .validator((raw) => z.object({ kind: Kind, id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     const row = await loadOwnedRow(context.supabase, data.kind, data.id);
     if (row.access_mode !== "restricted") throw new Error("Content is not restricted");

@@ -30,7 +30,7 @@ const EventInput = z.object({
  * to a viewer mid-scan.
  */
 export const logScanEvent = createServerFn({ method: "POST" })
-  .inputValidator((raw) => EventInput.parse(raw))
+  .validator((raw) => EventInput.parse(raw))
   .handler(async ({ data }) => {
     const { check } = await import("@/lib/adapters/ratelimit.server");
     const { callerIp } = await import("@/lib/content-access.server");
@@ -101,7 +101,7 @@ export type PhotoStat = {
 
 export const getAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({ days: z.number().int().min(1).max(365).default(30) })
       .parse(raw ?? {}),

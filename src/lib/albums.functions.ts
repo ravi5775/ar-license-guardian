@@ -42,7 +42,7 @@ export const listMyAlbums = createServerFn({ method: "GET" })
 
 export const createAlbum = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => AlbumInput.parse(raw))
+  .validator((raw) => AlbumInput.parse(raw))
   .handler(async ({ data, context }) => {
     if (data.targets.length > MAX_ALBUM_TARGETS) {
       throw new Error(
@@ -92,7 +92,7 @@ export const createAlbum = createServerFn({ method: "POST" })
 
 export const deleteAlbum = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
+  .validator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("albums")
@@ -108,7 +108,7 @@ export const deleteAlbum = createServerFn({ method: "POST" })
  */
 export const setAlbumGalleryVisibility = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z.object({ id: z.string().uuid(), show: z.boolean() }).parse(raw),
   )
   .handler(async ({ data, context }) => {
@@ -133,7 +133,7 @@ export const setAlbumGalleryVisibility = createServerFn({ method: "POST" })
 
 export const setAlbumPublished = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z.object({ id: z.string().uuid(), published: z.boolean() }).parse(raw),
   )
   .handler(async ({ data, context }) => {
@@ -148,7 +148,7 @@ export const setAlbumPublished = createServerFn({ method: "POST" })
 // Public read for the multi-target viewer — no auth middleware.
 // Restricted albums require a valid QR token or a live PIN session cookie.
 export const getPublicAlbum = createServerFn({ method: "GET" })
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({ slug: z.string(), tok: z.string().max(200).optional().nullable() })
       .parse(raw),

@@ -22,7 +22,7 @@ export type GateEventRow = {
  * input strictly and is rate limited inside recordGateEvent.
  */
 export const logGateEvent = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) =>
+  .validator((input: unknown) =>
     z
       .object({
         path: z.string().max(512),
