@@ -1,6 +1,18 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionContext, type SessionContext } from "@/lib/session.functions";
+import { logGateEvent } from "@/lib/diagnostics.functions";
+
+/** Fire-and-forget: diagnostics must never delay or break the gate. */
+function logGate(data: {
+  path: string;
+  decision: "allow" | "redirect" | "deny";
+  reason: string;
+  isAdmin?: boolean;
+  approval?: string | null;
+}) {
+  void logGateEvent({ data }).catch(() => {});
+}
 
 const AUTH_CACHE_MS = 60_000;
 
@@ -22,7 +34,10 @@ export const Route = createFileRoute("/_authenticated")({
     // so navigation between dashboard tabs stays instant.
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData.session?.user ?? null;
-    if (!user) throw redirect({ to: "/auth" });
+    if (!user) {
+      logGate({ path: location.pathname, decision: "redirect", reason: "no_session" });
+      throw redirect({ to: "/auth" });
+    }
 
     const cached =
       roleCache && roleCache.userId === user.id && Date.now() - roleCache.checkedAt < AUTH_CACHE_MS
@@ -53,6 +68,13 @@ export const Route = createFileRoute("/_authenticated")({
     // Accounts awaiting (or refused) admin approval get the holding page only.
     // Admins are exempt so they can never lock themselves out of the queue.
     if (!isAdmin && approval !== "approved" && !location.pathname.startsWith("/pending")) {
+      logGate({
+        path: location.pathname,
+        decision: "redirect",
+        reason: `approval_${approval}`,
+        isAdmin,
+        approval,
+      });
       throw redirect({ to: "/pending" });
     }
 
@@ -64,6 +86,13 @@ export const Route = createFileRoute("/_authenticated")({
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       const needsMfa = aal?.nextLevel === "aal2" && aal?.currentLevel !== "aal2";
       if (needsMfa) {
+        logGate({
+          path: location.pathname,
+          decision: "redirect",
+          reason: "mfa_step_up_required",
+          isAdmin,
+          approval,
+        });
         throw redirect({ to: "/mfa", search: { redirect: location.pathname } });
       }
     }

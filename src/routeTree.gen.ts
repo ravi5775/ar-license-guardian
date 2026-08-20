@@ -30,6 +30,7 @@ import { Route as AuthenticatedDashboardProjectsRouteImport } from './routes/_au
 import { Route as AuthenticatedDashboardMarkerTestsRouteImport } from './routes/_authenticated/dashboard.marker-tests'
 import { Route as AuthenticatedDashboardLicensesRouteImport } from './routes/_authenticated/dashboard.licenses'
 import { Route as AuthenticatedDashboardExperiencesRouteImport } from './routes/_authenticated/dashboard.experiences'
+import { Route as AuthenticatedDashboardDiagnosticsRouteImport } from './routes/_authenticated/dashboard.diagnostics'
 import { Route as AuthenticatedDashboardAuditRouteImport } from './routes/_authenticated/dashboard.audit'
 import { Route as AuthenticatedDashboardApprovalsRouteImport } from './routes/_authenticated/dashboard.approvals'
 import { Route as AuthenticatedDashboardAnalyticsRouteImport } from './routes/_authenticated/dashboard.analytics'
@@ -154,6 +155,12 @@ const AuthenticatedDashboardExperiencesRoute =
     path: '/experiences',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardDiagnosticsRoute =
+  AuthenticatedDashboardDiagnosticsRouteImport.update({
+    id: '/diagnostics',
+    path: '/diagnostics',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardAuditRoute =
   AuthenticatedDashboardAuditRouteImport.update({
     id: '/audit',
@@ -249,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/dashboard/diagnostics': typeof AuthenticatedDashboardDiagnosticsRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
   '/dashboard/marker-tests': typeof AuthenticatedDashboardMarkerTestsRoute
@@ -283,6 +291,7 @@ export interface FileRoutesByTo {
   '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/dashboard/diagnostics': typeof AuthenticatedDashboardDiagnosticsRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
   '/dashboard/marker-tests': typeof AuthenticatedDashboardMarkerTestsRoute
@@ -320,6 +329,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/_authenticated/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/_authenticated/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/_authenticated/dashboard/diagnostics': typeof AuthenticatedDashboardDiagnosticsRoute
   '/_authenticated/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/_authenticated/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
   '/_authenticated/dashboard/marker-tests': typeof AuthenticatedDashboardMarkerTestsRoute
@@ -357,6 +367,7 @@ export interface FileRouteTypes {
     | '/dashboard/analytics'
     | '/dashboard/approvals'
     | '/dashboard/audit'
+    | '/dashboard/diagnostics'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
     | '/dashboard/marker-tests'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/dashboard/analytics'
     | '/dashboard/approvals'
     | '/dashboard/audit'
+    | '/dashboard/diagnostics'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
     | '/dashboard/marker-tests'
@@ -427,6 +439,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/analytics'
     | '/_authenticated/dashboard/approvals'
     | '/_authenticated/dashboard/audit'
+    | '/_authenticated/dashboard/diagnostics'
     | '/_authenticated/dashboard/experiences'
     | '/_authenticated/dashboard/licenses'
     | '/_authenticated/dashboard/marker-tests'
@@ -616,6 +629,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardExperiencesRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/dashboard/diagnostics': {
+      id: '/_authenticated/dashboard/diagnostics'
+      path: '/diagnostics'
+      fullPath: '/dashboard/diagnostics'
+      preLoaderRoute: typeof AuthenticatedDashboardDiagnosticsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/audit': {
       id: '/_authenticated/dashboard/audit'
       path: '/audit'
@@ -715,6 +735,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAnalyticsRoute: typeof AuthenticatedDashboardAnalyticsRoute
   AuthenticatedDashboardApprovalsRoute: typeof AuthenticatedDashboardApprovalsRoute
   AuthenticatedDashboardAuditRoute: typeof AuthenticatedDashboardAuditRoute
+  AuthenticatedDashboardDiagnosticsRoute: typeof AuthenticatedDashboardDiagnosticsRoute
   AuthenticatedDashboardExperiencesRoute: typeof AuthenticatedDashboardExperiencesRoute
   AuthenticatedDashboardLicensesRoute: typeof AuthenticatedDashboardLicensesRoute
   AuthenticatedDashboardMarkerTestsRoute: typeof AuthenticatedDashboardMarkerTestsRoute
@@ -731,6 +752,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardAnalyticsRoute: AuthenticatedDashboardAnalyticsRoute,
     AuthenticatedDashboardApprovalsRoute: AuthenticatedDashboardApprovalsRoute,
     AuthenticatedDashboardAuditRoute: AuthenticatedDashboardAuditRoute,
+    AuthenticatedDashboardDiagnosticsRoute:
+      AuthenticatedDashboardDiagnosticsRoute,
     AuthenticatedDashboardExperiencesRoute:
       AuthenticatedDashboardExperiencesRoute,
     AuthenticatedDashboardLicensesRoute: AuthenticatedDashboardLicensesRoute,

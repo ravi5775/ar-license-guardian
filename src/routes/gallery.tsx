@@ -1,27 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { ArrowLeft, ExternalLink } from "lucide-react";
+import { listPublicExperiences } from "@/lib/gallery.functions";
 
-/**
- * Gallery visibility requires BOTH gates: the content must be public
- * (no PIN) AND the owner must have explicitly ticked "Show in public
- * gallery". New experiences default to hidden.
- */
-const listPublicExperiences = createServerFn({ method: "GET" }).handler(async () => {
-  // Anonymous visitors have no read access to ar_experiences at all — an
-  // RLS policy filters rows, not columns, so a public policy would hand out
-  // pin_hash too. This runs server-side with an explicit safe column list.
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("ar_experiences")
-    .select("slug, title, description, cover_image_url")
-    .eq("published", true)
-    .eq("access_mode", "public")
-    .eq("show_in_gallery", true)
-    .order("created_at", { ascending: false })
-    .limit(60);
-  return data ?? [];
-});
 
 
 export const Route = createFileRoute("/gallery")({
