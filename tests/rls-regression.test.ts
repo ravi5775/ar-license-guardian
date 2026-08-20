@@ -139,7 +139,9 @@ afterAll(async () => {
   }
 }, 60_000);
 
-describe.runIf(ready)("RLS: cross-tenant isolation", () => {
+const testSuite = ready ? describe : describe.skip;
+
+testSuite("RLS: cross-tenant isolation", () => {
   it("a client sees only their own experiences when listing", async () => {
     const { data, error } = await alice.db.from("ar_experiences").select("id, owner_id");
     expect(error).toBeNull();

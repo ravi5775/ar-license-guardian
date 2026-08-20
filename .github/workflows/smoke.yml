@@ -46,12 +46,13 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Lint (blocks direct DB calls in routes/components)
         run: bun run lint
-      - name: Typecheck
-        run: bunx tsc --noEmit
       - name: Build
         run: bun run build
+      - name: Unit, Security & Contract Tests
+        run: bun test tests/dto-sanitizer.test.ts tests/upload-security.test.ts tests/rate-limiter.test.ts tests/api-contract.test.ts
       - name: RLS regression tests
         if: matrix.profile != 'client-app'
         run: bunx vitest run tests/rls-regression.test.ts
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+

@@ -27,6 +27,8 @@ const AlbumInput = z.object({
   targets: z.array(TargetInput).min(1).max(MAX_ALBUM_TARGETS),
 });
 
+import { sanitizeAlbum } from "@/lib/dto-sanitizer";
+
 export const listMyAlbums = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -35,7 +37,7 @@ export const listMyAlbums = createServerFn({ method: "GET" })
       .select("*, ar_experiences(id, title, target_index)")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []).map(sanitizeAlbum);
   });
 
 export const createAlbum = createServerFn({ method: "POST" })

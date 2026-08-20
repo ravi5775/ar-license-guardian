@@ -26,6 +26,8 @@ const ExperienceInput = z.object({
 });
 
 
+import { sanitizeExperience } from "@/lib/dto-sanitizer";
+
 export const listMyExperiences = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -40,13 +42,14 @@ export const listMyExperiences = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     return Promise.all(
       rows.map(async (row) => {
+        const sanitized = sanitizeExperience(row);
         if (row.cover_image_url || !row.marker_path) {
-          return { ...row, cover_preview_url: row.cover_image_url ?? null };
+          return { ...sanitized, cover_preview_url: row.cover_image_url ?? null };
         }
         const { data: s } = await supabaseAdmin.storage
           .from("ar-media")
           .createSignedUrl(row.marker_path, 60 * 60);
-        return { ...row, cover_preview_url: s?.signedUrl ?? null };
+        return { ...sanitized, cover_preview_url: s?.signedUrl ?? null };
       }),
     );
   });
@@ -62,7 +65,7 @@ export const createExperience = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
-    return row;
+    return sanitizeExperience(row);
   });
 
 export const updateExperience = createServerFn({ method: "POST" })
@@ -79,7 +82,7 @@ export const updateExperience = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
-    return row;
+    return sanitizeExperience(row);
   });
 
 export const deleteExperience = createServerFn({ method: "POST" })
