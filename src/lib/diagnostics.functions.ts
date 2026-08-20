@@ -13,7 +13,7 @@ export type GateEventRow = {
   is_admin: boolean;
   approval: string | null;
   deployment_role: string;
-  meta: unknown;
+  meta: Record<string, unknown> | null;
 };
 
 /**
