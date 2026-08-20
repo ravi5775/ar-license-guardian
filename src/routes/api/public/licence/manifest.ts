@@ -5,6 +5,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { enforceRateLimit } from "@/lib/rate-limiter.middleware";
 
 const Schema = z.object({
   buildId: z.string().min(4).max(200),
@@ -31,6 +32,14 @@ export const Route = createFileRoute("/api/public/licence/manifest")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const throttled = await enforceRateLimit(request, {
+          limit: 15,
+          windowSec: 60,
+          bucket: "manifest_upload",
+          failMode: "closed",
+        });
+        if (throttled) return throttled;
+
         const secret = process.env["RELEASE_MANIFEST_SECRET"];
         const provided = request.headers.get("x-release-secret") ?? "";
         if (!secret || !timingSafeEqual(provided, secret)) {

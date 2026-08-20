@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { enforceRateLimit } from "@/lib/rate-limiter.middleware";
 
 /**
  * Nightly storage check. Called by pg_cron / an external scheduler and
@@ -21,6 +22,14 @@ export const Route = createFileRoute("/api/public/hooks/storage-alerts")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const throttled = await enforceRateLimit(request, {
+          limit: 10,
+          windowSec: 60,
+          bucket: "cron_storage_alerts",
+          failMode: "closed",
+        });
+        if (throttled) return throttled;
+
         const expected = process.env["STORAGE_ALERTS_CRON_SECRET"];
         const provided =
           request.headers.get("x-cron-secret") ??

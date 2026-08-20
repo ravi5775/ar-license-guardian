@@ -5,7 +5,7 @@
  * headers, never from the JSON body (§4.2). A client that could declare its own
  * origin could declare anything, which makes allowed-origin checks worthless.
  */
-export function json(body: unknown, status = 200) {
+export function json(body: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
@@ -14,6 +14,10 @@ export function json(body: unknown, status = 200) {
       "access-control-allow-origin": "*",
       "access-control-allow-headers": "content-type",
       "access-control-allow-methods": "POST,OPTIONS",
+      ...(status === 429 && !extraHeaders["retry-after"] && !extraHeaders["Retry-After"]
+        ? { "Retry-After": "60" }
+        : {}),
+      ...extraHeaders,
     },
   });
 }
