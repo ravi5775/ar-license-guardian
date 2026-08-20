@@ -25,6 +25,8 @@ export const listLicenses = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+import { sanitizeActivation } from "@/lib/dto-sanitizer";
+
 export const listActivations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -34,7 +36,7 @@ export const listActivations = createServerFn({ method: "GET" })
       .select("*, licenses(license_key, client_name)")
       .order("last_seen_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []).map(sanitizeActivation);
   });
 
 export const createLicense = createServerFn({ method: "POST" })

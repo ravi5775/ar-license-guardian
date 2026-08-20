@@ -751,6 +751,8 @@ function AlbumStage({
       {status === "ready" && (
         <div className="absolute top-4 inset-x-0 z-30 flex justify-center pointer-events-none px-14">
           <div
+            role="status"
+            aria-live="polite"
             className={`inline-flex items-center gap-2 rounded-full backdrop-blur px-3 py-1.5 text-xs transition-colors ${
               activeTarget
                 ? "bg-emerald-500/20 text-emerald-100"
