@@ -1,6 +1,18 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { getSessionContext, type SessionContext } from "@/lib/session.functions";
+import { logGateEvent } from "@/lib/diagnostics.functions";
+
+/** Fire-and-forget: diagnostics must never delay or break the gate. */
+function logGate(data: {
+  path: string;
+  decision: "allow" | "redirect" | "deny";
+  reason: string;
+  isAdmin?: boolean;
+  approval?: string | null;
+}) {
+  void logGateEvent({ data }).catch(() => {});
+}
 
 const AUTH_CACHE_MS = 60_000;
 
