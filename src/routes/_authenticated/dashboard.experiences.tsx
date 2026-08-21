@@ -56,7 +56,12 @@ function ExperiencesPage() {
   const updateFn = useServerFn(updateExperience);
   const deleteFn = useServerFn(deleteExperience);
 
-  const { data: items = [], isLoading, error, refetch } = useQuery({
+  const {
+    data: items = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["experiences"],
     queryFn: () => listFn(),
     staleTime: 60_000,
@@ -119,12 +124,20 @@ function ExperiencesPage() {
       </div>
 
       <div className="mb-6 empty:mb-0">
-        <QueryState isLoading={isLoading} error={error} onRetry={() => refetch()} label="experiences" />
+        <QueryState
+          isLoading={isLoading}
+          error={error}
+          onRetry={() => refetch()}
+          label="experiences"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((e: any) => (
-          <div key={e.id} className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden group">
+          <div
+            key={e.id}
+            className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden group"
+          >
             <div className="aspect-video bg-muted relative">
               {e.cover_image_url || e.cover_preview_url ? (
                 <img
@@ -207,9 +220,7 @@ function ExperiencesPage() {
         <ExperienceModal
           value={editing}
           onChange={setEditing}
-          existingSlugs={items
-            .filter((e: any) => e.id !== editing.id)
-            .map((e: any) => e.slug)}
+          existingSlugs={items.filter((e: any) => e.id !== editing.id).map((e: any) => e.slug)}
           onCancel={() => {
             setSaveError(null);
             setEditing(null);
@@ -281,10 +292,7 @@ function ExperienceModal({
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            const slug = uniqueSlug(
-              slugify(value.slug || value.title),
-              existingSlugs,
-            );
+            const slug = uniqueSlug(slugify(value.slug || value.title), existingSlugs);
             onSave({ ...value, slug });
           }}
           className="space-y-4"
@@ -321,7 +329,12 @@ function ExperienceModal({
           </div>
           <label className="text-sm block">
             <span className="text-muted-foreground">Description</span>
-            <textarea rows={2} value={value.description} onChange={(e) => set("description", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
+            <textarea
+              rows={2}
+              value={value.description}
+              onChange={(e) => set("description", e.target.value)}
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2"
+            />
           </label>
           <details className="rounded-md border border-border/60 bg-background/40 p-3">
             <summary className="cursor-pointer text-xs text-muted-foreground">
@@ -329,10 +342,14 @@ function ExperienceModal({
             </summary>
             <label className="text-sm block mt-3">
               <span className="text-muted-foreground">Custom cover image URL (advanced)</span>
-              <input type="url" value={value.cover_image_url} onChange={(e) => set("cover_image_url", e.target.value)} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2" />
+              <input
+                type="url"
+                value={value.cover_image_url}
+                onChange={(e) => set("cover_image_url", e.target.value)}
+                className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2"
+              />
             </label>
           </details>
-
 
           <div className="grid grid-cols-2 gap-4">
             <MediaUploader
@@ -368,30 +385,45 @@ function ExperienceModal({
             >
               MindAR compiler
             </a>{" "}
-            → download <code>targets.mind</code> → upload here. Without this, the viewer
-            falls back to plain camera + overlay (no image tracking).
+            → download <code>targets.mind</code> → upload here. Without this, the viewer falls back
+            to plain camera + overlay (no image tracking).
           </p>
-
 
           <div className="grid grid-cols-3 gap-4">
             <label className="text-sm">
               <span className="text-muted-foreground">Media type</span>
-              <select value={value.media_type} onChange={(e) => set("media_type", e.target.value as Draft["media_type"])} className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2">
+              <select
+                value={value.media_type}
+                onChange={(e) => set("media_type", e.target.value as Draft["media_type"])}
+                className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2"
+              >
                 <option value="video">Video</option>
                 <option value="image">Image</option>
               </select>
             </label>
             <label className="text-sm flex items-center gap-2 mt-6">
-              <input type="checkbox" checked={value.autoplay} onChange={(e) => set("autoplay", e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={value.autoplay}
+                onChange={(e) => set("autoplay", e.target.checked)}
+              />
               Autoplay
             </label>
             <label className="text-sm flex items-center gap-2 mt-6">
-              <input type="checkbox" checked={value.loop_playback} onChange={(e) => set("loop_playback", e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={value.loop_playback}
+                onChange={(e) => set("loop_playback", e.target.checked)}
+              />
               Loop
             </label>
           </div>
           <label className="text-sm flex items-center gap-2">
-            <input type="checkbox" checked={value.published} onChange={(e) => set("published", e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={value.published}
+              onChange={(e) => set("published", e.target.checked)}
+            />
             Published (visible to public)
           </label>
           <label className="text-sm flex items-center gap-2">
@@ -411,10 +443,18 @@ function ExperienceModal({
             </div>
           )}
           <div className="flex justify-end gap-2 pt-4 border-t border-border/60">
-            <button type="button" onClick={onCancel} className="px-4 py-2 text-sm rounded-md border border-border hover:bg-accent">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 text-sm rounded-md border border-border hover:bg-accent"
+            >
               Cancel
             </button>
-            <button disabled={saving} type="submit" className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+            <button
+              disabled={saving}
+              type="submit"
+              className="px-4 py-2 text-sm rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
               {saving ? "Saving…" : "Save"}
             </button>
           </div>

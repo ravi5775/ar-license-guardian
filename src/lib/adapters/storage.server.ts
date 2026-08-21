@@ -117,12 +117,9 @@ export async function presign(
     "UNSIGNED-PAYLOAD",
   ].join("\n");
 
-  const stringToSign = [
-    "AWS4-HMAC-SHA256",
-    amzDate,
-    scope,
-    await sha256Hex(canonicalRequest),
-  ].join("\n");
+  const stringToSign = ["AWS4-HMAC-SHA256", amzDate, scope, await sha256Hex(canonicalRequest)].join(
+    "\n",
+  );
 
   let signingKey = await hmac(enc.encode(`AWS4${cfg.secretAccessKey}`), dateStamp);
   signingKey = await hmac(signingKey, "auto");
@@ -148,10 +145,7 @@ export async function put(
   if (!res.ok) throw new Error(`storage.put failed [${res.status}]: ${await res.text()}`);
 }
 
-export async function get(
-  key: string,
-  cfg: StorageConfig = storageConfig(),
-): Promise<ArrayBuffer> {
+export async function get(key: string, cfg: StorageConfig = storageConfig()): Promise<ArrayBuffer> {
   const url = await presign("GET", key, 300, cfg);
   const res = await fetch(url);
   if (!res.ok) throw new Error(`storage.get failed [${res.status}]: ${await res.text()}`);

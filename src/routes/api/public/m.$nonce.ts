@@ -21,9 +21,7 @@ export const Route = createFileRoute("/api/public/m/$nonce")({
           return new Response("Not found", { status: 404 });
         }
 
-        const { supabaseAdmin } = await import(
-          "@/integrations/supabase/client.server"
-        );
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { sha256Hex } = await import("@/lib/content-access.server");
 
         const { data, error } = await supabaseAdmin.rpc("consume_media_nonce", {
@@ -32,8 +30,7 @@ export const Route = createFileRoute("/api/public/m/$nonce")({
 
         // Already used, expired, or never existed — one indistinguishable
         // answer, so a prober cannot tell which.
-        const path = (data as { storage_path: string }[] | null)?.[0]
-          ?.storage_path;
+        const path = (data as { storage_path: string }[] | null)?.[0]?.storage_path;
         if (error || !path) {
           return new Response("This link has already been used.", {
             status: 410,

@@ -8,7 +8,9 @@ import { QueryState } from "@/components/QueryState";
 
 export const Route = createFileRoute("/_authenticated/dashboard/audit")({
   beforeLoad: async () => {
-    const ok = await assertAdmin().then(() => true).catch(() => false);
+    const ok = await assertAdmin()
+      .then(() => true)
+      .catch(() => false);
     if (!ok) {
       toast.error("You don't have access to the audit log.");
       throw redirect({ to: "/dashboard" });
@@ -17,10 +19,14 @@ export const Route = createFileRoute("/_authenticated/dashboard/audit")({
   component: AuditPage,
 });
 
-
 function AuditPage() {
   const fn = useServerFn(listAuditLog);
-  const { data: rows = [], isLoading, error, refetch } = useQuery({
+  const {
+    data: rows = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["audit"],
     queryFn: () => fn(),
     staleTime: 30_000,
@@ -29,7 +35,9 @@ function AuditPage() {
   return (
     <div className="p-8 max-w-6xl">
       <h1 className="text-3xl font-serif italic mb-1">Audit log</h1>
-      <p className="text-sm text-muted-foreground mb-8">Recent admin actions across the platform.</p>
+      <p className="text-sm text-muted-foreground mb-8">
+        Recent admin actions across the platform.
+      </p>
 
       <QueryState isLoading={isLoading} error={error} onRetry={() => refetch()} label="audit log" />
 
@@ -46,10 +54,13 @@ function AuditPage() {
           <tbody className="divide-y divide-border/60">
             {rows.map((r: any) => (
               <tr key={r.id}>
-                <td className="px-4 py-3 text-xs whitespace-nowrap">{new Date(r.created_at).toLocaleString()}</td>
+                <td className="px-4 py-3 text-xs whitespace-nowrap">
+                  {new Date(r.created_at).toLocaleString()}
+                </td>
                 <td className="px-4 py-3 font-mono text-xs">{r.action}</td>
                 <td className="px-4 py-3 text-xs">
-                  {r.target_type} <span className="text-muted-foreground">{r.target_id?.slice(0, 8)}</span>
+                  {r.target_type}{" "}
+                  <span className="text-muted-foreground">{r.target_id?.slice(0, 8)}</span>
                 </td>
                 <td className="px-4 py-3 text-xs text-muted-foreground font-mono">
                   {r.metadata ? JSON.stringify(r.metadata) : "—"}

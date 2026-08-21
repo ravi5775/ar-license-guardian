@@ -39,17 +39,15 @@ export const Route = createFileRoute("/api/public/licence/manifest")({
         try {
           const input = Schema.parse(await request.json());
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { error } = await supabaseAdmin
-            .from("release_manifests")
-            .upsert(
-              {
-                build_id: input.buildId,
-                asset_digest: input.assetDigest,
-                signature: input.signature,
-                branch: input.branch,
-              },
-              { onConflict: "build_id" },
-            );
+          const { error } = await supabaseAdmin.from("release_manifests").upsert(
+            {
+              build_id: input.buildId,
+              asset_digest: input.assetDigest,
+              signature: input.signature,
+              branch: input.branch,
+            },
+            { onConflict: "build_id" },
+          );
           if (error) return json({ ok: false, error: error.message }, 500);
           return json({ ok: true });
         } catch (e) {

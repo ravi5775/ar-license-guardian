@@ -52,11 +52,53 @@ export function DossierDiagram() {
             role="img"
             aria-label="A phone scanning a printed photo"
           >
-            <rect x={35} y={10} width={130} height={300} rx={20} fill="var(--surface-elevated)" stroke="var(--primary)" strokeOpacity={0.5} />
-            <rect x={47} y={30} width={106} height={260} rx={10} fill="var(--background)" stroke="var(--border)" />
-            <rect x={69} y={85} width={62} height={62} rx={8} fill="none" stroke="var(--primary)" strokeOpacity={0.8} strokeWidth={3} />
-            <line x1={69} y1={200} x2={131} y2={200} stroke="var(--primary)" strokeOpacity={0.6} strokeWidth={2} />
-            <text x={100} y={245} textAnchor="middle" fontSize={13} fill="var(--muted-foreground)" fontFamily="var(--font-mono)">
+            <rect
+              x={35}
+              y={10}
+              width={130}
+              height={300}
+              rx={20}
+              fill="var(--surface-elevated)"
+              stroke="var(--primary)"
+              strokeOpacity={0.5}
+            />
+            <rect
+              x={47}
+              y={30}
+              width={106}
+              height={260}
+              rx={10}
+              fill="var(--background)"
+              stroke="var(--border)"
+            />
+            <rect
+              x={69}
+              y={85}
+              width={62}
+              height={62}
+              rx={8}
+              fill="none"
+              stroke="var(--primary)"
+              strokeOpacity={0.8}
+              strokeWidth={3}
+            />
+            <line
+              x1={69}
+              y1={200}
+              x2={131}
+              y2={200}
+              stroke="var(--primary)"
+              strokeOpacity={0.6}
+              strokeWidth={2}
+            />
+            <text
+              x={100}
+              y={245}
+              textAnchor="middle"
+              fontSize={13}
+              fill="var(--muted-foreground)"
+              fontFamily="var(--font-mono)"
+            >
               scan
             </text>
           </svg>
@@ -70,7 +112,9 @@ export function DossierDiagram() {
               className="rounded-xl border border-border/60 bg-card/40 p-5 text-center"
             >
               <p className="text-sm sm:text-base text-foreground">{n.label}</p>
-              <p className="mt-2 font-mono text-[11px] leading-snug text-muted-foreground">{n.sub}</p>
+              <p className="mt-2 font-mono text-[11px] leading-snug text-muted-foreground">
+                {n.sub}
+              </p>
             </li>
           ))}
         </ul>

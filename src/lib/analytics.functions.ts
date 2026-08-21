@@ -15,7 +15,13 @@ const EventInput = z.object({
     "recognition_timeout",
   ]),
   session_id: z.string().min(6).max(64),
-  duration_ms: z.number().int().min(0).max(6 * 60 * 60 * 1000).optional().nullable(),
+  duration_ms: z
+    .number()
+    .int()
+    .min(0)
+    .max(6 * 60 * 60 * 1000)
+    .optional()
+    .nullable(),
 });
 
 /**
@@ -43,21 +49,15 @@ export const logScanEvent = createServerFn({ method: "POST" })
     ]);
     if (!byIp.allowed || !bySession.allowed) return { ok: false as const };
 
-    const sb = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!,
-      {
-        auth: {
-          persistSession: false,
-          autoRefreshToken: false,
-          storage: undefined,
-        },
+    const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        storage: undefined,
       },
-    );
+    });
 
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: album } = await supabaseAdmin
       .from("albums")
       .select("id")
@@ -88,7 +88,6 @@ export const logScanEvent = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-
 export type PhotoStat = {
   target_index: number;
   title: string;
@@ -102,14 +101,10 @@ export type PhotoStat = {
 export const getAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) =>
-    z
-      .object({ days: z.number().int().min(1).max(365).default(30) })
-      .parse(raw ?? {}),
+    z.object({ days: z.number().int().min(1).max(365).default(30) }).parse(raw ?? {}),
   )
   .handler(async ({ data, context }) => {
-    const since = new Date(
-      Date.now() - data.days * 24 * 60 * 60 * 1000,
-    ).toISOString();
+    const since = new Date(Date.now() - data.days * 24 * 60 * 60 * 1000).toISOString();
 
     const { data: albums, error: aErr } = await context.supabase
       .from("albums")
@@ -138,9 +133,7 @@ export const getAnalytics = createServerFn({ method: "GET" })
       const identifiedSessions = new Set(
         ev.filter((e) => e.event_type === "target_found").map((e) => e.session_id),
       ).size;
-      const timeouts = ev.filter(
-        (e) => e.event_type === "recognition_timeout",
-      ).length;
+      const timeouts = ev.filter((e) => e.event_type === "recognition_timeout").length;
 
       const photos: PhotoStat[] = (exps ?? [])
         .filter((x) => x.album_id === album.id)
@@ -150,9 +143,7 @@ export const getAnalytics = createServerFn({ method: "GET" })
           const pe = ev.filter((e) => e.target_index === idx);
           const found = pe.filter((e) => e.event_type === "target_found");
           const starts = pe.filter((e) => e.event_type === "playback_start").length;
-          const completes = pe.filter(
-            (e) => e.event_type === "playback_complete",
-          ).length;
+          const completes = pe.filter((e) => e.event_type === "playback_complete").length;
           const detects = found
             .map((e) => e.duration_ms)
             .filter((n): n is number => typeof n === "number");
@@ -175,9 +166,7 @@ export const getAnalytics = createServerFn({ method: "GET" })
         slug: album.slug,
         scans: opens,
         identified_sessions: identifiedSessions,
-        identification_rate: opens
-          ? Math.round((identifiedSessions / opens) * 100)
-          : 0,
+        identification_rate: opens ? Math.round((identifiedSessions / opens) * 100) : 0,
         timeouts,
         photos,
       };
@@ -190,8 +179,7 @@ export const getAnalytics = createServerFn({ method: "GET" })
         identified: perAlbum.reduce((a, b) => a + b.identified_sessions, 0),
         timeouts: perAlbum.reduce((a, b) => a + b.timeouts, 0),
         plays: rows.filter((e) => e.event_type === "playback_start").length,
-        completions: rows.filter((e) => e.event_type === "playback_complete")
-          .length,
+        completions: rows.filter((e) => e.event_type === "playback_complete").length,
       },
       albums: perAlbum,
     };

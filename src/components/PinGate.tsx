@@ -53,8 +53,8 @@ export function PinGate({
         <Lock className="mx-auto h-7 w-7 text-primary mb-4" />
         <h1 className="text-2xl font-serif italic mb-1">{title}</h1>
         <p className="text-sm text-muted-foreground mb-6">
-          This {kind === "album" ? "album" : "experience"} is private. Enter the
-          PIN printed on your card.
+          This {kind === "album" ? "album" : "experience"} is private. Enter the PIN printed on your
+          card.
         </p>
 
         <input

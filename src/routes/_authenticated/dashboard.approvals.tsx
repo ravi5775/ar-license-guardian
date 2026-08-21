@@ -10,7 +10,9 @@ import { Check, Clock, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/approvals")({
   beforeLoad: async () => {
-    const ok = await assertAdmin().then(() => true).catch(() => false);
+    const ok = await assertAdmin()
+      .then(() => true)
+      .catch(() => false);
     if (!ok) {
       toast.error("You don't have access to account approvals.");
       throw redirect({ to: "/dashboard" });
@@ -31,7 +33,12 @@ function ApprovalsPage() {
   const decideFn = useServerFn(decideAccount);
   const [filter, setFilter] = useState<"pending" | "all">("pending");
 
-  const { data: accounts = [], isLoading, error, refetch } = useQuery({
+  const {
+    data: accounts = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["accounts"],
     queryFn: () => listFn(),
     staleTime: 15_000,
@@ -142,9 +149,7 @@ function ApprovalsPage() {
                       {a.approval_status !== "approved" && (
                         <button
                           disabled={decide.isPending}
-                          onClick={() =>
-                            decide.mutate({ userId: a.id, decision: "approved" })
-                          }
+                          onClick={() => decide.mutate({ userId: a.id, decision: "approved" })}
                           className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground px-3 py-1.5 text-xs disabled:opacity-50"
                         >
                           <Check className="h-3.5 w-3.5" /> Approve

@@ -103,9 +103,7 @@ export function MediaUploader({ label, accept, currentPath, onUploaded, prefix }
       await enforceFn({ data: { path: signed.path } });
 
       onUploaded(signed.path);
-      toast.success(
-        savings ? `${label} uploaded — compressed ${savings}` : `${label} uploaded`,
-      );
+      toast.success(savings ? `${label} uploaded — compressed ${savings}` : `${label} uploaded`);
     } catch (e: any) {
       toast.error(e.message ?? "Upload failed");
     } finally {

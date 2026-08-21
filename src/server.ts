@@ -58,7 +58,11 @@ function applyCachePolicy(request: Request, response: Response): Response {
     if (!response.headers.has("cache-control")) {
       const headers = new Headers(response.headers);
       headers.set("cache-control", "public, max-age=31536000, immutable");
-      return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
     }
     return response;
   }
@@ -68,7 +72,11 @@ function applyCachePolicy(request: Request, response: Response): Response {
     headers.set("cache-control", "no-cache, no-store, must-revalidate");
     headers.set("pragma", "no-cache");
     headers.set("expires", "0");
-    return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
   }
 
   return response;
@@ -92,4 +100,3 @@ export default {
     }
   },
 };
-
