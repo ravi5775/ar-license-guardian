@@ -18,25 +18,26 @@ const Schema = z.object({
 export const Route = createFileRoute("/api/public/licence/release")({
   server: {
     handlers: {
-      OPTIONS: async () => json({ ok: true }),
+      OPTIONS: async ({ request }) => json({ ok: true }, 200, {}, request),
       POST: async ({ request }) => {
         let input: z.infer<typeof Schema>;
         try {
           input = Schema.parse(await request.json());
         } catch (e) {
-          return json({ ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" }, 400);
+          return json({ ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" }, 400, {}, request);
         }
 
         // Mutation → fail closed.
         const { allowed } = await check(`licence:release:${clientIp(request) ?? "unknown"}`, 5, 3600, {
           failMode: "closed",
         });
-        if (!allowed) return json({ ok: false, error: "RATE_LIMITED" }, 429);
+        if (!allowed) return json({ ok: false, error: "RATE_LIMITED" }, 429, {}, request);
 
         const result = await releaseDevice(input.licenceKey, input.deviceSecret);
-        if (!result.ok) return json({ ok: false, error: result.error }, result.status);
-        return json({ ok: true, releaseAfter: result.releaseAfter });
+        if (!result.ok) return json({ ok: false, error: result.error }, result.status, {}, request);
+        return json({ ok: true, releaseAfter: result.releaseAfter }, 200, {}, request);
       },
     },
   },
 });
+

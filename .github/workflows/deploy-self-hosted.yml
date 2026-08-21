@@ -1,11 +1,40 @@
-name: Build self-hosted image (GHCR)
+name: Production Pipeline — Deploy Self-Hosted (GHCR & Coolify)
 
 on:
   push:
     branches: [self-hosted]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-self-hosted
+  cancel-in-progress: false
 
 jobs:
-  image:
+  pre-deploy-verification:
+    name: Pre-Deploy Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Lint Check
+        run: bun run lint
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Unit & Security Tests
+        run: bun test tests/api-contract.test.ts tests/dto-sanitizer.test.ts tests/env-and-adapters.test.ts tests/rate-limiter.test.ts tests/security-critical-fixes.test.ts tests/security-headers.test.ts tests/upload-security.test.ts tests/comprehensive-security-regression.test.ts
+        env:
+          RUNTIME: node
+          DB_DRIVER: postgres
+          RATELIMIT_DRIVER: postgres
+          LICENCE_ROLE: issuer
+
+  build-and-push:
+    name: Build & Publish Container Image
+    needs: [pre-deploy-verification]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,7 +54,37 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:self-hosted
             ghcr.io/${{ github.repository }}:${{ github.sha }}
-      # Coolify pulls from GHCR on push — a client deploy is one webhook.
-      - name: Trigger Coolify
+      - name: Trigger Coolify Webhook
         if: ${{ secrets.COOLIFY_WEBHOOK != '' }}
-        run: curl -fsS -X POST "${{ secrets.COOLIFY_WEBHOOK }}"
+        run: |
+          echo "Triggering Coolify deployment webhook..."
+          curl -fsS -X POST "${{ secrets.COOLIFY_WEBHOOK }}"
+
+  post-deploy-smoke:
+    name: Post-Deploy Verification & Rollback Metadata
+    needs: [build-and-push]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify Health or Record Rollback Metadata
+        run: |
+          if [ -n "${{ vars.SELF_HOSTED_DEPLOY_URL }}" ]; then
+            echo "Running live smoke tests against ${{ vars.SELF_HOSTED_DEPLOY_URL }}..."
+            node scripts/post-deploy-smoke.mjs
+          else
+            echo "## 🛡️ Self-Hosted Container Release Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Image Tag:** \`ghcr.io/${{ github.repository }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Latest Tag:** \`ghcr.io/${{ github.repository }}:self-hosted\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔄 Rollback Readiness Instructions" >> $GITHUB_STEP_SUMMARY
+            echo "- To roll back in Coolify or Docker Compose, set image tag to the previous commit SHA." >> $GITHUB_STEP_SUMMARY
+            echo "- Docker pull command: \`docker pull ghcr.io/${{ github.repository }}:${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          DEPLOY_URL: ${{ vars.SELF_HOSTED_DEPLOY_URL }}
+          GITHUB_SHA: ${{ github.sha }}
+          DEPLOY_ENV: self-hosted-docker

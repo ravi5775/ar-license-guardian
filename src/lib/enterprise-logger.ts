@@ -92,6 +92,23 @@ export class EnterpriseLogger {
         : { rawError: String(error), ...meta };
     this.emit("error", event, errMeta);
   }
+  static forRequest(requestId?: string | Request): EnterpriseLogger {
+    if (requestId instanceof Request) {
+      return new EnterpriseLogger(getRequestId(requestId));
+    }
+    return new EnterpriseLogger(requestId);
+  }
+}
+
+/** Extracts or generates a correlation ID from standard headers (Cloudflare Ray, X-Request-ID, Traceparent). */
+export function getRequestId(request?: Request): string {
+  if (!request) return crypto.randomUUID();
+  return (
+    request.headers.get("x-request-id") ||
+    request.headers.get("cf-ray") ||
+    request.headers.get("traceparent") ||
+    crypto.randomUUID()
+  );
 }
 
 /** Global default logger instance */
@@ -111,3 +128,4 @@ export function normalizeUserError(error: unknown): { ok: false; error: string; 
   }
   return { ok: false, error: "Bad request" };
 }
+

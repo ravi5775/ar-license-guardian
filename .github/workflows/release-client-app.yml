@@ -1,17 +1,49 @@
-name: Release client-app (build + signed manifest)
+name: Production Pipeline — Release Client-App (Signed Manifest & Bundle)
 
 on:
   push:
     branches: [client-app]
+  workflow_dispatch:
+
+concurrency:
+  group: release-client-app
+  cancel-in-progress: false
 
 jobs:
-  release:
+  pre-release-verification:
+    name: Pre-Release Quality Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - name: Build
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Lint Check
+        run: bun run lint
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Unit & Security Tests
+        run: bun test tests/api-contract.test.ts tests/dto-sanitizer.test.ts tests/env-and-adapters.test.ts tests/rate-limiter.test.ts tests/security-critical-fixes.test.ts tests/security-headers.test.ts tests/upload-security.test.ts tests/comprehensive-security-regression.test.ts
+        env:
+          RUNTIME: edge
+          DB_DRIVER: none
+          RATELIMIT_DRIVER: memory
+          LICENCE_ROLE: client
+
+  release:
+    name: Build, Sign & Package Client Bundle
+    needs: [pre-release-verification]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build Client Bundle
         run: bun run build
         env:
           LICENCE_ROLE: client
@@ -20,14 +52,27 @@ jobs:
           VITE_BUILD_ID: ${{ github.sha }}
           VITE_LICENCE_API_URL: ${{ vars.LICENCE_API_URL }}
           VITE_LICENCE_PUBLIC_KEY: ${{ vars.LICENCE_PUBLIC_KEY }}
-      - name: Sign + publish asset manifest
+          NODE_ENV: production
+      - name: Sign & Publish Asset Manifest
         run: node scripts/sign-manifest.mjs dist/client
         env:
           BUILD_ID: ${{ github.sha }}
           LICENCE_PRIVATE_KEY_JWK: ${{ secrets.LICENCE_PRIVATE_KEY_JWK }}
           LICENCE_API_URL: ${{ vars.LICENCE_API_URL }}
           RELEASE_MANIFEST_SECRET: ${{ secrets.RELEASE_MANIFEST_SECRET }}
-      - uses: actions/upload-artifact@v4
+      - name: Upload Client Distribution Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: client-app-${{ github.sha }}
           path: dist
+          retention-days: 90
+      - name: Publish Release Summary
+        run: |
+          echo "## 📦 Client-App Distribution Release" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Build ID:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Manifest Signed:** ✅ Ed25519 Signature Generated" >> $GITHUB_STEP_SUMMARY
+          echo "**Artifact:** \`client-app-${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔄 Rollback Readiness" >> $GITHUB_STEP_SUMMARY
+          echo "- To roll back a client deployment, redeploy previous artifact from GitHub Actions artifacts or re-run previous release workflow." >> $GITHUB_STEP_SUMMARY

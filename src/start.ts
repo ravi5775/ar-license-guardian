@@ -48,7 +48,7 @@ const CSP = [
   "upgrade-insecure-requests",
 ].join("; ");
 
-const SECURITY_HEADERS: Record<string, string> = {
+export const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": CSP,
   "X-Frame-Options": "DENY",
   "X-Content-Type-Options": "nosniff",
@@ -62,17 +62,28 @@ const SECURITY_HEADERS: Record<string, string> = {
     "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(self), accelerometer=(self)",
 };
 
+export function applySecurityHeaders(response: Response, requestId?: string): Response {
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    if (!response.headers.has(key)) response.headers.set(key, value);
+  }
+  if (requestId && !response.headers.has("x-request-id")) {
+    response.headers.set("x-request-id", requestId);
+  }
+  return response;
+}
+
 const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
+  const reqId = crypto.randomUUID();
   const response = await next();
   if (response instanceof Response) {
-    for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
-      if (!response.headers.has(key)) response.headers.set(key, value);
-    }
+    applySecurityHeaders(response, reqId);
   }
   return response;
 });
+
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
   requestMiddleware: [securityHeadersMiddleware, errorMiddleware],
 }));
+

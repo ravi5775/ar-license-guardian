@@ -40,9 +40,13 @@ export function rateLimitDriver(): RateLimitDriver {
 /**
  * "issuer" on main + self-hosted, "client" on client-app.
  * The licence issuer must NEVER be deployed to a customer.
+ *
+ * Default is "client" (least privilege). Admin builds MUST explicitly set
+ * LICENCE_ROLE=issuer. An unconfigured deployment is never accidentally
+ * promoted to an admin build.
  */
 export function licenceRole(): LicenceRole {
-  return (env("LICENCE_ROLE") as LicenceRole) ?? "issuer";
+  return (env("LICENCE_ROLE") as LicenceRole) ?? "client";
 }
 
 export function requireEnv(name: string): string {

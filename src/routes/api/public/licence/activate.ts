@@ -24,13 +24,13 @@ const Schema = z.object({
 export const Route = createFileRoute("/api/public/licence/activate")({
   server: {
     handlers: {
-      OPTIONS: async () => json({ ok: true }),
+      OPTIONS: async ({ request }) => json({ ok: true }, 200, {}, request),
       POST: async ({ request }) => {
         let input: z.infer<typeof Schema>;
         try {
           input = Schema.parse(await request.json());
         } catch (e) {
-          return json({ ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" }, 400);
+          return json({ ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" }, 400, {}, request);
         }
 
         const ip = clientIp(request);
@@ -44,7 +44,13 @@ export const Route = createFileRoute("/api/public/licence/activate")({
         ] as const) {
           const { allowed, degraded } = await check(key, limit, win, { failMode: "closed" });
           if (!allowed) {
-            return json({ ok: false, error: degraded ? "RATE_LIMITER_DOWN" : "RATE_LIMITED" }, 429);
+            return json(
+              { ok: false, error: degraded ? "RATE_LIMITER_DOWN" : "RATE_LIMITED" },
+              429,
+              {},
+              request,
+              originHost,
+            );
           }
         }
 
@@ -61,19 +67,26 @@ export const Route = createFileRoute("/api/public/licence/activate")({
           label: input.label ?? null,
         });
 
-        if (!result.ok) return json({ ok: false, error: result.error }, result.status);
-        return json({
-          ok: true,
-          token: result.token,
-          plan: result.plan,
-          features: result.features,
-          expiresIn: result.expiresIn,
-          graceHours: result.graceHours,
-          deviceId: result.deviceId,
-          // Shown exactly once. The client stores it; the server keeps only a hash.
-          deviceSecret: result.deviceSecret,
-        });
+        if (!result.ok) return json({ ok: false, error: result.error }, result.status, {}, request, originHost);
+        return json(
+          {
+            ok: true,
+            token: result.token,
+            plan: result.plan,
+            features: result.features,
+            expiresIn: result.expiresIn,
+            graceHours: result.graceHours,
+            deviceId: result.deviceId,
+            // Shown exactly once. The client stores it; the server keeps only a hash.
+            deviceSecret: result.deviceSecret,
+          },
+          200,
+          {},
+          request,
+          originHost,
+        );
       },
     },
   },
 });
+

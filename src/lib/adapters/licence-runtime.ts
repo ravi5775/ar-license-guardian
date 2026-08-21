@@ -13,7 +13,17 @@ const STORAGE_LAST_OK = "aether.licence.lastOk";
 /** Server-minted device identity. The fingerprint is only a support signal. */
 const STORAGE_DEVICE_SECRET = "aether.licence.deviceSecret";
 const REFRESH_EVERY_MS = 12 * 60 * 60 * 1000; // 12h
-const DEFAULT_GRACE_HOURS = 72;
+/**
+ * §4.5 Grace hours — reduced from 72h to 24h.
+ * A cracked deployment now goes dark within one day without a server check-in.
+ * The server can override this per-licence via the JWT `grace` claim.
+ * Env: VITE_LICENCE_GRACE_HOURS (optional, integer, max 48).
+ */
+const _envGrace = parseInt(
+  (import.meta.env as Record<string, string>)["VITE_LICENCE_GRACE_HOURS"] ?? "",
+  10,
+);
+const DEFAULT_GRACE_HOURS = Number.isFinite(_envGrace) && _envGrace > 0 ? Math.min(_envGrace, 48) : 24;
 
 export interface LicencePayload {
   sub: string;
@@ -38,6 +48,28 @@ export interface LicenceState {
 
 function envVar(name: string): string | undefined {
   return (import.meta.env as Record<string, string | undefined>)[name];
+}
+
+/**
+ * Build integrity check — runs once at module load on the client-app branch.
+ * Ensures VITE_CUSTOMER_ID, VITE_BUILD_ID, and VITE_RELEASE_HASH are present
+ * and non-placeholder. If missing, the app renders in a locked state.
+ * This is NOT a security gate (JS is client-side) but it prevents accidental
+ * deployments of un-provisioned builds and catches mis-configurations early.
+ */
+export function buildIntegrityOk(): boolean {
+  const customerId = envVar("VITE_CUSTOMER_ID");
+  const buildId = envVar("VITE_BUILD_ID");
+  const releaseHash = envVar("VITE_RELEASE_HASH");
+  // Placeholders that provision-client.mjs replaces at generation time
+  const PLACEHOLDERS = ["", "REPLACE_ME", "YOUR_CUSTOMER_ID", "undefined", "null"];
+  if (!customerId || PLACEHOLDERS.includes(customerId)) return false;
+  if (!buildId || PLACEHOLDERS.includes(buildId)) return false;
+  // release hash is optional in dev but required in production
+  if (envVar("VITE_NODE_ENV") === "production") {
+    if (!releaseHash || PLACEHOLDERS.includes(releaseHash)) return false;
+  }
+  return true;
 }
 
 export function isLicenceEnforced() {

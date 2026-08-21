@@ -61,7 +61,14 @@ export interface IssuedLicence {
 }
 
 const TOKEN_TTL_SEC = 60 * 60 * 24; // 24h
-const GRACE_HOURS = 72; // §4.5
+/**
+ * §4.5 Grace hours — reduced from 72h to 24h.
+ * Override per-deployment via LICENCE_GRACE_HOURS env var (max 48).
+ * The value is embedded in the issued JWT so the client uses the
+ * server's authoritative setting, not its own default.
+ */
+const _cfgGrace = parseInt(process.env.LICENCE_GRACE_HOURS ?? "", 10);
+const GRACE_HOURS = Number.isFinite(_cfgGrace) && _cfgGrace > 0 ? Math.min(_cfgGrace, 48) : 24; // §4.5
 const RELEASE_COOLDOWN_HOURS = 12; // §4.4
 const NOTIFY_DEDUP_HOURS = 24; // §4.8
 const enc = new TextEncoder();
@@ -117,6 +124,7 @@ const SEVERITY: Record<string, Severity> = {
   unknown_build: "high",
   digest_mismatch: "critical",
   origin_not_allowed: "high",
+  origins_not_configured: "high",
   device_limit: "high",
   device_secret_mismatch: "critical",
   duplicate_deployment: "critical",
@@ -241,7 +249,11 @@ function attestationAllows(a: Attested): boolean {
 /* ------------------------------------------------------------------ origin */
 
 function originAllowed(allowed: string[] | null, host: string | null) {
-  if (!allowed || allowed.length === 0) return true; // not yet configured
+  // Deny-by-default: an unconfigured licence (no allowed_origins set) must
+  // not accept activations from any origin. An admin must explicitly allow
+  // at least one origin before the licence can be used in production.
+  // This prevents newly-created licences from being exploited before setup.
+  if (!allowed || allowed.length === 0) return false;
   if (!host) return false;
   const h = host.toLowerCase().replace(/:\d+$/, "");
   return allowed.some((a) => {
@@ -321,10 +333,17 @@ async function commonChecks(input: ActivateInput): Promise<Checked> {
     ip: input.ip,
   };
 
-  if (!originAllowed(licence.allowed_origins as string[] | null, input.originHost)) {
+  const allowedOrigins = licence.allowed_origins as string[] | null;
+  if (!originAllowed(allowedOrigins, input.originHost)) {
+    // Separate violation kinds so admins can distinguish "licence was never
+    // configured" from "known bad actor using an unlisted origin".
+    const violationKind =
+      !allowedOrigins || allowedOrigins.length === 0
+        ? "origins_not_configured"
+        : "origin_not_allowed";
     await recordViolation(
-      "origin_not_allowed",
-      { originHost: input.originHost, allowed: licence.allowed_origins },
+      violationKind,
+      { originHost: input.originHost, allowed: allowedOrigins },
       ctx,
     );
     return { ok: false, failure: fail(403, "ORIGIN_NOT_ALLOWED") };

@@ -54,10 +54,29 @@ export function validateMagicBytes(buffer: Uint8Array, extension: string): boole
       // WebM EBML header: 1A 45 DF A3
       return hex.startsWith("1A 45 DF A3");
 
-    case "mind":
     case "glb":
+      // GLB (Binary glTF 2.0): magic = 0x67 0x6C 0x54 0x46 ("glTF")
+      // Spec: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#binary-gltf-layout
+      return (
+        buffer[0] === 0x67 &&
+        buffer[1] === 0x6c &&
+        buffer[2] === 0x54 &&
+        buffer[3] === 0x46
+      );
+
+    case "mind":
+      // MindAR compiled target (.mind): the format begins with the ASCII
+      // string "MIND" (0x4D 0x49 0x4E 0x44) followed by a version varint.
+      // Source: https://github.com/hiukim/mind-ar-js internal format docs.
+      return (
+        buffer[0] === 0x4d &&
+        buffer[1] === 0x49 &&
+        buffer[2] === 0x4e &&
+        buffer[3] === 0x44
+      );
+
     case "bin":
-      // MindAR binary / GLB 3D model
+      // Generic binary — no magic defined; accept without check.
       return true;
 
     default:

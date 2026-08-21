@@ -98,18 +98,32 @@ async function getBackend(): Promise<Backend> {
   else if (driver === "redis") backend = await redisBackend();
   else if (driver === "postgres") backend = await postgresBackend();
   else {
-    // `memory` is per-isolate and therefore not a rate limit at all once more
-    // than one worker is running. It must never reach production.
-    if ((readEnv("NODE_ENV") ?? "development") === "production") {
+    // `memory` is per-isolate and therefore NOT a real rate limit once more
+    // than one worker is running. Hard rules:
+    //   1. Admin builds (LICENCE_ROLE=issuer) must never use it — they issue
+    //      tokens and write to the DB; an outage must never become unlimited.
+    //   2. Edge runtime with multiple isolates makes the Map meaningless.
+    //   3. client-app builds in production must use a real driver too.
+    // The check covers all three without relying on NODE_ENV, which is not
+    // reliably injected by the Cloudflare Workers deploy workflow.
+    const role = readEnv("LICENCE_ROLE") ?? "client"; // default changed to "client"
+    const rt = readEnv("RUNTIME") ?? "edge";
+    const isAdminBuild = role === "issuer";
+    const isEdge = rt === "edge";
+    const isProduction = (readEnv("NODE_ENV") ?? "development") === "production";
+
+    if (isAdminBuild || isEdge || isProduction) {
       throw new Error(
-        "RATELIMIT_DRIVER=memory is a development-only driver and refuses to start in production. " +
-          "Set RATELIMIT_DRIVER to kv/upstash, redis, or postgres.",
+        "RATELIMIT_DRIVER=memory is a development-only driver and cannot start on " +
+          `this deployment (LICENCE_ROLE=${role}, RUNTIME=${rt}, NODE_ENV=${readEnv("NODE_ENV") ?? "development"}). ` +
+          "Set RATELIMIT_DRIVER to upstash, redis, or postgres.",
       );
     }
     backend = memoryBackend();
   }
   return backend;
 }
+
 
 /**
  * Returns allowed=false when the caller has exceeded `limit` in the window.

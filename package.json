@@ -8,8 +8,14 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "bun test",
+    "test:security": "bun test tests/security-headers.test.ts tests/security-critical-fixes.test.ts tests/comprehensive-security-regression.test.ts",
+    "test:rls": "bunx vitest run tests/rls-regression.test.ts",
+    "test:coverage": "bun test --coverage",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1102.0",
@@ -82,8 +88,10 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.5",
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.13.1",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^22.16.5",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.0",
@@ -103,7 +111,7 @@
     "vitest": "^4.1.10"
   },
   "overrides": {
-    "brace-expansion": ">=1.1.18",
+    "brace-expansion": ">=1.1.18 <2.0.0",
     "js-yaml": ">=4.3.1",
     "nanoid": ">=3.3.18",
     "postcss": ">=8.5.23"

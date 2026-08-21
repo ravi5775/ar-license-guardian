@@ -142,16 +142,19 @@ CREATE INDEX IF NOT EXISTS albums_slug_idx ON public.albums (slug);
 
 ALTER TABLE public.albums ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "albums_public_read" ON public.albums;
-CREATE POLICY "albums_public_read" ON public.albums
-  FOR SELECT TO anon, authenticated
-  USING (published = true);
-
-DROP POLICY IF EXISTS "albums_owner_all" ON public.albums;
-CREATE POLICY "albums_owner_all" ON public.albums
-  FOR ALL TO authenticated
-  USING (owner_id = auth.uid() OR public.has_role(auth.uid(), 'admin'))
-  WITH CHECK (owner_id = auth.uid() OR public.has_role(auth.uid(), 'admin'));
+-- IMPORTANT: Do NOT define album RLS policies here.
+-- The correct, approval-gated, owner-scoped policies live in migrations:
+--   20260726180452_*.sql  (albums_owner_read, albums_owner_insert, etc.)
+--   20260804104420_*.sql  (public_experiences view replaces anon table access)
+-- Running this file after those migrations would OVERWRITE the secure policies.
+-- The schema baseline below intentionally leaves album policies empty;
+-- apply migrations in order to get the full policy set.
+--
+-- Removed weak policy (DO NOT restore):
+--   albums_public_read: was SELECT for (anon, authenticated) with USING (published = true)
+--     → leaked: any authenticated user could read any tenant's published albums.
+--   albums_owner_all: was ALL for authenticated with USING (owner_id = auth.uid() OR has_role('admin'))
+--     → replaced by granular per-operation policies with is_approved() gate.
 
 -- 6. AR EXPERIENCES TABLE (Single & Album-Linked Scenes)
 CREATE TABLE IF NOT EXISTS public.ar_experiences (
@@ -190,16 +193,17 @@ CREATE INDEX IF NOT EXISTS ar_experiences_album_idx ON public.ar_experiences (al
 
 ALTER TABLE public.ar_experiences ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "ar_experiences_public_read" ON public.ar_experiences;
-CREATE POLICY "ar_experiences_public_read" ON public.ar_experiences
-  FOR SELECT TO anon, authenticated
-  USING (published = true);
-
-DROP POLICY IF EXISTS "ar_experiences_owner_all" ON public.ar_experiences;
-CREATE POLICY "ar_experiences_owner_all" ON public.ar_experiences
-  FOR ALL TO authenticated
-  USING (owner_id = auth.uid() OR public.has_role(auth.uid(), 'admin'))
-  WITH CHECK (owner_id = auth.uid() OR public.has_role(auth.uid(), 'admin'));
+-- IMPORTANT: Do NOT define ar_experiences RLS policies here.
+-- The correct, approval-gated, owner-scoped policies live in migrations:
+--   20260726180452_*.sql  (ar_experiences_owner_read, _insert_editor, etc.)
+--   20260804104420_*.sql  (public_experiences view replaces anon table access)
+-- Running this file after those migrations would OVERWRITE the secure policies.
+--
+-- Removed weak policy (DO NOT restore):
+--   ar_experiences_public_read: was SELECT for (anon, authenticated) with USING (published = true)
+--     → leaked: any authenticated user could read any tenant's published experiences.
+--   ar_experiences_owner_all: was ALL for authenticated with USING (owner_id = auth.uid() OR has_role('admin'))
+--     → replaced by granular per-operation policies with is_approved() gate.
 
 -- 7. MEDIA ACCESS NONCES TABLE (Single-use Link Protection)
 CREATE TABLE IF NOT EXISTS public.media_access_nonces (

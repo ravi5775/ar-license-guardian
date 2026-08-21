@@ -20,6 +20,14 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Local env — never commit real values
+.env
+.env.local
+.env.*.local
+.env.production
+# Per-client provisioning files (contain license keys)
+.env.client-*
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
