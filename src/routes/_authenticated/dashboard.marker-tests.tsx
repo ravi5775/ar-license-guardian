@@ -114,12 +114,10 @@ function MarkerTestsPage() {
 
   return (
     <div className="p-4 md:p-8 max-w-5xl">
-      <h1 className="text-2xl md:text-3xl font-serif italic mb-1">
-        Marker accuracy testing
-      </h1>
+      <h1 className="text-2xl md:text-3xl font-serif italic mb-1">Marker accuracy testing</h1>
       <p className="text-sm text-muted-foreground mb-6">
-        Work through the guided steps with a real printed photo and record what
-        actually happened. Results build your reliability baseline per print.
+        Work through the guided steps with a real printed photo and record what actually happened.
+        Results build your reliability baseline per print.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
@@ -153,9 +151,7 @@ function MarkerTestsPage() {
 
         <div className="grid gap-3 sm:grid-cols-2 mb-4">
           <label className="text-sm">
-            <span className="block text-xs text-muted-foreground mb-1">
-              Print / marker label
-            </span>
+            <span className="block text-xs text-muted-foreground mb-1">Print / marker label</span>
             <input
               value={markerLabel}
               onChange={(e) => setMarkerLabel(e.target.value)}
@@ -164,9 +160,7 @@ function MarkerTestsPage() {
             />
           </label>
           <label className="text-sm">
-            <span className="block text-xs text-muted-foreground mb-1">
-              Album (optional)
-            </span>
+            <span className="block text-xs text-muted-foreground mb-1">Album (optional)</span>
             <select
               value={albumId}
               onChange={(e) => setAlbumId(e.target.value)}
@@ -226,11 +220,7 @@ function MarkerTestsPage() {
           >
             <CircleAlert className="h-4 w-4" /> Unstable
           </OutcomeBtn>
-          <OutcomeBtn
-            tone="fail"
-            disabled={save.isPending}
-            onClick={() => save.mutate("fail")}
-          >
+          <OutcomeBtn tone="fail" disabled={save.isPending} onClick={() => save.mutate("fail")}>
             <XCircle className="h-4 w-4" /> No detection
           </OutcomeBtn>
         </div>
@@ -283,9 +273,7 @@ function MarkerTestsPage() {
                   <td className="px-3 py-2">
                     <OutcomeBadge outcome={r.outcome} />
                     {r.notes && (
-                      <div className="text-xs text-muted-foreground mt-1 max-w-xs">
-                        {r.notes}
-                      </div>
+                      <div className="text-xs text-muted-foreground mt-1 max-w-xs">{r.notes}</div>
                     )}
                   </td>
                   <td className="px-3 py-2">
@@ -322,11 +310,7 @@ function OutcomeBadge({ outcome }: { outcome: Outcome }) {
     partial: "bg-amber-500/15 text-amber-500",
     fail: "bg-destructive/15 text-destructive",
   };
-  return (
-    <span className={`rounded-full px-2 py-0.5 text-xs ${map[outcome]}`}>
-      {outcome}
-    </span>
-  );
+  return <span className={`rounded-full px-2 py-0.5 text-xs ${map[outcome]}`}>{outcome}</span>;
 }
 
 function OutcomeBtn({

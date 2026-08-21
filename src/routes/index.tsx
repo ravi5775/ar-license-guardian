@@ -17,30 +17,22 @@ import { TrustSignals } from "@/components/home/TrustSignals";
 import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
 import { useReducedMotionPref } from "@/hooks/use-motion-env";
 
-
-import {
-  Sparkles,
-  Shield,
-  Server,
-  ArrowUpRight,
-  Check,
-  Cpu,
-  ScanLine,
-} from "lucide-react";
-
+import { Sparkles, Shield, Server, ArrowUpRight, Check, Cpu, ScanLine } from "lucide-react";
 
 const HOME_TITLE = "Aether AR — Wedding AR Albums & Augmented Reality Photo Platform";
 const HOME_DESC =
   "Aether AR turns printed photos into video. Wedding AR albums, AR greeting cards, AR business cards and AR invitations — the photo itself is the marker, no QR printed on it, no app install. One-time white-label licence at ₹30,000.";
-
-
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: HOME_TITLE },
       { name: "description", content: HOME_DESC },
-      { name: "keywords", content: "wedding ar album, augmented reality photo album, ar photo app, ar greeting card, ar business card, ar wedding invitation, ar photo platform" },
+      {
+        name: "keywords",
+        content:
+          "wedding ar album, augmented reality photo album, ar photo app, ar greeting card, ar business card, ar wedding invitation, ar photo platform",
+      },
       { property: "og:title", content: HOME_TITLE },
       { property: "og:description", content: HOME_DESC },
       { property: "og:type", content: "website" },
@@ -67,9 +59,6 @@ export const Route = createFileRoute("/")({
   }),
   component: LandingPage,
 });
-
-
-
 
 function LandingPage() {
   const reduced = useReducedMotionPref();
@@ -106,13 +95,9 @@ function LandingPage() {
       <Pricing />
       <FinalCTA />
       <Footer />
-
     </div>
   );
 }
-
-
-
 
 /* ------------------------------ Hero ------------------------------- */
 
@@ -145,15 +130,18 @@ function Hero() {
           White-label AR platform · v1 shipping Q1
         </div>
 
-        <h1 data-hero-item className="text-5xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-tight">
+        <h1
+          data-hero-item
+          className="text-5xl sm:text-6xl lg:text-7xl leading-[0.95] tracking-tight"
+        >
           Turn any photo <br />
           into a <em className="text-primary not-italic font-display italic">portal</em>.
         </h1>
 
         <p data-hero-item className="mt-8 text-lg text-muted-foreground max-w-xl leading-relaxed">
-          Open the site, point at a printed photo, and it comes alive as video
-          or AR — no QR on the picture, no app install. Sold once for ₹30,000.
-          Deployed to accounts you own and control. Yours, forever.
+          Open the site, point at a printed photo, and it comes alive as video or AR — no QR on the
+          picture, no app install. Sold once for ₹30,000. Deployed to accounts you own and control.
+          Yours, forever.
         </p>
 
         <div data-hero-item className="mt-12 flex flex-wrap items-center gap-3">
@@ -182,8 +170,6 @@ function Hero() {
     </HeroVisual>
   );
 }
-
-
 
 /* --------------------------- Logo strip ---------------------------- */
 
@@ -216,8 +202,6 @@ function LogoStrip() {
 
 /* How it works now lives in <ProductReveal /> (cinematic pinned beats). */
 
-
-
 /* ---------------------------- Features ----------------------------- */
 
 function Features() {
@@ -244,14 +228,11 @@ function Features() {
     },
   ];
 
-
   return (
     <section id="features" className="px-6 py-32 border-t border-border/40">
       <div className="mx-auto max-w-7xl">
         <div className="max-w-2xl mb-20">
-          <p className="text-xs uppercase tracking-widest text-primary mb-4">
-            What you get
-          </p>
+          <p className="text-xs uppercase tracking-widest text-primary mb-4">What you get</p>
           <h2 className="text-4xl sm:text-5xl leading-tight">
             A platform you own — not a subscription you rent.
           </h2>
@@ -271,9 +252,7 @@ function Features() {
               >
                 <Icon className="w-6 h-6 text-primary mb-6" />
                 <h3 className="text-2xl mb-3">{f.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {f.body}
-                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.body}</p>
               </motion.div>
             );
           })}
@@ -295,16 +274,14 @@ function Pricing() {
     "Browser-based AR runtime — no per-scan fees",
   ];
 
-
   return (
     <section id="pricing" className="px-6 py-32 border-t border-border/40">
       <div className="mx-auto max-w-4xl">
         <div className="text-center mb-16">
-          <p className="text-xs uppercase tracking-widest text-primary mb-4">
-            Pricing
-          </p>
+          <p className="text-xs uppercase tracking-widest text-primary mb-4">Pricing</p>
           <h2 className="text-4xl sm:text-5xl leading-tight">
-            One-time purchase.<br />
+            One-time purchase.
+            <br />
             <span className="text-muted-foreground">No revenue share. Ever.</span>
           </h2>
         </div>
@@ -321,9 +298,9 @@ function Pricing() {
             <span className="text-muted-foreground text-lg">one-time</span>
           </div>
           <p className="text-sm text-muted-foreground mb-10">
-            ₹30,000 one-time · per client deployment · optional ₹6,000–₹12,000/year maintenance retainer
+            ₹30,000 one-time · per client deployment · optional ₹6,000–₹12,000/year maintenance
+            retainer
           </p>
-
 
           <ul className="space-y-4 mb-10">
             {included.map((item) => (
@@ -366,11 +343,12 @@ function FinalCTA() {
           }}
         />
         <h2 className="relative text-4xl sm:text-6xl leading-tight">
-          Ship an AR product<br />without renting one.
+          Ship an AR product
+          <br />
+          without renting one.
         </h2>
         <p className="relative mt-6 text-muted-foreground max-w-xl mx-auto">
-          Talk to us about your first deployment. Real reply, usually within a
-          business day.
+          Talk to us about your first deployment. Real reply, usually within a business day.
         </p>
         <a
           href="mailto:hello@aether.ar"
@@ -395,11 +373,31 @@ function Footer() {
         </h2>
         <nav className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
-            { to: "/wedding-ar-albums", label: "Wedding AR albums", img: workflowMedia.weddingPhoto },
-            { to: "/augmented-reality-photo-album", label: "AR photo album", img: workflowMedia.albumPhoto },
-            { to: "/ar-greeting-cards", label: "AR greeting cards", img: workflowMedia.greetingCard },
-            { to: "/ar-business-cards", label: "AR business cards", img: workflowMedia.businessCard },
-            { to: "/ar-wedding-invitations", label: "AR invitations", img: workflowMedia.invitationCard },
+            {
+              to: "/wedding-ar-albums",
+              label: "Wedding AR albums",
+              img: workflowMedia.weddingPhoto,
+            },
+            {
+              to: "/augmented-reality-photo-album",
+              label: "AR photo album",
+              img: workflowMedia.albumPhoto,
+            },
+            {
+              to: "/ar-greeting-cards",
+              label: "AR greeting cards",
+              img: workflowMedia.greetingCard,
+            },
+            {
+              to: "/ar-business-cards",
+              label: "AR business cards",
+              img: workflowMedia.businessCard,
+            },
+            {
+              to: "/ar-wedding-invitations",
+              label: "AR invitations",
+              img: workflowMedia.invitationCard,
+            },
             { to: "/gallery", label: "Gallery", img: workflowMedia.weddingRings },
           ].map((u) => (
             <Link
@@ -422,7 +420,6 @@ function Footer() {
           ))}
         </nav>
       </div>
-
 
       <div className="mx-auto max-w-7xl flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">

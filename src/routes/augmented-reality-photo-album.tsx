@@ -12,10 +12,22 @@ const content: UseCaseContent = {
   intro:
     "An augmented reality photo album is an ordinary printed album with a hidden layer: point a phone at any page and the moment behind the photo starts playing. Aether gives print shops, photo studios and gift stores the full stack to sell these — marker compiler, hosted viewer, QR generator and an admin dashboard — as a one-time purchase instead of a per-scan subscription.",
   steps: [
-    { title: "Add photos and clips", body: "Upload each printed image with the video, message or slideshow it should trigger." },
-    { title: "Generate the QR", body: "Aether produces a single QR code per album, ready to print on a card or the cover." },
-    { title: "Customer scans", body: "Their browser opens the AR viewer and asks once for camera access." },
-    { title: "The photo comes alive", body: "The clip is overlaid on the print, with playback controls and full-screen mode." },
+    {
+      title: "Add photos and clips",
+      body: "Upload each printed image with the video, message or slideshow it should trigger.",
+    },
+    {
+      title: "Generate the QR",
+      body: "Aether produces a single QR code per album, ready to print on a card or the cover.",
+    },
+    {
+      title: "Customer scans",
+      body: "Their browser opens the AR viewer and asks once for camera access.",
+    },
+    {
+      title: "The photo comes alive",
+      body: "The clip is overlaid on the print, with playback controls and full-screen mode.",
+    },
   ],
   bullets: [
     "In-browser marker compiler — no external AR platform account",

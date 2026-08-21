@@ -34,10 +34,9 @@ import { VrStage } from "@/components/ar/VrStage";
 import { ArVrToggle, PerfToggle } from "@/components/ar/ModeToggle";
 import { applyRendererTuning } from "@/lib/ar-runtime";
 
-
 export const Route = createFileRoute("/ar/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
-    mode: search.mode === "video" ? "video" as const : undefined,
+    mode: search.mode === "video" ? ("video" as const) : undefined,
     tok: typeof search.tok === "string" ? search.tok : undefined,
   }),
   loaderDeps: ({ search }) => ({ tok: search.tok }),
@@ -130,20 +129,15 @@ function ARViewer() {
     })().catch(() => {});
   }, [hasMarker]);
 
-
   // NOTE: we never play the media directly on this route. AR mode always opens
   // the camera (image tracking when a marker exists, plain camera preview otherwise).
 
   // Restricted content without a valid QR token: PIN wall, nothing else loads.
   if (experience.locked) {
-    return (
-      <PinGate kind="experience" slug={experience.slug ?? ""} title={experience.title} />
-    );
+    return <PinGate kind="experience" slug={experience.slug ?? ""} title={experience.title} />;
   }
 
-
   return (
-
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <Link
         to="/"
@@ -184,13 +178,17 @@ function ARViewer() {
               Launch AR
             </button>
             <p className="text-xs text-white/40 mt-4">
-              Your camera stays on your device. {hasMarker
+              Your camera stays on your device.{" "}
+              {hasMarker
                 ? "Point at the printed marker to see the AR content."
                 : "Preview mode — no marker uploaded yet."}
             </p>
             {hasMarker && (
               <button
-                onClick={() => { setForceFallback(true); setStarted(true); }}
+                onClick={() => {
+                  setForceFallback(true);
+                  setStarted(true);
+                }}
                 className="block mx-auto mt-3 text-xs text-white/40 hover:text-white/70 underline"
               >
                 Having trouble? Use plain camera mode
@@ -208,22 +206,18 @@ function ARViewer() {
           ensureEngine={ensureEngine}
           onExit={() => setVrMode(false)}
         />
+      ) : forceFallback || !hasMarker ? (
+        <PlainCameraFallback experience={experience} />
       ) : (
-        forceFallback || !hasMarker
-          ? <PlainCameraFallback experience={experience} />
-          : (
-            <ARStage
-              experience={experience}
-              vrSupported={vrSupported}
-              onEnterVr={() => setVrMode(true)}
-            />
-          )
+        <ARStage
+          experience={experience}
+          vrSupported={vrSupported}
+          onEnterVr={() => setVrMode(true)}
+        />
       )}
-
     </div>
   );
 }
-
 
 // MindAR loads via CDN (its npm package pulls native gyp deps we don't need).
 // We inject the A-Frame + MindAR scripts once, then mount the scene.
@@ -251,20 +245,20 @@ function loadScript(src: string) {
   const cached = scriptPromises.get(src);
   if (cached) return cached;
   const p = new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector(
-      `script[src="${src}"]`,
-    ) as HTMLScriptElement | null;
+    const existing = document.querySelector(`script[src="${src}"]`) as HTMLScriptElement | null;
     if (existing) {
       if (existing.dataset.loaded === "true") return resolve();
-      existing.addEventListener("load", () => {
-        existing.dataset.loaded = "true";
-        resolve();
-      }, { once: true });
       existing.addEventListener(
-        "error",
-        () => reject(new Error(`Failed to load ${src}`)),
+        "load",
+        () => {
+          existing.dataset.loaded = "true";
+          resolve();
+        },
         { once: true },
       );
+      existing.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)), {
+        once: true,
+      });
       return;
     }
     const s = document.createElement("script");
@@ -310,9 +304,7 @@ function ARStage({
   const attemptRef = useRef(0);
   const lastTapRef = useRef(0);
 
-  const [status, setStatus] = useState<
-    "loading" | "ready" | "no-marker" | "error"
-  >("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "no-marker" | "error">("loading");
   const gpuAttemptsRef = useRef({ current: 0 });
   const detachRecoveryRef = useRef<null | (() => void)>(null);
   const detachFitRef = useRef<null | (() => void)>(null);
@@ -336,8 +328,6 @@ function ARStage({
     detachFitRef.current?.();
     detachFitRef.current = null;
 
-
-
     // No WebGL at all → skip the engine entirely and explain why.
     if (!hasWebglSupport()) {
       setErrorMsg(WEBGL_UNSUPPORTED_MESSAGE);
@@ -346,7 +336,6 @@ function ARStage({
     }
 
     try {
-
       const markerUrl = safeHttpsUrl(experience.marker_url);
       if (!markerUrl || !markerUrl.pathname.endsWith(".mind")) {
         setStatus("no-marker");
@@ -378,7 +367,6 @@ function ARStage({
       applySceneHygiene(scenEl);
       // Sizing comes from the scoped `.ar-stage-root` stylesheet (100dvh),
       // not an inline 100vh which overshoots the visible viewport on mobile.
-
 
       const assets = document.createElement("a-assets");
       let videoEl: HTMLVideoElement | null = null;
@@ -458,9 +446,7 @@ function ARStage({
       if (videoEl) {
         videoEl.addEventListener("play", () => setPlaying(true));
         videoEl.addEventListener("pause", () => setPlaying(false));
-        videoEl.addEventListener("volumechange", () =>
-          setMuted(videoEl!.muted),
-        );
+        videoEl.addEventListener("volumechange", () => setMuted(videoEl!.muted));
         const kick = () => {
           if (experience.autoplay !== false) videoEl!.play().catch(() => {});
         };
@@ -496,8 +482,6 @@ function ARStage({
       }, 20_000);
 
       setStatus("ready");
-
-
     } catch (e: any) {
       // Auto-retry once before surfacing the error (transient CDN or camera race).
       if (attemptRef.current < 2) {
@@ -523,13 +507,14 @@ function ARStage({
 
       releaseCameraStreams();
       document
-        .querySelectorAll("[data-mindar-image-camera], .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning, .mindar-ui-compatibility")
+        .querySelectorAll(
+          "[data-mindar-image-camera], .mindar-ui-overlay, .mindar-ui-loading, .mindar-ui-scanning, .mindar-ui-compatibility",
+        )
         .forEach((element) => element.remove());
       if (sceneRef.current) sceneRef.current.replaceChildren();
       sceneElRef.current = null;
     };
   }, [start]);
-
 
   // Pause when tab hidden, resume on return.
   useEffect(() => {
@@ -607,16 +592,13 @@ function ARStage({
     );
   }
 
-  if (status === "no-marker")
-    return <PlainCameraFallback experience={experience} />;
+  if (status === "no-marker") return <PlainCameraFallback experience={experience} />;
 
   return (
     <>
       {status === "loading" && (
         <div className="absolute inset-0 z-20 grid place-items-center pointer-events-none">
-          <div className="text-sm text-white/70 animate-pulse">
-            Loading AR engine…
-          </div>
+          <div className="text-sm text-white/70 animate-pulse">Loading AR engine…</div>
         </div>
       )}
 
@@ -629,11 +611,7 @@ function ARStage({
         </div>
       )}
 
-      <div
-        ref={sceneRef}
-        onClick={onSceneTap}
-        className={AR_STAGE_CLASS}
-      />
+      <div ref={sceneRef} onClick={onSceneTap} className={AR_STAGE_CLASS} />
 
       {/* Mode + performance controls. The VR half always shows: with a headset
           it opens an immersive session, without one a 360° cinema view. */}
@@ -645,23 +623,16 @@ function ARStage({
               start();
             }}
           />
-          <ArVrToggle
-            mode="ar"
-            headset={vrSupported}
-            onChange={(m) => m === "vr" && onEnterVr()}
-          />
+          <ArVrToggle mode="ar" headset={vrSupported} onChange={(m) => m === "vr" && onEnterVr()} />
         </div>
       )}
-
 
       {/* Tracking indicator */}
       {status === "ready" && (
         <div className="absolute top-4 inset-x-0 z-30 flex justify-center pointer-events-none">
           <div
             className={`inline-flex items-center gap-2 rounded-full backdrop-blur px-3 py-1.5 text-xs transition-colors ${
-              tracking
-                ? "bg-emerald-500/20 text-emerald-100"
-                : "bg-white/10 text-white/80"
+              tracking ? "bg-emerald-500/20 text-emerald-100" : "bg-white/10 text-white/80"
             }`}
           >
             <span
@@ -728,9 +699,7 @@ function ARStage({
       {/* Hint (auto-hides after tracking) */}
       {status === "ready" && !tracking && !cinema && (
         <div className="absolute bottom-20 inset-x-0 z-20 text-center pointer-events-none">
-          <p className="text-[11px] text-white/50">
-            Double-tap the video to expand
-          </p>
+          <p className="text-[11px] text-white/50">Double-tap the video to expand</p>
         </div>
       )}
     </>
@@ -799,7 +768,12 @@ function PlainCameraFallback({ experience }: { experience: any }) {
 
   return (
     <div className="relative min-h-screen">
-      <video ref={videoRef} playsInline muted className="absolute inset-0 w-full h-full object-cover" />
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        className="absolute inset-0 w-full h-full object-cover"
+      />
       {experience.media_url && experience.media_type === "video" && (
         <video
           src={experience.media_url}
@@ -819,7 +793,8 @@ function PlainCameraFallback({ experience }: { experience: any }) {
       )}
       <div className="absolute bottom-6 inset-x-0 text-center">
         <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-4 py-2 text-xs">
-          Preview mode — upload a compiled <code className="font-mono">.mind</code> marker for tracking
+          Preview mode — upload a compiled <code className="font-mono">.mind</code> marker for
+          tracking
         </div>
       </div>
     </div>

@@ -36,10 +36,9 @@ export function TrustSignals() {
 
   useEffect(() => {
     if (reduced || !ref.current) return setShown(true);
-    const io = new IntersectionObserver(
-      ([e]) => e.isIntersecting && setShown(true),
-      { rootMargin: "-80px" },
-    );
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && setShown(true), {
+      rootMargin: "-80px",
+    });
     io.observe(ref.current);
     return () => io.disconnect();
   }, [reduced]);
@@ -52,12 +51,8 @@ export function TrustSignals() {
         }`}
       >
         <div className="max-w-2xl mb-12">
-          <p className="text-xs uppercase tracking-widest text-primary mb-4">
-            Proof
-          </p>
-          <h2 className="text-4xl sm:text-5xl leading-tight">
-            The real product, not a mockup.
-          </h2>
+          <p className="text-xs uppercase tracking-widest text-primary mb-4">Proof</p>
+          <h2 className="text-4xl sm:text-5xl leading-tight">The real product, not a mockup.</h2>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -98,10 +93,7 @@ export function TrustSignals() {
             {stats.map((s) => {
               const Icon = s.icon;
               return (
-                <div
-                  key={s.label}
-                  className="rounded-2xl border border-border bg-surface p-6"
-                >
+                <div key={s.label} className="rounded-2xl border border-border bg-surface p-6">
                   <Icon className="mb-3 h-5 w-5 text-primary" />
                   <p className="text-xs uppercase tracking-widest text-muted-foreground">
                     {s.label}
@@ -113,9 +105,8 @@ export function TrustSignals() {
             <div className="rounded-2xl border border-dashed border-border p-6">
               <Quote className="mb-3 h-5 w-5 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                Client case studies land here as deployments go live. We publish
-                names and numbers only with written permission — never invented
-                ones.
+                Client case studies land here as deployments go live. We publish names and numbers
+                only with written permission — never invented ones.
               </p>
             </div>
           </div>

@@ -33,32 +33,23 @@ export function TryItNow() {
   useEffect(() => {
     if (reduced || !ref.current) return setShown(true);
     const el = ref.current;
-    const io = new IntersectionObserver(
-      ([e]) => e.isIntersecting && setShown(true),
-      { rootMargin: "-80px" },
-    );
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && setShown(true), {
+      rootMargin: "-80px",
+    });
     io.observe(el);
     return () => io.disconnect();
   }, [reduced]);
 
   return (
-    <section
-      id="try-it"
-      ref={ref}
-      className="px-6 py-14 border-t border-border/40"
-    >
+    <section id="try-it" ref={ref} className="px-6 py-14 border-t border-border/40">
       <div
         className={`mx-auto max-w-6xl transition-all duration-500 ease-out motion-reduce:transition-none ${
           shown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
         }`}
       >
         <div className="max-w-2xl mb-8">
-          <p className="text-xs uppercase tracking-widest text-primary mb-3">
-            Live demo
-          </p>
-          <h2 className="text-3xl sm:text-4xl leading-tight">
-            See it before you buy it.
-          </h2>
+          <p className="text-xs uppercase tracking-widest text-primary mb-3">Live demo</p>
+          <h2 className="text-3xl sm:text-4xl leading-tight">See it before you buy it.</h2>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2 items-start max-w-3xl">
@@ -101,12 +92,11 @@ export function TryItNow() {
               </span>
             </div>
             <p className="px-4 py-3 text-xs text-muted-foreground">
-              2. Point the phone at this photo — no QR printed on it. The picture itself is the marker, and the film plays locked on top of it.
+              2. Point the phone at this photo — no QR printed on it. The picture itself is the
+              marker, and the film plays locked on top of it.
             </p>
           </div>
         </div>
-
-
       </div>
     </section>
   );

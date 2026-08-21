@@ -28,9 +28,14 @@ export const Route = createFileRoute("/api/public/licence/release")({
         }
 
         // Mutation → fail closed.
-        const { allowed } = await check(`licence:release:${clientIp(request) ?? "unknown"}`, 5, 3600, {
-          failMode: "closed",
-        });
+        const { allowed } = await check(
+          `licence:release:${clientIp(request) ?? "unknown"}`,
+          5,
+          3600,
+          {
+            failMode: "closed",
+          },
+        );
         if (!allowed) return json({ ok: false, error: "RATE_LIMITED" }, 429);
 
         const result = await releaseDevice(input.licenceKey, input.deviceSecret);

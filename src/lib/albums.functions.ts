@@ -77,9 +77,7 @@ export const createAlbum = createServerFn({ method: "POST" })
       owner_id: context.userId,
     }));
 
-    const { error: expError } = await context.supabase
-      .from("ar_experiences")
-      .insert(rows);
+    const { error: expError } = await context.supabase.from("ar_experiences").insert(rows);
     if (expError) {
       await context.supabase.from("albums").delete().eq("id", album.id);
       throw new Error(expError.message);
@@ -92,10 +90,7 @@ export const deleteAlbum = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("albums")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("albums").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -106,9 +101,7 @@ export const deleteAlbum = createServerFn({ method: "POST" })
  */
 export const setAlbumGalleryVisibility = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
-    z.object({ id: z.string().uuid(), show: z.boolean() }).parse(raw),
-  )
+  .inputValidator((raw) => z.object({ id: z.string().uuid(), show: z.boolean() }).parse(raw))
   .handler(async ({ data, context }) => {
     const { data: row, error: readErr } = await context.supabase
       .from("albums")
@@ -131,9 +124,7 @@ export const setAlbumGalleryVisibility = createServerFn({ method: "POST" })
 
 export const setAlbumPublished = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
-    z.object({ id: z.string().uuid(), published: z.boolean() }).parse(raw),
-  )
+  .inputValidator((raw) => z.object({ id: z.string().uuid(), published: z.boolean() }).parse(raw))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("albums")
@@ -147,17 +138,11 @@ export const setAlbumPublished = createServerFn({ method: "POST" })
 // Restricted albums require a valid QR token or a live PIN session cookie.
 export const getPublicAlbum = createServerFn({ method: "GET" })
   .inputValidator((raw) =>
-    z
-      .object({ slug: z.string(), tok: z.string().max(200).optional().nullable() })
-      .parse(raw),
+    z.object({ slug: z.string(), tok: z.string().max(200).optional().nullable() }).parse(raw),
   )
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import(
-      "@/integrations/supabase/client.server"
-    );
-    const { resolveAccess, signMedia } = await import(
-      "@/lib/content-access.server"
-    );
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { resolveAccess, signMedia } = await import("@/lib/content-access.server");
 
     const { data: album } = await supabaseAdmin
       .from("albums")
@@ -171,7 +156,7 @@ export const getPublicAlbum = createServerFn({ method: "GET" })
       kind: "album",
       slug: album.slug,
       accessMode: album.access_mode,
-      
+
       tok: data.tok,
     });
 
@@ -202,9 +187,7 @@ export const getPublicAlbum = createServerFn({ method: "GET" })
       .order("target_index", { ascending: true });
 
     const compiled_mind_url =
-      (await signMedia(album.compiled_mind_path)) ??
-      album.compiled_mind_url ??
-      null;
+      (await signMedia(album.compiled_mind_path)) ?? album.compiled_mind_url ?? null;
 
     const signedTargets = await Promise.all(
       (targets ?? []).map(async (t) => ({
@@ -239,23 +222,17 @@ export const getPublicAlbum = createServerFn({ method: "GET" })
  * Public directory of published albums — powers the QR-free "open the site and
  * point at the photo" entry point. Restricted albums are never listed.
  */
-export const listPublicAlbums = createServerFn({ method: "GET" }).handler(
-  async () => {
-    const sb = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_PUBLISHABLE_KEY!,
-      { auth: { persistSession: false, autoRefreshToken: false, storage: undefined } },
-    );
-    const { data } = await sb
-      .from("albums")
-      .select("slug, title, target_count, created_at")
-      .eq("published", true)
-      .eq("access_mode", "public")
-      .eq("show_in_gallery", true)
-      .order("created_at", { ascending: false })
-      .limit(50);
-    return data ?? [];
-  },
-);
-
-
+export const listPublicAlbums = createServerFn({ method: "GET" }).handler(async () => {
+  const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
+  });
+  const { data } = await sb
+    .from("albums")
+    .select("slug, title, target_count, created_at")
+    .eq("published", true)
+    .eq("access_mode", "public")
+    .eq("show_in_gallery", true)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  return data ?? [];
+});

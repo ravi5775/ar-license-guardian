@@ -46,8 +46,8 @@ function AnalyticsPage() {
         </select>
       </div>
       <p className="text-sm text-muted-foreground mb-6">
-        Album scans, how often a photo is correctly identified, and how much of
-        each video people actually watch.
+        Album scans, how often a photo is correctly identified, and how much of each video people
+        actually watch.
       </p>
 
       <QueryState
@@ -82,15 +82,11 @@ function AnalyticsPage() {
 
           <div className="space-y-6">
             {q.data!.albums.map((a) => (
-              <div
-                key={a.id}
-                className="rounded-2xl border border-border/60 bg-card/40 p-4 md:p-5"
-              >
+              <div key={a.id} className="rounded-2xl border border-border/60 bg-card/40 p-4 md:p-5">
                 <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
                   <h2 className="text-lg font-medium">{a.title}</h2>
                   <div className="text-xs text-muted-foreground">
-                    {a.scans} scans · {a.identification_rate}% identified ·{" "}
-                    {a.timeouts} timeouts
+                    {a.scans} scans · {a.identification_rate}% identified · {a.timeouts} timeouts
                   </div>
                 </div>
                 {a.photos.length === 0 ? (
@@ -110,10 +106,7 @@ function AnalyticsPage() {
                       </thead>
                       <tbody>
                         {a.photos.map((p) => (
-                          <tr
-                            key={p.target_index}
-                            className="border-t border-border/40"
-                          >
+                          <tr key={p.target_index} className="border-t border-border/40">
                             <td className="py-2 pr-3 tabular-nums text-muted-foreground">
                               {p.target_index + 1}
                             </td>
@@ -146,15 +139,7 @@ function AnalyticsPage() {
   );
 }
 
-function Stat({
-  label,
-  value,
-  sub,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-}) {
+function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="rounded-2xl border border-border/60 bg-card/40 px-4 py-3">
       <div className="text-xs text-muted-foreground">{label}</div>

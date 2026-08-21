@@ -25,7 +25,6 @@ const ExperienceInput = z.object({
   show_in_gallery: z.boolean().default(false),
 });
 
-
 export const listMyExperiences = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -51,7 +50,6 @@ export const listMyExperiences = createServerFn({ method: "GET" })
     );
   });
 
-
 export const createExperience = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) => ExperienceInput.parse(raw))
@@ -67,9 +65,7 @@ export const createExperience = createServerFn({ method: "POST" })
 
 export const updateExperience = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
-    ExperienceInput.partial().extend({ id: z.string().uuid() }).parse(raw),
-  )
+  .inputValidator((raw) => ExperienceInput.partial().extend({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     const { id, ...patch } = data;
     const { data: row, error } = await context.supabase
@@ -86,10 +82,7 @@ export const deleteExperience = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("ar_experiences")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("ar_experiences").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -108,9 +101,7 @@ export const getMyRoles = createServerFn({ method: "GET" })
 // Restricted experiences require a valid QR token or a live PIN session.
 export const getPublicExperience = createServerFn({ method: "GET" })
   .inputValidator((raw) =>
-    z
-      .object({ slug: z.string(), tok: z.string().max(200).optional().nullable() })
-      .parse(raw),
+    z.object({ slug: z.string(), tok: z.string().max(200).optional().nullable() }).parse(raw),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -128,7 +119,7 @@ export const getPublicExperience = createServerFn({ method: "GET" })
       kind: "experience",
       slug: row.slug!,
       accessMode: row.access_mode,
-      
+
       tok: data.tok,
     });
 
@@ -141,9 +132,7 @@ export const getPublicExperience = createServerFn({ method: "GET" })
       };
     }
 
-    const marker_signed = row.marker_mind_path
-      ? await signMedia(row.marker_mind_path)
-      : null;
+    const marker_signed = row.marker_mind_path ? await signMedia(row.marker_mind_path) : null;
     const marker_image_signed = row.marker_path ? await signMedia(row.marker_path) : null;
     // Only the film itself is eligible for one-time delivery. The .mind target
     // and the marker image are re-fetched by the tracker on retry/reload, so a
@@ -169,7 +158,6 @@ export const getPublicExperience = createServerFn({ method: "GET" })
     };
   });
 
-
 /** Hard server-side upload ceiling. Client-side compression is a convenience,
  *  never the enforcement point. */
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
@@ -189,9 +177,7 @@ export const signMediaUpload = createServerFn({ method: "POST" })
       .parse(raw),
   )
   .handler(async ({ data, context }) => {
-    const { authorizeUploader, scopeUploadPath } = await import(
-      "@/lib/uploader-guard.server"
-    );
+    const { authorizeUploader, scopeUploadPath } = await import("@/lib/uploader-guard.server");
     const uploader = await authorizeUploader(context.supabase, context.userId);
     const scopedPath = scopeUploadPath(uploader, data.path);
 
@@ -199,7 +185,6 @@ export const signMediaUpload = createServerFn({ method: "POST" })
     const { checkPresignLicence } = await import("@/lib/adapters/presign-gate.server");
     const gate = await checkPresignLicence("upload");
     if (!gate.ok) throw new Error(gate.message);
-
 
     // Quota is checked BEFORE handing out an upload URL, so the client gets a
     // clear refusal instead of a silent storage failure mid-upload.
@@ -238,9 +223,7 @@ export const enforceMediaSize = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((raw) => z.object({ path: z.string().min(1) }).parse(raw))
   .handler(async ({ data, context }) => {
-    const { authorizeUploader, ownsUploadPath } = await import(
-      "@/lib/uploader-guard.server"
-    );
+    const { authorizeUploader, ownsUploadPath } = await import("@/lib/uploader-guard.server");
     const uploader = await authorizeUploader(context.supabase, context.userId);
     if (!ownsUploadPath(uploader, data.path)) throw new Error("Forbidden");
 
@@ -263,14 +246,15 @@ export const enforceMediaSize = createServerFn({ method: "POST" })
 
     // Record the object against its owner. Service-role write: a client must
     // never be able to under-report its own usage.
-    await supabaseAdmin.from("media_objects").upsert(
-      { owner_id: context.userId, storage_path: data.path, bytes: size ?? 0 },
-      { onConflict: "storage_path" },
-    );
+    await supabaseAdmin
+      .from("media_objects")
+      .upsert(
+        { owner_id: context.userId, storage_path: data.path, bytes: size ?? 0 },
+        { onConflict: "storage_path" },
+      );
 
     return { ok: true as const, size: size ?? null };
   });
-
 
 /**
  * Signed marker/media URLs for one of the caller's own experiences.
@@ -302,10 +286,7 @@ export const signMyExperienceAssets = createServerFn({ method: "POST" })
       title: row.title,
       marker_path: row.marker_path,
       media_path: row.media_path,
-      media_type: (row.media_type === "image" ? "image" : "video") as
-        | "image"
-        | "video",
+      media_type: (row.media_type === "image" ? "image" : "video") as "image" | "video",
       marker_signed_url: signed?.signedUrl ?? null,
     };
   });
-

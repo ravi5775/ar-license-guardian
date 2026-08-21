@@ -30,8 +30,16 @@ export function ParallaxDepthSection({
     registerScrollTrigger();
     const ctx = gsap.context(() => {
       const st = { trigger: ref.current!, start: "top bottom", end: "bottom top", scrub: true };
-      gsap.fromTo(bgRef.current, { yPercent: -4 }, { yPercent: 4, ease: "none", scrollTrigger: st });
-      gsap.fromTo(plateRef.current, { yPercent: 6 }, { yPercent: -6, ease: "none", scrollTrigger: st });
+      gsap.fromTo(
+        bgRef.current,
+        { yPercent: -4 },
+        { yPercent: 4, ease: "none", scrollTrigger: st },
+      );
+      gsap.fromTo(
+        plateRef.current,
+        { yPercent: 6 },
+        { yPercent: -6, ease: "none", scrollTrigger: st },
+      );
     }, ref);
     return () => ctx.revert();
   }, [reduced]);
@@ -45,7 +53,10 @@ export function ParallaxDepthSection({
         loading="lazy"
         className="absolute inset-0 w-full h-[115%] -top-[7%] object-cover object-[50%_35%]"
       />
-      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20"
+      />
       <div className="relative h-full flex items-end">
         <div ref={plateRef} className="mx-auto max-w-7xl w-full px-6 pb-20">
           <div className="max-w-lg rounded-2xl border border-border/60 bg-background/70 backdrop-blur-xl p-8">

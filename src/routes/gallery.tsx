@@ -2,8 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { listPublicExperiences } from "@/lib/gallery.functions";
 
-
-
 export const Route = createFileRoute("/gallery")({
   loader: () => listPublicExperiences(),
   head: () => ({
@@ -17,7 +15,8 @@ export const Route = createFileRoute("/gallery")({
       { property: "og:title", content: "AR Gallery — Live Augmented Reality Photo Experiences" },
       {
         property: "og:description",
-        content: "Browse live AR photo experiences built with Aether — scan and watch printed photos play video.",
+        content:
+          "Browse live AR photo experiences built with Aether — scan and watch printed photos play video.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://aetherphoto.shop/gallery" },
@@ -37,9 +36,7 @@ export const Route = createFileRoute("/gallery")({
 function coverSrcSet(url: string | null) {
   if (!url || !url.includes("images.unsplash.com")) return undefined;
   const base = url.split("?")[0];
-  return [600, 1200, 1800]
-    .map((w) => `${base}?auto=format&fit=crop&w=${w}&q=75 ${w}w`)
-    .join(", ");
+  return [600, 1200, 1800].map((w) => `${base}?auto=format&fit=crop&w=${w}&q=75 ${w}w`).join(", ");
 }
 
 function Gallery() {
@@ -47,7 +44,10 @@ function Gallery() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+        >
           <ArrowLeft className="h-3 w-3" /> Back
         </Link>
         <h1 className="text-3xl sm:text-4xl font-serif italic mb-2">Public gallery</h1>
@@ -103,4 +103,3 @@ function Gallery() {
     </div>
   );
 }
-

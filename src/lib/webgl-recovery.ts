@@ -10,8 +10,7 @@
  * restart or, when the GPU keeps failing, a clear human-readable fallback.
  */
 
-export const WEBGL_LOST_MESSAGE =
-  "Your device paused 3D rendering — restarting the AR session…";
+export const WEBGL_LOST_MESSAGE = "Your device paused 3D rendering — restarting the AR session…";
 
 export const WEBGL_FATAL_MESSAGE =
   "Your device's graphics engine keeps dropping the AR session. This usually means the phone is low on memory or too hot. Close other apps or tabs, then try again — or use plain camera mode.";
@@ -53,13 +52,7 @@ export type WebglRecoveryOptions = {
  */
 export function attachWebglRecovery(
   sceneEl: HTMLElement,
-  {
-    attempts,
-    onLost,
-    onRestore,
-    onFatal,
-    maxAttempts = 2,
-  }: WebglRecoveryOptions,
+  { attempts, onLost, onRestore, onFatal, maxAttempts = 2 }: WebglRecoveryOptions,
 ): () => void {
   let disposed = false;
   let restoreTimer: ReturnType<typeof setTimeout> | null = null;
@@ -87,19 +80,14 @@ export function attachWebglRecovery(
 
   const handleCreationError = () => {
     if (disposed) return;
-    onFatal(
-      hasWebglSupport() ? WEBGL_FATAL_MESSAGE : WEBGL_UNSUPPORTED_MESSAGE,
-    );
+    onFatal(hasWebglSupport() ? WEBGL_FATAL_MESSAGE : WEBGL_UNSUPPORTED_MESSAGE);
   };
 
   const bind = (target: EventTarget) => {
     if (targets.has(target)) return;
     targets.add(target);
     target.addEventListener("webglcontextlost", handleLost as EventListener);
-    target.addEventListener(
-      "webglcontextcreationerror",
-      handleCreationError as EventListener,
-    );
+    target.addEventListener("webglcontextcreationerror", handleCreationError as EventListener);
   };
 
   bind(sceneEl);
@@ -121,14 +109,8 @@ export function attachWebglRecovery(
     disposed = true;
     if (restoreTimer) clearTimeout(restoreTimer);
     targets.forEach((target) => {
-      target.removeEventListener(
-        "webglcontextlost",
-        handleLost as EventListener,
-      );
-      target.removeEventListener(
-        "webglcontextcreationerror",
-        handleCreationError as EventListener,
-      );
+      target.removeEventListener("webglcontextlost", handleLost as EventListener);
+      target.removeEventListener("webglcontextcreationerror", handleCreationError as EventListener);
     });
     targets.clear();
   };

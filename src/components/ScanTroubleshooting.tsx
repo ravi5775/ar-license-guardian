@@ -164,9 +164,7 @@ export function ScanTroubleshooting({ variant = "panel" }: { variant?: "panel" |
 
   return (
     <section className="mt-10">
-      <h2 className="text-sm uppercase tracking-wider text-white/50 mb-3">
-        Scan troubleshooting
-      </h2>
+      <h2 className="text-sm uppercase tracking-wider text-white/50 mb-3">Scan troubleshooting</h2>
       {list}
     </section>
   );

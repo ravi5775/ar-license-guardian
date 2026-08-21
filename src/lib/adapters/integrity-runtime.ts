@@ -22,7 +22,10 @@ async function digestOf(urls: string[]) {
       /* unreachable chunk — digest simply won't match, which is the signal */
     }
   }
-  const combined = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(chunks.join("\n")));
+  const combined = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(chunks.join("\n")),
+  );
   return Array.from(new Uint8Array(combined))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");

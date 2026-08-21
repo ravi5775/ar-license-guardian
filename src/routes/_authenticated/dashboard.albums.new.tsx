@@ -5,18 +5,8 @@ import { useRef, useState } from "react";
 import { compileAlbumTargets } from "@/lib/mindar-compiler";
 import { uploadToArMedia } from "@/lib/upload";
 import { createAlbum, MAX_ALBUM_TARGETS } from "@/lib/albums.functions";
-import {
-  listMyExperiences,
-  signMyExperienceAssets,
-} from "@/lib/experiences.functions";
-import {
-  AlertTriangle,
-  Images,
-  Library,
-  Loader2,
-  Upload,
-  X,
-} from "lucide-react";
+import { listMyExperiences, signMyExperienceAssets } from "@/lib/experiences.functions";
+import { AlertTriangle, Images, Library, Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/albums/new")({
@@ -49,9 +39,7 @@ function errText(e: any) {
   if (!e) return "Unknown error";
   if (typeof e === "string") return e;
   if (Array.isArray(e?.issues))
-    return e.issues
-      .map((i: any) => `${i.path?.join(".") || "field"}: ${i.message}`)
-      .join(" · ");
+    return e.issues.map((i: any) => `${i.path?.join(".") || "field"}: ${i.message}`).join(" · ");
   return e?.message ?? JSON.stringify(e);
 }
 
@@ -82,9 +70,7 @@ function NewAlbumPage() {
   });
 
   function addFiles(files: FileList) {
-    const incoming = Array.from(files).filter((f) =>
-      f.type.startsWith("image/"),
-    );
+    const incoming = Array.from(files).filter((f) => f.type.startsWith("image/"));
     const room = MAX_ALBUM_TARGETS - photos.length;
     if (incoming.length > room) {
       toast.error(
@@ -106,8 +92,7 @@ function NewAlbumPage() {
     setImporting(id);
     try {
       const info = await signAssets({ data: { id } });
-      if (!info.marker_signed_url)
-        throw new Error("Could not read that experience's marker image");
+      if (!info.marker_signed_url) throw new Error("Could not read that experience's marker image");
       const res = await fetch(info.marker_signed_url);
       if (!res.ok) throw new Error("Could not download the marker image");
       const blob = await res.blob();
@@ -153,8 +138,7 @@ function NewAlbumPage() {
     setSaveError(null);
     const finalSlug = slugify(slug || title);
     if (!title.trim()) return setSaveError("Album name is required");
-    if (finalSlug.length < 2)
-      return setSaveError("Album link must be at least 2 characters");
+    if (finalSlug.length < 2) return setSaveError("Album link must be at least 2 characters");
     if (photos.length === 0) return setSaveError("Add at least one photo");
     if (photos.length > MAX_ALBUM_TARGETS)
       return setSaveError(
@@ -177,29 +161,22 @@ function NewAlbumPage() {
       setCompileProgress(100);
 
       setStage("Uploading compiled marker…");
-      const compiled_mind_path = await uploadToArMedia(
-        mindBlob,
-        "markers",
-        `${finalSlug}.mind`,
-      );
+      const compiled_mind_path = await uploadToArMedia(mindBlob, "markers", `${finalSlug}.mind`);
 
       const targets = [];
       for (let i = 0; i < photos.length; i++) {
         const p = photos[i];
         setStage(`Preparing photo ${i + 1} of ${photos.length}…`);
-        const marker_path =
-          p.existing?.marker_path ?? (await uploadToArMedia(p.file, "markers"));
+        const marker_path = p.existing?.marker_path ?? (await uploadToArMedia(p.file, "markers"));
         const media_path =
-          p.existing && !p.video
-            ? p.existing.media_path
-            : await uploadToArMedia(p.video!, "media");
+          p.existing && !p.video ? p.existing.media_path : await uploadToArMedia(p.video!, "media");
         targets.push({
           title: p.title || `Photo ${i + 1}`,
           marker_path,
           media_path,
-          media_type: (p.video
-            ? "video"
-            : (p.existing?.media_type ?? "video")) as "video" | "image",
+          media_type: (p.video ? "video" : (p.existing?.media_type ?? "video")) as
+            | "video"
+            | "image",
           autoplay: true,
           loop_playback: true,
         });
@@ -234,9 +211,9 @@ function NewAlbumPage() {
     <div className="p-4 md:p-8 max-w-3xl">
       <h1 className="text-2xl md:text-3xl font-serif italic mb-1">New album</h1>
       <p className="text-sm text-muted-foreground mb-6">
-        Upload up to {MAX_ALBUM_TARGETS} photos (or reuse existing AR
-        experiences), assign a video to each, and we'll compile them into a
-        single AR marker file. One QR code covers the whole album.
+        Upload up to {MAX_ALBUM_TARGETS} photos (or reuse existing AR experiences), assign a video
+        to each, and we'll compile them into a single AR marker file. One QR code covers the whole
+        album.
       </p>
 
       <div className="grid gap-4 sm:grid-cols-2 mb-6">
@@ -299,21 +276,17 @@ function NewAlbumPage() {
       {pickerOpen && (
         <div className="mb-4 rounded-xl border border-border/60 bg-card/40 p-3">
           <p className="mb-2 text-xs text-muted-foreground">
-            Pick an AR experience — its marker photo and video are reused, so
-            nothing is uploaded twice.
+            Pick an AR experience — its marker photo and video are reused, so nothing is uploaded
+            twice.
           </p>
           {experiences.isLoading && (
             <p className="text-xs text-muted-foreground">Loading experiences…</p>
           )}
           {experiences.error && (
-            <p className="text-xs text-destructive">
-              {errText(experiences.error)}
-            </p>
+            <p className="text-xs text-destructive">{errText(experiences.error)}</p>
           )}
           {experiences.data && experiences.data.length === 0 && (
-            <p className="text-xs text-muted-foreground">
-              No AR experiences yet.
-            </p>
+            <p className="text-xs text-muted-foreground">No AR experiences yet.</p>
           )}
           <ul className="grid gap-2 sm:grid-cols-2">
             {(experiences.data ?? [])
@@ -338,9 +311,7 @@ function NewAlbumPage() {
                       </span>
                     )}
                     <span className="min-w-0 flex-1 truncate">{x.title}</span>
-                    {importing === x.id && (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    )}
+                    {importing === x.id && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                   </button>
                 </li>
               ))}
@@ -351,16 +322,15 @@ function NewAlbumPage() {
       {atCap && (
         <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
           <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
-          Albums are limited to {MAX_ALBUM_TARGETS} photos for reliable AR
-          tracking — create a second album (and QR code) for additional photos.
+          Albums are limited to {MAX_ALBUM_TARGETS} photos for reliable AR tracking — create a
+          second album (and QR code) for additional photos.
         </div>
       )}
 
       {photos.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border/60 p-10 text-center text-sm text-muted-foreground">
           <Images className="h-6 w-6 mx-auto mb-3 opacity-60" />
-          No photos yet. Upload the printed photos customers will point their
-          camera at.
+          No photos yet. Upload the printed photos customers will point their camera at.
         </div>
       ) : (
         <ol className="space-y-3">
@@ -408,9 +378,7 @@ function NewAlbumPage() {
                   <input
                     type="file"
                     accept="video/*"
-                    onChange={(e) =>
-                      update(i, { video: e.target.files?.[0] ?? null })
-                    }
+                    onChange={(e) => update(i, { video: e.target.files?.[0] ?? null })}
                     className="mt-1 block w-full text-xs file:mr-3 file:rounded-md file:border file:border-border file:bg-background file:px-2 file:py-1 file:text-xs"
                   />
                 </label>
@@ -448,9 +416,7 @@ function NewAlbumPage() {
         {stage && (
           <span className="text-xs text-muted-foreground">
             {stage}
-            {compileProgress !== null && compileProgress < 100
-              ? ` ${compileProgress}%`
-              : ""}
+            {compileProgress !== null && compileProgress < 100 ? ` ${compileProgress}%` : ""}
           </span>
         )}
       </div>

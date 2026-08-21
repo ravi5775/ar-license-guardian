@@ -3,7 +3,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAdmin } from "@/lib/admin-guard";
 
-
 function generateKey() {
   const seg = () =>
     Array.from(crypto.getRandomValues(new Uint8Array(4)))
