@@ -107,6 +107,13 @@ export function initWatermark(): void {
   } catch {
     // ignore
   }
+
+  // 4. CSS custom property on :root
+  try {
+    document.documentElement.style.setProperty("--aether-cid", customerId);
+  } catch {
+    // ignore
+  }
 }
 
 /**

@@ -264,13 +264,21 @@ function originAllowed(allowed: string[] | null, host: string | null) {
 
 /* ------------------------------------------------------------------ tokens */
 
+function getEffectiveGraceHours(override?: number | null): number {
+  if (typeof override === "number" && override > 0) return Math.min(override, 168); // Max 7 days for special event override
+  const envVal = parseInt(readEnv("LICENCE_GRACE_HOURS") ?? "", 10);
+  if (Number.isFinite(envVal) && envVal > 0) return Math.min(envVal, 48);
+  return 24; // 24-hour hardened default
+}
+
 async function issueToken(
-  licence: { id: string; license_key: string; plan: string },
+  licence: { id: string; license_key: string; plan: string; grace_hours?: number | null },
   deviceId: string,
   platform: DeviceClass,
 ) {
   const iat = Math.floor(Date.now() / 1000);
   const features = featuresFor(licence.plan);
+  const graceHours = getEffectiveGraceHours(licence.grace_hours);
   const token = await signToken({
     sub: licence.license_key,
     dep: licence.id,
@@ -279,11 +287,11 @@ async function issueToken(
     platform,
     plan: licence.plan,
     features,
-    grace: GRACE_HOURS,
+    grace: graceHours,
     iat,
     exp: iat + TOKEN_TTL_SEC,
   });
-  return { token, expiresIn: TOKEN_TTL_SEC, graceHours: GRACE_HOURS, plan: licence.plan, features };
+  return { token, expiresIn: TOKEN_TTL_SEC, graceHours, plan: licence.plan, features };
 }
 
 function featuresFor(plan: string): string[] {
@@ -301,7 +309,7 @@ async function loadLicence(licenceKey: string) {
   const db = await admin();
   const { data } = await db
     .from("licenses")
-    .select("id, license_key, plan, status, expires_at, allowed_origins")
+    .select("id, license_key, plan, status, expires_at, allowed_origins, grace_hours")
     .eq("license_key", licenceKey)
     .maybeSingle();
   return data;
@@ -351,15 +359,35 @@ async function commonChecks(input: ActivateInput): Promise<Checked> {
 
   const attested = await verifyAttestation(input.attestation);
   if (!attestationAllows(attested)) {
+    const db = await admin();
+    // Soft-fail: log violation and alert admin
+    const { count } = await db
+      .from("license_violations")
+      .select("id", { count: "exact", head: true })
+      .eq("license_id", licence.id)
+      .eq("kind", "digest_mismatch");
+
+    const mismatchCount = (count ?? 0) + 1;
+    const threshold = parseInt(readEnv("INTEGRITY_MISMATCH_THRESHOLD") ?? "3", 10);
+    const shouldHardBlock = mismatchCount >= threshold;
+
     await recordViolation(
-      attested.kind,
-      { ...attested, reportedBuild: input.attestation.buildId },
+      attested.kind === "digest_mismatch" ? "integrity_mismatch" : attested.kind,
+      {
+        ...attested,
+        reportedBuild: input.attestation.buildId,
+        mismatchCount,
+        threshold,
+        softFailAllowed: !shouldHardBlock,
+      },
       ctx,
-      // Only a proven mismatch suspends. A missing/unknown build is loud but
-      // must not brick a paid client's viewer over a stale deploy (§10).
-      { suspend: attested.kind === "digest_mismatch" },
+      { suspend: shouldHardBlock },
     );
-    return { ok: false, failure: fail(403, "ATTESTATION_INVALID") };
+
+    // Only hard-block once threshold is exceeded; allows transient CDN cache delays to heal
+    if (shouldHardBlock) {
+      return { ok: false, failure: fail(403, "ATTESTATION_INVALID") };
+    }
   }
 
   return { ok: true, licence, ctx };

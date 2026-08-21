@@ -277,17 +277,19 @@ export async function ensureLicence(): Promise<LicenceState> {
       return { status: "invalid", payload: null, error };
     }
 
-    // Offline grace is anchored to the SIGNED token's `iat`, not to a local
-    // "last ok" timestamp — otherwise the customer extends their own grace
-    // window just by rewriting localStorage.
+    // Offline grace is anchored to the SIGNED token's `exp` + `graceHours`,
+    // not to a local "last ok" timestamp — preventing client-side clock/storage tampering.
     if (cachedPayload && (await verifySignature(cached!))) {
       const graceHours = cachedPayload.grace ?? DEFAULT_GRACE_HOURS;
-      const graceEndsAt = (cachedPayload.iat + graceHours * 3600) * 1000;
+      const graceEndsAt = (cachedPayload.exp + graceHours * 3600) * 1000;
       if (Date.now() < graceEndsAt) {
         return { status: "grace", payload: cachedPayload, error, graceEndsAt };
       }
     }
-    return { status: "invalid", payload: null, error };
+    // If exp + graceHours has passed, refuse cached token, clear storage and cookie immediately
+    localStorage.removeItem(STORAGE_TOKEN);
+    clearLicenceCookie();
+    return { status: "invalid", payload: null, error: "GRACE_EXPIRED" };
   }
 }
 

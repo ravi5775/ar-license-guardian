@@ -12,8 +12,12 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { initSentry } from "../lib/sentry";
+import { initWatermark } from "../lib/watermark";
 
-if (typeof window !== "undefined") initSentry();
+if (typeof window !== "undefined") {
+  initSentry();
+  initWatermark();
+}
 
 function NotFoundComponent() {
   return (
