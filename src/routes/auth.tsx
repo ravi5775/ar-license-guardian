@@ -287,8 +287,10 @@ function AuthPage() {
           </p>
 
           <button
+            type="button"
             onClick={handleGoogle}
             disabled={loading}
+            suppressHydrationWarning
             className="w-full mb-5 flex items-center justify-center gap-2 rounded-md border border-border bg-surface/60 hover:bg-surface px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary/50 outline-none"
           >
             <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
@@ -321,7 +323,7 @@ function AuthPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit} className="space-y-3" suppressHydrationWarning>
             {mode === "signup" && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -336,6 +338,7 @@ function AuthPage() {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder="Aarav"
+                    suppressHydrationWarning
                     className={field}
                   />
                 </div>
@@ -351,6 +354,7 @@ function AuthPage() {
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder="Sharma"
+                    suppressHydrationWarning
                     className={field}
                   />
                 </div>
@@ -369,6 +373,7 @@ function AuthPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@company.com"
+                suppressHydrationWarning
                 className={field}
               />
             </div>
@@ -387,12 +392,14 @@ function AuthPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Minimum 8 characters"
+                  suppressHydrationWarning
                   className={field + " pr-11"}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
+                  suppressHydrationWarning
                   className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1.5 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary/50 outline-none"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -406,6 +413,7 @@ function AuthPage() {
                   type="checkbox"
                   checked={agreeToTerms}
                   onChange={(e) => setAgreeToTerms(e.target.checked)}
+                  suppressHydrationWarning
                   className="mt-0.5 h-4 w-4 rounded border-border accent-[var(--primary)]"
                 />
                 <span>I agree to the Aether AR licence agreement and data-processing terms.</span>
@@ -415,6 +423,7 @@ function AuthPage() {
             <button
               type="submit"
               disabled={loading}
+              suppressHydrationWarning
               className="w-full flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-primary/50 outline-none"
             >
               {loading && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -425,7 +434,9 @@ function AuthPage() {
           <p className="mt-6 text-center text-sm text-muted-foreground">
             {mode === "signin" ? "Don't have an account? " : "Already have one? "}
             <button
+              type="button"
               onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+              suppressHydrationWarning
               className="text-primary hover:underline font-medium"
             >
               {mode === "signin" ? "Create an account" : "Log in"}
