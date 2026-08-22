@@ -85,7 +85,7 @@ export function initWatermark(): void {
   const invisible = encodeInvisible(customerHex.slice(0, 16));
 
   // 1. Window property (visible to console.log(window.__aether))
-  (window as Record<string, unknown>).__aether = {
+  (window as unknown as Record<string, unknown>).__aether = {
     c: customerId,
     b: buildId,
     t: Date.now(),

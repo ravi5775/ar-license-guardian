@@ -28,6 +28,16 @@ vi.mock("@/integrations/supabase/client.server", () => ({
           },
         }),
       }),
+      insert: async (row: any) => {
+        if (table === "license_violations") {
+          recordedViolations.push({
+            kind: row.kind,
+            detail: row.details,
+            target: { licenseId: row.license_id, licenceKey: row.details?.licenceKey },
+          });
+        }
+        return { data: null, error: null };
+      },
     }),
   },
 }));

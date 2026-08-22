@@ -207,6 +207,7 @@ type Attested =
   | { kind: "missing_attestation" }
   | { kind: "unsigned_build" }
   | { kind: "unknown_build"; buildId: string }
+  | { kind: "revoked_build"; buildId: string; reason: string }
   | { kind: "digest_mismatch"; buildId: string; reported: string; expected: string };
 
 async function verifyAttestation(a: Attestation): Promise<Attested> {
@@ -215,6 +216,19 @@ async function verifyAttestation(a: Attestation): Promise<Attested> {
   if (!buildId || !assetDigest) return { kind: "missing_attestation" };
 
   const db = await admin();
+
+  // 1. Server-side kill-switch: check if build has been explicitly revoked
+  const { data: revoked } = await db
+    .from("revoked_builds")
+    .select("build_id, reason")
+    .eq("build_id", buildId)
+    .maybeSingle();
+
+  if (revoked) {
+    return { kind: "revoked_build", buildId, reason: revoked.reason };
+  }
+
+  // 2. Check signed release manifests
   const { data } = await db
     .from("release_manifests")
     .select("asset_digest, signature")
@@ -236,6 +250,7 @@ function attestationAllows(a: Attested): boolean {
     case "missing_attestation":
     case "unsigned_build":
     case "unknown_build":
+    case "revoked_build":
     case "digest_mismatch":
       return false;
     default: {
@@ -359,6 +374,17 @@ async function commonChecks(input: ActivateInput): Promise<Checked> {
 
   const attested = await verifyAttestation(input.attestation);
   if (!attestationAllows(attested)) {
+    // If build is explicitly revoked, immediately block and collapse grace window to 0
+    if (attested.kind === "revoked_build") {
+      await recordViolation(
+        "build_revoked",
+        { buildId: attested.buildId, reason: attested.reason },
+        ctx,
+        { suspend: true },
+      );
+      return { ok: false, failure: fail(403, "BUILD_REVOKED") };
+    }
+
     const db = await admin();
     // Soft-fail: log violation and alert admin
     const { count } = await db
@@ -568,4 +594,40 @@ export async function adminForceRelease(activationId: string) {
   return { ok: true as const };
 }
 
+/**
+ * Non-sensitive public diagnostic status for client self-service.
+ */
+export async function getLicenceStatus(licenceKey: string) {
+  const licence = await loadLicence(licenceKey);
+  if (!licence) return fail(404, "INVALID_LICENCE");
+
+  const db = await admin();
+  const { data: activations } = await db
+    .from("license_activations")
+    .select("device_class, revoked_at, last_seen_at")
+    .eq("license_id", licence.id)
+    .is("revoked_at", null);
+
+  const active = activations ?? [];
+  const mobileCount = active.filter((a) => a.device_class === "mobile").length;
+  const desktopCount = active.filter((a) => a.device_class === "desktop").length;
+
+  const allowedOrigins = (licence.allowed_origins as string[] | null) ?? [];
+
+  return {
+    ok: true as const,
+    status: licence.status,
+    plan: licence.plan,
+    expiresAt: licence.expires_at,
+    deviceSlots: {
+      mobile: { used: mobileCount, max: 1 },
+      desktop: { used: desktopCount, max: 1 },
+    },
+    graceHours: licence.grace_hours ?? 24,
+    allowedOriginsCount: allowedOrigins.length,
+    features: featuresFor(licence.plan),
+  };
+}
+
 export const __internals = { verifyAttestation, attestationAllows, originAllowed };
+

@@ -27,7 +27,6 @@ rm -rf src/routes/_authenticated
 rm -rf src/routes/api/public/licence
 rm -f  src/lib/adapters/db.server.ts
 rm -f  src/lib/adapters/licence.server.ts
-rm -f  src/lib/adapters/presign-gate.server.ts
 rm -f  src/lib/licenses.functions.ts
 rm -f  src/lib/admin.functions.ts
 rm -f  src/lib/approvals.functions.ts
@@ -40,8 +39,7 @@ rm -f  .github/workflows/deploy-main.yml
 rm -f  .github/workflows/deploy-self-hosted.yml
 rm -f  .github/workflows/ci.yml        # internal CI — not needed by client
 rm -f  .github/workflows/codeql.yml    # internal SAST — not needed by client
-# Keep release-client-app.yml ONLY if it's the client's own build pipeline
-# (review before shipping).
+rm -f  .github/workflows/dr-verify.yml # internal DR — not needed by client
 echo "  ✓ CI/CD workflows removed"
 
 # ─── §RE-1: Build signing / manifest (issuer-only) ────────────────────────
@@ -52,6 +50,7 @@ rm -f  scripts/generate-licence-keypair.mjs   # key generation — issuer only
 rm -f  scripts/post-deploy-smoke.mjs          # internal smoke tests
 rm -f  scripts/check-r2-usage.mjs             # admin usage monitor
 rm -f  scripts/backup-to-r2.sh                # admin backup script
+rm -f  scripts/verify-restore.sh              # admin DR verify script
 echo "  ✓ Signing & admin scripts removed"
 
 # ─── §RE-7: Admin migrations ──────────────────────────────────────────────
@@ -84,7 +83,7 @@ echo "  ✓ Audit/deploy/docs directories removed"
 # ─── Verify no import still references removed files ─────────────────────
 echo ""
 echo "Checking for broken imports..."
-BROKEN=$(grep -rn "licence\.server\|db\.server\|licenses\.functions\|admin\.functions\|approvals\.functions\|presign-gate\.server\|sign-manifest" src/ 2>/dev/null || echo "")
+BROKEN=$(grep -rn "licence\.server\|db\.server\|licenses\.functions\|admin\.functions\|approvals\.functions\|sign-manifest" src/ 2>/dev/null || echo "")
 if [ -n "$BROKEN" ]; then
   echo "  ⚠ BROKEN IMPORT REFERENCES FOUND:"
   echo "$BROKEN"

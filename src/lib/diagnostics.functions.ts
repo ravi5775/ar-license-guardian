@@ -64,3 +64,38 @@ export const listGateEvents = createServerFn({ method: "GET" })
       meta: r.meta ? JSON.stringify(r.meta) : null,
     }));
   });
+
+export type DeviceTelemetryRow = {
+  id: string;
+  device_class: string;
+  capability_tier: string | null;
+  origin_host: string | null;
+  build_id: string | null;
+  last_seen_at: string;
+  license_key: string;
+};
+
+/** Admin-only reader for client device capability & telemetry. */
+export const listDeviceTelemetry = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<DeviceTelemetryRow[]> => {
+    await requireAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("license_activations")
+      .select("id, device_class, capability_tier, origin_host, build_id, last_seen_at, licenses(license_key)")
+      .order("last_seen_at", { ascending: false })
+      .limit(100);
+
+    if (error) return [];
+    return (data ?? []).map((r: any) => ({
+      id: r.id,
+      device_class: r.device_class,
+      capability_tier: r.capability_tier,
+      origin_host: r.origin_host,
+      build_id: r.build_id,
+      last_seen_at: r.last_seen_at,
+      license_key: r.licenses?.license_key ?? "unknown",
+    }));
+  });
+

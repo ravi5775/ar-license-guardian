@@ -776,12 +776,58 @@ export type Database = {
         }
         Relationships: []
       }
+      project_usage: {
+        Row: {
+          created_at: string
+          egress_bytes: number
+          egress_cap_bytes: number
+          id: string
+          month_year: string
+          project_id: string
+          request_count: number
+          updated_at: string
+          warning_80_notified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          egress_bytes?: number
+          egress_cap_bytes?: number
+          id?: string
+          month_year: string
+          project_id: string
+          request_count?: number
+          updated_at?: string
+          warning_80_notified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          egress_bytes?: number
+          egress_cap_bytes?: number
+          id?: string
+          month_year?: string
+          project_id?: string
+          request_count?: number
+          updated_at?: string
+          warning_80_notified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_usage_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       release_manifests: {
         Row: {
           asset_digest: string
           branch: string
           build_id: string
           created_at: string
+          customer_id: string | null
+          files: Json | null
           id: string
           published_at: string
           signature: string
@@ -792,6 +838,8 @@ export type Database = {
           branch?: string
           build_id: string
           created_at?: string
+          customer_id?: string | null
+          files?: Json | null
           id?: string
           published_at?: string
           signature: string
@@ -802,10 +850,36 @@ export type Database = {
           branch?: string
           build_id?: string
           created_at?: string
+          customer_id?: string | null
+          files?: Json | null
           id?: string
           published_at?: string
           signature?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      revoked_builds: {
+        Row: {
+          build_id: string
+          notes: string | null
+          reason: string
+          revoked_at: string
+          revoked_by: string | null
+        }
+        Insert: {
+          build_id: string
+          notes?: string | null
+          reason: string
+          revoked_at?: string
+          revoked_by?: string | null
+        }
+        Update: {
+          build_id?: string
+          notes?: string | null
+          reason?: string
+          revoked_at?: string
+          revoked_by?: string | null
         }
         Relationships: []
       }

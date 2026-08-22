@@ -15,7 +15,8 @@
     "test:security": "bun test tests/security-headers.test.ts tests/security-critical-fixes.test.ts tests/comprehensive-security-regression.test.ts",
     "test:rls": "bunx vitest run tests/rls-regression.test.ts",
     "test:coverage": "bun test --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "verify:client": "node scripts/verify-client-branch.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1102.0",
