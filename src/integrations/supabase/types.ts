@@ -313,6 +313,7 @@ export type Database = {
           asset_digest: string | null
           build_id: string | null
           capability_tier: string | null
+          customer_id: string | null
           deployment_domain: string | null
           deployment_platform: string | null
           device_class: string
@@ -325,6 +326,7 @@ export type Database = {
           license_id: string
           origin_host: string | null
           release_after: string | null
+          release_hash: string | null
           released_at: string | null
           revoked_at: string | null
           supabase_ref: string | null
@@ -335,6 +337,7 @@ export type Database = {
           asset_digest?: string | null
           build_id?: string | null
           capability_tier?: string | null
+          customer_id?: string | null
           deployment_domain?: string | null
           deployment_platform?: string | null
           device_class?: string
@@ -347,6 +350,7 @@ export type Database = {
           license_id: string
           origin_host?: string | null
           release_after?: string | null
+          release_hash?: string | null
           released_at?: string | null
           revoked_at?: string | null
           supabase_ref?: string | null
@@ -357,6 +361,7 @@ export type Database = {
           asset_digest?: string | null
           build_id?: string | null
           capability_tier?: string | null
+          customer_id?: string | null
           deployment_domain?: string | null
           deployment_platform?: string | null
           device_class?: string
@@ -369,6 +374,7 @@ export type Database = {
           license_id?: string
           origin_host?: string | null
           release_after?: string | null
+          release_hash?: string | null
           released_at?: string | null
           revoked_at?: string | null
           supabase_ref?: string | null
@@ -449,6 +455,7 @@ export type Database = {
           client_email: string
           client_name: string
           created_at: string
+          customer_id: string | null
           expires_at: string | null
           grace_hours: number
           id: string
@@ -469,6 +476,7 @@ export type Database = {
           client_email: string
           client_name: string
           created_at?: string
+          customer_id?: string | null
           expires_at?: string | null
           grace_hours?: number
           id?: string
@@ -489,6 +497,7 @@ export type Database = {
           client_email?: string
           client_name?: string
           created_at?: string
+          customer_id?: string | null
           expires_at?: string | null
           grace_hours?: number
           id?: string
