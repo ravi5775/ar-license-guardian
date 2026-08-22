@@ -136,10 +136,14 @@ export const Route = createFileRoute("/api/public/licence/manifest")({
               },
               { onConflict: "build_id" },
             );
-          if (error) return json({ ok: false, error: error.message }, 500);
+          if (error) {
+            console.error("[licence:manifest] Database insert error:", error);
+            return json({ ok: false, error: "DATABASE_ERROR" }, 500);
+          }
           return json({ ok: true, buildId: input.buildId, customerId: input.customerId });
         } catch (e) {
-          return json({ ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" }, 400);
+          console.error("[licence:manifest] Error:", e);
+          return json({ ok: false, error: "BAD_REQUEST" }, 400);
         }
       },
     },

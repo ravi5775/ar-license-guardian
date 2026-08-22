@@ -47,8 +47,9 @@ export const Route = createFileRoute("/api/public/licence/status")({
           }
           return json(result, 200);
         } catch (e) {
+          console.error("[licence:status] Internal error:", e);
           return json(
-            { ok: false, error: e instanceof Error ? e.message : "INTERNAL_ERROR" },
+            { ok: false, error: "INTERNAL_ERROR" },
             500,
           );
         }
