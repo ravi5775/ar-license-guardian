@@ -33,7 +33,9 @@ export function UseCasePage({ content }: { content: UseCaseContent }) {
       </header>
 
       <main className="mx-auto max-w-3xl px-6 py-16">
-        <p className="font-mono text-xs uppercase tracking-widest text-primary">{content.eyebrow}</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-primary">
+          {content.eyebrow}
+        </p>
         <h1 className="mt-4 text-4xl sm:text-5xl leading-tight font-display">{content.h1}</h1>
         <p className="mt-6 text-muted-foreground leading-relaxed">{content.intro}</p>
 
@@ -96,19 +98,34 @@ export function UseCasePage({ content }: { content: UseCaseContent }) {
         <section className="mt-16 border-t border-border/40 pt-10">
           <h2 className="text-2xl font-display">Other AR use cases</h2>
           <nav className="mt-4 flex flex-wrap gap-3 text-sm">
-            <Link to="/wedding-ar-albums" className="underline underline-offset-4 hover:text-primary">
+            <Link
+              to="/wedding-ar-albums"
+              className="underline underline-offset-4 hover:text-primary"
+            >
               Wedding AR albums
             </Link>
-            <Link to="/augmented-reality-photo-album" className="underline underline-offset-4 hover:text-primary">
+            <Link
+              to="/augmented-reality-photo-album"
+              className="underline underline-offset-4 hover:text-primary"
+            >
               Augmented reality photo albums
             </Link>
-            <Link to="/ar-greeting-cards" className="underline underline-offset-4 hover:text-primary">
+            <Link
+              to="/ar-greeting-cards"
+              className="underline underline-offset-4 hover:text-primary"
+            >
               AR greeting cards
             </Link>
-            <Link to="/ar-business-cards" className="underline underline-offset-4 hover:text-primary">
+            <Link
+              to="/ar-business-cards"
+              className="underline underline-offset-4 hover:text-primary"
+            >
               AR business cards
             </Link>
-            <Link to="/ar-wedding-invitations" className="underline underline-offset-4 hover:text-primary">
+            <Link
+              to="/ar-wedding-invitations"
+              className="underline underline-offset-4 hover:text-primary"
+            >
               AR wedding invitations
             </Link>
           </nav>

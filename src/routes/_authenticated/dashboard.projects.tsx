@@ -83,11 +83,8 @@ function ProjectsPage() {
   });
 
   const assignMut = useMutation({
-    mutationFn: (v: {
-      kind: "album" | "experience";
-      id: string;
-      project_id: string | null;
-    }) => assign({ data: v }),
+    mutationFn: (v: { kind: "album" | "experience"; id: string; project_id: string | null }) =>
+      assign({ data: v }),
     onSuccess: invalidate,
     onError: (e: any) => toast.error(e.message ?? "Could not move item"),
   });
@@ -145,8 +142,8 @@ function ProjectsPage() {
         <div>
           <h1 className="text-2xl font-serif italic">Projects</h1>
           <p className="text-sm text-muted-foreground">
-            Folders for your clients — keep each wedding, event or brand
-            campaign separate. Content stays private to your account.
+            Folders for your clients — keep each wedding, event or brand campaign separate. Content
+            stays private to your account.
           </p>
         </div>
         <form
@@ -184,25 +181,21 @@ function ProjectsPage() {
             const pa = albums.filter((a) => a.project_id === p.id);
             const pe = experiences.filter((x) => x.project_id === p.id);
             return (
-              <section
-                key={p.id}
-                className="rounded-xl border border-border/60 bg-card/20 p-4"
-              >
+              <section key={p.id} className="rounded-xl border border-border/60 bg-card/20 p-4">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Folder className="h-4 w-4 text-primary" />
                     <h2 className="text-base font-medium">{p.name}</h2>
                     <span className="text-xs text-muted-foreground">
-                      {pa.length} album{pa.length === 1 ? "" : "s"} ·{" "}
-                      {pe.length} experience{pe.length === 1 ? "" : "s"}
+                      {pa.length} album{pa.length === 1 ? "" : "s"} · {pe.length} experience
+                      {pe.length === 1 ? "" : "s"}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => {
                         const next = window.prompt("Rename project", p.name);
-                        if (next?.trim())
-                          renameMut.mutate({ id: p.id, name: next.trim() });
+                        if (next?.trim()) renameMut.mutate({ id: p.id, name: next.trim() });
                       }}
                       className="rounded-md p-2 text-muted-foreground hover:bg-accent"
                       aria-label="Rename project"
@@ -227,8 +220,8 @@ function ProjectsPage() {
                 </div>
                 {pa.length + pe.length === 0 ? (
                   <p className="text-xs text-muted-foreground">
-                    Nothing filed here yet — use the dropdowns below to move
-                    albums or experiences into this project.
+                    Nothing filed here yet — use the dropdowns below to move albums or experiences
+                    into this project.
                   </p>
                 ) : (
                   <ul className="space-y-2">
@@ -254,9 +247,7 @@ function ProjectsPage() {
             ) : (
               <ul className="space-y-2">
                 {albums.filter((a) => !a.project_id).map((a) => row("album", a))}
-                {experiences
-                  .filter((x) => !x.project_id)
-                  .map((x) => row("experience", x))}
+                {experiences.filter((x) => !x.project_id).map((x) => row("experience", x))}
               </ul>
             )}
           </section>

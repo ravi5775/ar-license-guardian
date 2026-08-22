@@ -11,10 +11,7 @@ export const listProjects = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const [projects, albums, experiences] = await Promise.all([
-      context.supabase
-        .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false }),
+      context.supabase.from("projects").select("*").order("created_at", { ascending: false }),
       context.supabase
         .from("albums")
         .select("id, title, slug, project_id, published")
@@ -82,10 +79,7 @@ export const deleteProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("projects")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("projects").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

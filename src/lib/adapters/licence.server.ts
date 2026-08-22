@@ -272,7 +272,11 @@ function originAllowed(allowed: string[] | null, host: string | null) {
   if (!host) return false;
   const h = host.toLowerCase().replace(/:\d+$/, "");
   return allowed.some((a) => {
-    const want = a.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/:\d+$/, "");
+    const want = a
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/\/.*$/, "")
+      .replace(/:\d+$/, "");
     return h === want || h.endsWith(`.${want}`);
   });
 }
@@ -338,7 +342,9 @@ type ViolationCtx = {
   originHost: string | null;
   ip: string | null;
 };
-type Checked = { ok: false; failure: Failure } | { ok: true; licence: LicenceRow; ctx: ViolationCtx };
+type Checked =
+  | { ok: false; failure: Failure }
+  | { ok: true; licence: LicenceRow; ctx: ViolationCtx };
 
 async function commonChecks(input: ActivateInput): Promise<Checked> {
   const licence = await loadLicence(input.licenceKey);
@@ -514,7 +520,9 @@ export async function activate(
 }
 
 /** Heartbeat / refresh. Requires the device secret — no slot allocation here. */
-export async function refresh(input: ActivateInput): Promise<IssuedLicence & { ok: true } | Failure> {
+export async function refresh(
+  input: ActivateInput,
+): Promise<(IssuedLicence & { ok: true }) | Failure> {
   if (!input.deviceSecret) return fail(403, "DEVICE_UNKNOWN");
   const checked = await commonChecks(input);
   if ("failure" in checked) return checked.failure;

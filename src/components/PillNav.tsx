@@ -54,15 +54,22 @@ export function PillNav() {
     el.style.transform = `perspective(700px) rotateX(${rx}deg) rotateY(${ry}deg)`;
   }
   function onLeave() {
-    if (pillRef.current) pillRef.current.style.transform = "perspective(700px) rotateX(0deg) rotateY(0deg)";
+    if (pillRef.current)
+      pillRef.current.style.transform = "perspective(700px) rotateX(0deg) rotateY(0deg)";
     setActive(null);
   }
 
   return (
     <header className="fixed top-0 inset-x-0 z-50">
       {/* corner brackets */}
-      <span aria-hidden className="pointer-events-none absolute left-3 top-3 h-4 w-4 border-l border-t border-primary/40" />
-      <span aria-hidden className="pointer-events-none absolute right-3 top-3 h-4 w-4 border-r border-t border-primary/40" />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-3 top-3 h-4 w-4 border-l border-t border-primary/40"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-3 top-3 h-4 w-4 border-r border-t border-primary/40"
+      />
 
       <div className="mx-auto max-w-7xl px-6 h-20 flex items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-2 shrink-0">

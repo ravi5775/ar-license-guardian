@@ -158,4 +158,5 @@ export function __setBackend(fn: Backend | null) {
 }
 
 export const currentDriver = rateLimitDriver;
-export const isConfigured = () => Boolean(readEnv("UPSTASH_REDIS_REST_URL") || readEnv("REDIS_URL"));
+export const isConfigured = () =>
+  Boolean(readEnv("UPSTASH_REDIS_REST_URL") || readEnv("REDIS_URL"));

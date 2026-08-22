@@ -90,11 +90,7 @@ export const submitAccessPin = createServerFn({ method: "POST" })
 /* Admin/owner: issue + rotate credentials                             */
 /* ------------------------------------------------------------------ */
 
-async function loadOwnedRow(
-  supabase: any,
-  kind: "album" | "experience",
-  id: string,
-) {
+async function loadOwnedRow(supabase: any, kind: "album" | "experience", id: string) {
   const table = kind === "album" ? "albums" : "ar_experiences";
   const { data, error } = await supabase
     .from(table)
@@ -130,10 +126,12 @@ async function issueCredentials(kind: "album" | "experience", id: string) {
     _content_id: id,
   });
 
-  const { data: tok, error: tokErr } = await supabaseAdmin.rpc(
-    "issue_content_access_token",
-    { _kind: kind, _content_id: id, _ttl_days: TOKEN_TTL_DAYS, _label: "printed-qr" },
-  );
+  const { data: tok, error: tokErr } = await supabaseAdmin.rpc("issue_content_access_token", {
+    _kind: kind,
+    _content_id: id,
+    _ttl_days: TOKEN_TTL_DAYS,
+    _label: "printed-qr",
+  });
   if (tokErr) throw new Error(tokErr.message);
 
   return { pin: pin as string, tok: tok as string, pinExpiresAt: pinExpires as string };

@@ -51,5 +51,4 @@ export const workflowMedia = {
   demoTrigger: weddingDemoAsset.url,
 } as const;
 
-
 export const demoScanUrl = "https://aetherphoto.shop/ar/album/demo-wedding-001";

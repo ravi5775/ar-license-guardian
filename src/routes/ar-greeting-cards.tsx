@@ -12,10 +12,22 @@ const content: UseCaseContent = {
   intro:
     "A birthday, anniversary or festival card becomes a personal film. The buyer records a message, you link it to the printed card artwork, and the recipient sees it play over the card the moment they scan. Aether handles marker compilation, hosting, QR codes and the customer-facing viewer so gift and print businesses can launch an AR card line without building anything.",
   steps: [
-    { title: "Design the card", body: "Any printed artwork with enough visual detail works as the AR marker." },
-    { title: "Attach the message", body: "Upload the customer's video or greeting clip against that artwork." },
-    { title: "Print the QR", body: "A small QR on the back of the card is all the recipient needs." },
-    { title: "Scan and play", body: "The message plays over the card, with replay, mute and full-screen." },
+    {
+      title: "Design the card",
+      body: "Any printed artwork with enough visual detail works as the AR marker.",
+    },
+    {
+      title: "Attach the message",
+      body: "Upload the customer's video or greeting clip against that artwork.",
+    },
+    {
+      title: "Print the QR",
+      body: "A small QR on the back of the card is all the recipient needs.",
+    },
+    {
+      title: "Scan and play",
+      body: "The message plays over the card, with replay, mute and full-screen.",
+    },
   ],
   bullets: [
     "Per-card personalised video without a mobile app",

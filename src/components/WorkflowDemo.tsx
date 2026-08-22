@@ -188,7 +188,6 @@ export function WorkflowDemo() {
                 <div className="absolute inset-10 border-2 border-primary/60 rounded-xl animate-pulse pointer-events-none" />
               )}
 
-
               {/* progress rail */}
               <div className="absolute top-0 left-0 right-0 h-0.5 bg-border/50">
                 <motion.div

@@ -3,11 +3,7 @@ import QRCode from "qrcode";
 import { useServerFn } from "@tanstack/react-start";
 import { Download, X, Printer, Lock, Globe, RefreshCw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  getShareCredentials,
-  setAccessMode,
-  regeneratePin,
-} from "@/lib/access.functions";
+import { getShareCredentials, setAccessMode, regeneratePin } from "@/lib/access.functions";
 
 interface Props {
   slug: string;
@@ -38,7 +34,13 @@ export function QRCodeDialog({
   onClose,
 }: Props) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
-  const [share, setShare] = useState<Share>({ slug, restricted: false, pin: null, tok: null, pinExpiresAt: null });
+  const [share, setShare] = useState<Share>({
+    slug,
+    restricted: false,
+    pin: null,
+    tok: null,
+    pinExpiresAt: null,
+  });
   const [loading, setLoading] = useState(Boolean(id));
   const [working, setWorking] = useState(false);
 
@@ -175,7 +177,12 @@ export function QRCodeDialog({
 
   async function rotatePin() {
     if (!id) return;
-    if (!confirm("Re-issue the PIN and QR token? Every previously printed card stops working immediately.")) return;
+    if (
+      !confirm(
+        "Re-issue the PIN and QR token? Every previously printed card stops working immediately.",
+      )
+    )
+      return;
     setWorking(true);
     try {
       const r: any = await rotate({ data: { kind, id } });
@@ -286,8 +293,8 @@ export function QRCodeDialog({
 
         {kind === "album" && (
           <p className="mt-3 text-xs text-center text-muted-foreground">
-            One QR code covers the whole album — customers scan once, then point
-            their camera at any photo to play its video.
+            One QR code covers the whole album — customers scan once, then point their camera at any
+            photo to play its video.
           </p>
         )}
         <p className="mt-2 text-xs text-center text-muted-foreground break-all mb-4">{url}</p>

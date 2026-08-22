@@ -100,9 +100,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Aether AR — Turn photos into portals" },
-      { name: "twitter:description", content: "The white-label AR photo platform. Print a QR, scan it, and any photo or video plays back in augmented reality. Sold once, deployed to your infrastructure, owned forever." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7230059b-1432-4148-9ea8-ec7f16b15ab2/id-preview-3570be79--375dc9d5-30c5-4d5b-9692-9f09b9435fe6.lovable.app-1784099446386.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7230059b-1432-4148-9ea8-ec7f16b15ab2/id-preview-3570be79--375dc9d5-30c5-4d5b-9692-9f09b9435fe6.lovable.app-1784099446386.png" },
+      {
+        name: "twitter:description",
+        content:
+          "The white-label AR photo platform. Print a QR, scan it, and any photo or video plays back in augmented reality. Sold once, deployed to your infrastructure, owned forever.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7230059b-1432-4148-9ea8-ec7f16b15ab2/id-preview-3570be79--375dc9d5-30c5-4d5b-9692-9f09b9435fe6.lovable.app-1784099446386.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/7230059b-1432-4148-9ea8-ec7f16b15ab2/id-preview-3570be79--375dc9d5-30c5-4d5b-9692-9f09b9435fe6.lovable.app-1784099446386.png",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -159,4 +171,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

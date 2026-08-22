@@ -11,7 +11,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getDeploymentProfile } from "@/lib/deployment.functions";
-import { Sparkles, LayoutDashboard, Boxes, Images, Key, ShieldCheck, LogOut, ScrollText, BarChart3, Target, UserCheck, FolderOpen, Activity } from "lucide-react";
+import {
+  Sparkles,
+  LayoutDashboard,
+  Boxes,
+  Images,
+  Key,
+  ShieldCheck,
+  LogOut,
+  ScrollText,
+  BarChart3,
+  Target,
+  UserCheck,
+  FolderOpen,
+  Activity,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -29,7 +43,6 @@ function DashboardLayout() {
     setEmail(user?.email ?? "");
   }, [user]);
 
-
   async function signOut() {
     await qc.cancelQueries();
     qc.clear();
@@ -37,7 +50,6 @@ function DashboardLayout() {
     toast.success("Signed out");
     navigate({ to: "/auth", replace: true });
   }
-
 
   // Branch-aware features: a customer (client-app) build hides licensing,
   // approvals and diagnostics entirely, even for an admin account.
@@ -77,7 +89,6 @@ function DashboardLayout() {
         ]
       : []),
   ];
-
 
   return (
     <div className="min-h-screen bg-background text-foreground grid grid-rows-[auto_1fr] md:grid-rows-1 md:grid-cols-[240px_1fr]">

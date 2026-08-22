@@ -73,7 +73,6 @@ function StageContent({ stage }: { stage: StageRef }) {
     return { w: height * aspect, h: height };
   }, [photo, viewport.width, viewport.height]);
 
-
   /** Marker feature points scattered across the photo surface. */
   const featureGeom = useMemo(() => {
     const n = 180;
@@ -152,13 +151,7 @@ function StageContent({ stage }: { stage: StageRef }) {
       {/* the video that lives inside the print */}
       <mesh position={[0, 0, -0.01]}>
         <planeGeometry args={[w, h]} />
-        <meshBasicMaterial
-          ref={videoMat}
-          map={video}
-          transparent
-          opacity={0}
-          toneMapped={false}
-        />
+        <meshBasicMaterial ref={videoMat} map={video} transparent opacity={0} toneMapped={false} />
       </mesh>
 
       {/* the printed photograph */}

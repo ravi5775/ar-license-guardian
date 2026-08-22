@@ -110,10 +110,7 @@ export const deleteMarkerTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("marker_tests")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("marker_tests").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

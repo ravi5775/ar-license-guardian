@@ -31,8 +31,7 @@ export async function authorizeUploader(
   if (isAdmin) return { userId, isAdmin: true };
 
   const isEditor = list.some((r) => r.role === "editor");
-  const approved =
-    (profile as { approval_status?: string } | null)?.approval_status === "approved";
+  const approved = (profile as { approval_status?: string } | null)?.approval_status === "approved";
 
   if (!isEditor || !approved) {
     throw new Error(

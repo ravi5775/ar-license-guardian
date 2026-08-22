@@ -160,7 +160,11 @@ function BeatOne({ p }: { p: React.RefObject<Progress> }) {
 
   return (
     <div ref={ref} className="absolute inset-0">
-      <img src={workflowMedia.weddingPhotoLarge} alt="Uploaded wedding photograph" className="absolute inset-0 w-full h-full object-cover object-[50%_30%] opacity-70" />
+      <img
+        src={workflowMedia.weddingPhotoLarge}
+        alt="Uploaded wedding photograph"
+        className="absolute inset-0 w-full h-full object-cover object-[50%_30%] opacity-70"
+      />
       <div className="absolute inset-0 bg-background/50" />
       <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 gap-1 p-[22%]">
         {Array.from({ length: 36 }).map((_, i) => (
@@ -189,11 +193,26 @@ function BeatTwo({ p }: { p: React.RefObject<Progress> }) {
   });
 
   return (
-    <div ref={ref} className="absolute inset-0 flex items-center justify-center" style={{ perspective: "1000px" }}>
-      <img src={workflowMedia.printedInvitation} alt="Printed invitation card" className="absolute inset-0 w-full h-full object-cover opacity-45" />
+    <div
+      ref={ref}
+      className="absolute inset-0 flex items-center justify-center"
+      style={{ perspective: "1000px" }}
+    >
+      <img
+        src={workflowMedia.printedInvitation}
+        alt="Printed invitation card"
+        className="absolute inset-0 w-full h-full object-cover opacity-45"
+      />
       <div className="absolute inset-0 bg-background/60" />
-      <div data-card className="relative w-[46%] aspect-[3/4] rounded-xl overflow-hidden border border-primary/40 will-change-transform">
-        <img src={workflowMedia.weddingPhotoLarge} alt="The photo used as the AR trigger" className="w-full h-full object-cover object-[50%_28%]" />
+      <div
+        data-card
+        className="relative w-[46%] aspect-[3/4] rounded-xl overflow-hidden border border-primary/40 will-change-transform"
+      >
+        <img
+          src={workflowMedia.weddingPhotoLarge}
+          alt="The photo used as the AR trigger"
+          className="w-full h-full object-cover object-[50%_28%]"
+        />
         <span className="absolute bottom-2 left-2 font-mono text-[10px] text-primary bg-background/70 px-1.5 py-0.5 rounded">
           no QR printed
         </span>
@@ -231,9 +250,23 @@ function BeatThree({ p }: { p: React.RefObject<Progress> }) {
 
   return (
     <div ref={ref} className="absolute inset-0 flex items-center justify-center">
-      <div aria-hidden className="absolute inset-0" style={{ background: "radial-gradient(45% 45% at 50% 55%, oklch(0.83 0.14 78 / 0.28), transparent 70%)" }} />
-      <div data-phone className="relative h-[78%] aspect-[9/19] rounded-[2rem] border-4 border-border bg-background overflow-hidden glow-ring will-change-transform">
-        <img src={workflowMedia.weddingPhotoLarge} alt="Camera view of a printed photo" className="absolute inset-0 w-full h-full object-cover object-[50%_30%]" />
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(45% 45% at 50% 55%, oklch(0.83 0.14 78 / 0.28), transparent 70%)",
+        }}
+      />
+      <div
+        data-phone
+        className="relative h-[78%] aspect-[9/19] rounded-[2rem] border-4 border-border bg-background overflow-hidden glow-ring will-change-transform"
+      >
+        <img
+          src={workflowMedia.weddingPhotoLarge}
+          alt="Camera view of a printed photo"
+          className="absolute inset-0 w-full h-full object-cover object-[50%_30%]"
+        />
         <video
           data-vid
           src={workflowMedia.weddingVideo}
@@ -246,7 +279,10 @@ function BeatThree({ p }: { p: React.RefObject<Progress> }) {
           aria-hidden
           className="absolute inset-0 w-full h-full object-cover object-[50%_30%] opacity-0"
         />
-        <span data-scan className="absolute left-0 right-0 h-[2px] bg-primary shadow-[0_0_20px_var(--primary)] opacity-0" />
+        <span
+          data-scan
+          className="absolute left-0 right-0 h-[2px] bg-primary shadow-[0_0_20px_var(--primary)] opacity-0"
+        />
       </div>
     </div>
   );

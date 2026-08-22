@@ -36,9 +36,7 @@ async function loadCompiler(): Promise<CompilerCtor> {
       try {
         const mod: any = await import(/* @vite-ignore */ url);
         const Compiler =
-          mod?.Compiler ??
-          mod?.default?.Compiler ??
-          (window as any).MINDAR?.IMAGE?.Compiler;
+          mod?.Compiler ?? mod?.default?.Compiler ?? (window as any).MINDAR?.IMAGE?.Compiler;
         if (Compiler) return Compiler as CompilerCtor;
         lastError = new Error(`No Compiler export from ${url}`);
       } catch (e) {

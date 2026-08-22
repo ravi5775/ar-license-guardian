@@ -12,10 +12,22 @@ const content: UseCaseContent = {
   intro:
     "An Aether wedding AR album links every printed photograph to the video clip it came from. The couple points a phone camera at a page, the still is recognised in under a second, and the film plays right on top of the print — no app install, no per-scan fee. Photographers in India use it as a premium add-on to wedding album packages.",
   steps: [
-    { title: "Upload the album", body: "Add up to 20 photos and their matching video clips in the admin dashboard." },
-    { title: "Compile one marker", body: "Aether compiles all photos into a single AR marker file, so one QR code covers the whole album." },
-    { title: "Print and hand over", body: "Print the QR on the album cover or invite card. Guests scan with any phone camera." },
-    { title: "Watch it play", body: "Each recognised photo plays its own clip, with fit-to-screen, replay and download controls." },
+    {
+      title: "Upload the album",
+      body: "Add up to 20 photos and their matching video clips in the admin dashboard.",
+    },
+    {
+      title: "Compile one marker",
+      body: "Aether compiles all photos into a single AR marker file, so one QR code covers the whole album.",
+    },
+    {
+      title: "Print and hand over",
+      body: "Print the QR on the album cover or invite card. Guests scan with any phone camera.",
+    },
+    {
+      title: "Watch it play",
+      body: "Each recognised photo plays its own clip, with fit-to-screen, replay and download controls.",
+    },
   ],
   bullets: [
     "One QR code for an entire wedding album — up to 20 tracked photos",

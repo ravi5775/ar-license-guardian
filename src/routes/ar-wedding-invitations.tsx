@@ -12,8 +12,14 @@ const content: UseCaseContent = {
   intro:
     "Printed invitation cards are beautiful and silent. With Aether, the same card plays the couple's save-the-date film, venue walkthrough or family message the moment a guest scans it. Wedding printers and event agencies add it as a paid upgrade on invitation orders, with no AR subscription eating the margin.",
   steps: [
-    { title: "Use the invite artwork", body: "The printed invitation itself becomes the tracked image." },
-    { title: "Add the film", body: "Upload the save-the-date video, venue tour or family greeting." },
+    {
+      title: "Use the invite artwork",
+      body: "The printed invitation itself becomes the tracked image.",
+    },
+    {
+      title: "Add the film",
+      body: "Upload the save-the-date video, venue tour or family greeting.",
+    },
     { title: "Print one QR", body: "A single QR on the invite covers every card in the batch." },
     { title: "Guests scan", body: "The film plays over the invitation, full-screen on request." },
   ],

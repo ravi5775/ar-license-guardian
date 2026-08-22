@@ -224,8 +224,7 @@ export async function ensureLicence(): Promise<LicenceState> {
   const cached = localStorage.getItem(STORAGE_TOKEN);
   const cachedPayload = cached ? decode(cached) : null;
   const now = Math.floor(Date.now() / 1000);
-  const stillFresh =
-    cachedPayload && cachedPayload.exp - now > 24 * 3600 - REFRESH_EVERY_MS / 1000;
+  const stillFresh = cachedPayload && cachedPayload.exp - now > 24 * 3600 - REFRESH_EVERY_MS / 1000;
 
   if (cached && stillFresh && (await verifySignature(cached))) {
     localStorage.setItem(STORAGE_LAST_OK, String(Date.now()));
@@ -237,9 +236,7 @@ export async function ensureLicence(): Promise<LicenceState> {
   try {
     const attestation = await attest();
     // Refresh only once the server has minted a device identity for us.
-    const path = secret
-      ? "/api/public/licence/refresh"
-      : "/api/public/licence/activate";
+    const path = secret ? "/api/public/licence/refresh" : "/api/public/licence/activate";
     const result = await callLicenceApi(path, {
       licenceKey: envVar("VITE_LICENCE_KEY"),
       platform: deviceClass(),
@@ -329,4 +326,3 @@ export function startLicenceHeartbeat() {
 export function currentToken() {
   return localStorage.getItem(STORAGE_TOKEN);
 }
-

@@ -3,18 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
-import {
-  ArrowLeft,
-  Camera,
-  ExternalLink,
-  Images,
-  QrCode,
-  RotateCcw,
-  ScanLine,
-} from "lucide-react";
+import { ArrowLeft, Camera, ExternalLink, Images, QrCode, RotateCcw, ScanLine } from "lucide-react";
 import { listPublicAlbums } from "@/lib/albums.functions";
 import { ScanTroubleshooting } from "@/components/ScanTroubleshooting";
-
 
 export const Route = createFileRoute("/scan")({
   head: () => ({
@@ -71,8 +62,6 @@ function ScanPage() {
   );
 }
 
-
-
 /**
  * QR-free entry: pick the album (auto-selected when there is only one),
  * then hand off to the multi-target .mind viewer which recognises the
@@ -106,8 +95,8 @@ function PhotoScan() {
           </div>
           <h1 className="text-2xl mb-2">Scan the photo itself</h1>
           <p className="text-sm text-white/60">
-            Choose the album, point your camera at any picture in it, and its
-            video plays on the print.
+            Choose the album, point your camera at any picture in it, and its video plays on the
+            print.
           </p>
         </div>
 
@@ -115,15 +104,11 @@ function PhotoScan() {
           <QrCode className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
           <span>
             <strong className="font-semibold">No QR code is ever printed on your photos.</strong>{" "}
-            The picture itself is the marker — prints stay clean, no codes, borders
-            or watermarks.
+            The picture itself is the marker — prints stay clean, no codes, borders or watermarks.
           </span>
         </p>
 
-
-        {isLoading && (
-          <p className="text-center text-sm text-white/50">Loading albums…</p>
-        )}
+        {isLoading && <p className="text-center text-sm text-white/50">Loading albums…</p>}
         {error && (
           <p className="text-center text-sm text-white/60">
             Couldn't load albums. Reload and try again.
@@ -154,7 +139,6 @@ function PhotoScan() {
 
         <ScanTroubleshooting />
       </div>
-
     </div>
   );
 }
@@ -205,7 +189,6 @@ function QrScan() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
 
   function handleDecoded(text: string, ctl: IScannerControls) {
     let url: URL | null = null;

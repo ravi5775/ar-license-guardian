@@ -11,7 +11,9 @@ import { Plus, Copy, X } from "lucide-react";
 export const Route = createFileRoute("/_authenticated/dashboard/licenses")({
   // Server-verified admin gate: the browser-side role flag is never trusted.
   beforeLoad: async () => {
-    const ok = await assertAdmin().then(() => true).catch(() => false);
+    const ok = await assertAdmin()
+      .then(() => true)
+      .catch(() => false);
     if (!ok) {
       toast.error("You don't have access to licence management.");
       throw redirect({ to: "/dashboard" });
@@ -20,13 +22,17 @@ export const Route = createFileRoute("/_authenticated/dashboard/licenses")({
   component: LicensesPage,
 });
 
-
 function LicensesPage() {
   const qc = useQueryClient();
   const listFn = useServerFn(listLicenses);
   const createFn = useServerFn(createLicense);
   const statusFn = useServerFn(setLicenseStatus);
-  const { data: licenses = [], isLoading, error, refetch } = useQuery({
+  const {
+    data: licenses = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["licenses"],
     queryFn: () => listFn(),
     staleTime: 60_000,
@@ -46,7 +52,13 @@ function LicensesPage() {
       qc.invalidateQueries({ queryKey: ["licenses"] });
       toast.success(`License issued: ${row.license_key}`);
       setOpen(false);
-      setForm({ client_name: "", client_email: "", plan: "starter", max_activations: 1, notes: "" });
+      setForm({
+        client_name: "",
+        client_email: "",
+        plan: "starter",
+        max_activations: 1,
+        notes: "",
+      });
     },
     onError: (e) => toast.error(e.message),
   });
@@ -72,7 +84,12 @@ function LicensesPage() {
       </div>
 
       <div className="mb-6 empty:mb-0">
-        <QueryState isLoading={isLoading} error={error} onRetry={() => refetch()} label="licenses" />
+        <QueryState
+          isLoading={isLoading}
+          error={error}
+          onRetry={() => refetch()}
+          label="licenses"
+        />
       </div>
 
       <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden">
@@ -153,18 +170,54 @@ function LicensesPage() {
               }}
               className="space-y-3"
             >
-              <input required placeholder="Client / company name" value={form.client_name} onChange={(e) => setForm({ ...form, client_name: e.target.value })} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
-              <input required type="email" placeholder="Client email" value={form.client_email} onChange={(e) => setForm({ ...form, client_email: e.target.value })} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+              <input
+                required
+                placeholder="Client / company name"
+                value={form.client_name}
+                onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              />
+              <input
+                required
+                type="email"
+                placeholder="Client email"
+                value={form.client_email}
+                onChange={(e) => setForm({ ...form, client_email: e.target.value })}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              />
               <div className="grid grid-cols-2 gap-3">
-                <select value={form.plan} onChange={(e) => setForm({ ...form, plan: e.target.value as any })} className="rounded-md border border-border bg-background px-3 py-2 text-sm">
+                <select
+                  value={form.plan}
+                  onChange={(e) => setForm({ ...form, plan: e.target.value as any })}
+                  className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                >
                   <option value="starter">Starter</option>
                   <option value="pro">Pro</option>
                   <option value="enterprise">Enterprise</option>
                 </select>
-                <input type="number" min={1} max={50} value={form.max_activations} onChange={(e) => setForm({ ...form, max_activations: parseInt(e.target.value) || 1 })} className="rounded-md border border-border bg-background px-3 py-2 text-sm" placeholder="Max activations" />
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={form.max_activations}
+                  onChange={(e) =>
+                    setForm({ ...form, max_activations: parseInt(e.target.value) || 1 })
+                  }
+                  className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+                  placeholder="Max activations"
+                />
               </div>
-              <textarea placeholder="Notes (optional)" rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
-              <button disabled={createMut.isPending} className="w-full rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50">
+              <textarea
+                placeholder="Notes (optional)"
+                rows={2}
+                value={form.notes}
+                onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              />
+              <button
+                disabled={createMut.isPending}
+                className="w-full rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium hover:bg-primary/90 disabled:opacity-50"
+              >
                 {createMut.isPending ? "Issuing…" : "Issue license"}
               </button>
             </form>

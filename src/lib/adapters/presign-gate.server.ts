@@ -42,7 +42,6 @@ export function presignGatingEnabled() {
   return (readEnv("LICENCE_ROLE") ?? "issuer").trim().toLowerCase() === "client";
 }
 
-
 interface TokenPayload {
   sub?: string;
   dep?: string;
@@ -86,9 +85,7 @@ async function verifyToken(token: string): Promise<TokenPayload | null> {
   const [header, body, sig] = token.split(".");
   if (!header || !body || !sig) return null;
   try {
-    const key = await crypto.subtle.importKey("jwk", jwk, { name: "Ed25519" }, false, [
-      "verify",
-    ]);
+    const key = await crypto.subtle.importKey("jwk", jwk, { name: "Ed25519" }, false, ["verify"]);
     const valid = await crypto.subtle.verify(
       "Ed25519",
       key,
@@ -142,7 +139,10 @@ export async function checkPresignLicence(
   // covers viewing already-loaded state, never minting fresh asset URLs.
   const now = Math.floor(Date.now() / 1000);
   if (!payload.exp || payload.exp < now) {
-    return deny("LICENCE_EXPIRED_TOKEN", "This device's licence needs to refresh. Reload the page.");
+    return deny(
+      "LICENCE_EXPIRED_TOKEN",
+      "This device's licence needs to refresh. Reload the page.",
+    );
   }
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -193,7 +193,12 @@ export async function checkPresignLicence(
   const buildId = (device.build_id ?? "").trim();
   const assetDigest = (device.asset_digest ?? "").trim();
   if (!buildId || !assetDigest) {
-    await safeViolation("presign_missing_attestation", { purpose }, licence.id, licence.license_key);
+    await safeViolation(
+      "presign_missing_attestation",
+      { purpose },
+      licence.id,
+      licence.license_key,
+    );
     return deny("ATTESTATION_INVALID", "This build could not be verified.");
   }
   const { data: manifest } = await supabaseAdmin

@@ -34,6 +34,11 @@ export default tseslint.config(
       ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
+      // The AR/VR glue talks to untyped third-party globals (A-Frame, MindAR,
+      // WebXR vendor hooks). `any` there is deliberate, not sloppy — keep it
+      // visible as a warning instead of failing CI on it.
+      "@typescript-eslint/no-explicit-any": "warn",
+      "no-empty": ["error", { allowEmptyCatch: true }],
     },
   },
   {

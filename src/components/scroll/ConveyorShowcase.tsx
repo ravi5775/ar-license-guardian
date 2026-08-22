@@ -137,7 +137,10 @@ export function ConveyorShowcase() {
   }
 
   return (
-    <section ref={sectionRef} className="relative h-screen overflow-hidden border-t border-border/40">
+    <section
+      ref={sectionRef}
+      className="relative h-screen overflow-hidden border-t border-border/40"
+    >
       <div
         ref={plateRef}
         aria-hidden
@@ -152,7 +155,10 @@ export function ConveyorShowcase() {
         <Heading />
       </div>
 
-      <div ref={trackRef} className="absolute top-[60%] -translate-y-1/2 left-0 flex gap-10 pl-[8vw] pr-[8vw] will-change-transform">
+      <div
+        ref={trackRef}
+        className="absolute top-[60%] -translate-y-1/2 left-0 flex gap-10 pl-[8vw] pr-[8vw] will-change-transform"
+      >
         {slides.map((s) => (
           <figure key={s.kicker} className="w-[62vw] max-w-[720px] shrink-0">
             <div className="rounded-3xl overflow-hidden border border-border bg-surface glow-ring">
