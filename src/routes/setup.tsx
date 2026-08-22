@@ -13,7 +13,7 @@ interface EnvCheckResult {
   message: string;
 }
 
-export function ClientSetupWizardPage() {
+function ClientSetupWizardPage() {
   const [checks, setChecks] = useState<EnvCheckResult[]>([]);
   const [isChecking, setIsChecking] = useState(true);
 
