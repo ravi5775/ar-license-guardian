@@ -128,6 +128,13 @@ media — no long-lived signed URLs are handed out.
 American-spelling legacy path. Every method returns **410 Gone**. Keep it
 deployed so old clients get a clear error rather than a 404.
 
+### 1.9 `GET /sitemap.xml`
+Not under `/api/`, but a public server route (`src/routes/sitemap[.]xml.ts`).
+Serves a **static** list of marketing/landing routes (`/`, use-case pages,
+`/gallery`) against `BASE_URL`, cached one hour. It does **not** enumerate
+published experiences or albums — those are intentionally excluded so private
+or PIN-gated slugs never leak into search indexes.
+
 ---
 
 ## 2. Internal server functions (dashboard RPC)
