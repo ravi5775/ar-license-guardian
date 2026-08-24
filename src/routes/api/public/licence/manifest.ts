@@ -91,6 +91,47 @@ async function verifyManifestSignature(
 export const Route = createFileRoute("/api/public/licence/manifest")({
   server: {
     handlers: {
+      // Read-only verification: a client fetches the manifest it should be
+      // running and compares hashes locally. No secrets are returned.
+      GET: async ({ request }) => {
+        const throttled = await enforceRateLimit(request, {
+          limit: 30,
+          windowSec: 60,
+          bucket: "manifest_read",
+          failMode: "open",
+        });
+        if (throttled) return throttled;
+
+        const url = new URL(request.url);
+        const buildId = url.searchParams.get("buildId")?.trim() ?? "";
+        const customerId = url.searchParams.get("customerId")?.trim() || "universal";
+        if (buildId.length < 4 || buildId.length > 200) {
+          return json({ ok: false, error: "BAD_REQUEST" }, 400);
+        }
+
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data, error } = await supabaseAdmin
+          .from("release_manifests")
+          .select("build_id, customer_id, asset_digest, signature, files, branch, published_at")
+          .eq("build_id", buildId)
+          .eq("customer_id", customerId)
+          .maybeSingle();
+
+        if (error || !data) return json({ ok: false, error: "NOT_FOUND" }, 404);
+
+        return json({
+          ok: true,
+          manifest: {
+            buildId: data.build_id,
+            customerId: data.customer_id,
+            assetDigest: data.asset_digest,
+            signature: data.signature,
+            files: data.files,
+            branch: data.branch,
+            publishedAt: data.published_at,
+          },
+        });
+      },
       POST: async ({ request }) => {
         const throttled = await enforceRateLimit(request, {
           limit: 15,

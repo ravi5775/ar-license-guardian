@@ -84,9 +84,9 @@ Read-only diagnostics for the customer. Key via `?key=` or `x-licence-key`
 header. Returns plan, expiry, status and active slot count — no IDs or keys.
 Rate limit 30/min, fail open. `MISSING_LICENCE_KEY` → 400.
 
-### 1.5 `POST /api/public/licence/manifest`
-CI on the `client-app` branch posts the signed release manifest after a build,
-so heartbeats from that release validate.
+### 1.5 `POST` / `GET /api/public/licence/manifest`
+**POST** — CI on the `client-app` branch posts the signed release manifest after
+a build, so heartbeats from that release validate.
 
 ```jsonc
 {
@@ -103,10 +103,21 @@ so heartbeats from that release validate.
 Auth: shared secret `RELEASE_MANIFEST_SECRET` **and** Ed25519 signature
 verification against `LICENCE_PUBLIC_KEY_JWK`.
 
+**GET** — `?buildId=<id>&customerId=<id|universal>`. Unauthenticated read-only
+verification so a client can compare the manifest it is running against the one
+the vendor published. Returns
+`{ ok, manifest: { buildId, customerId, assetDigest, signature, files, branch, publishedAt } }`,
+`404 NOT_FOUND` when unknown, `400 BAD_REQUEST` on a malformed `buildId`.
+Rate limit 30/min, fail open. No secrets are returned.
+
 ### 1.6 `POST /api/public/hooks/storage-alerts`
 Nightly cron. Auth via `x-cron-secret` or `Authorization: Bearer <secret>`
-compared constant-time against `STORAGE_ALERTS_CRON_SECRET`. Emails owners at
-80% of quota, once per crossing. Rate limit 10/min, fail closed.
+compared constant-time against `STORAGE_ALERTS_CRON_SECRET`. Rate limit 10/min,
+fail closed. At ≥80% of quota it stamps `profiles.storage_alert_sent_at` and
+writes an `audit_log` row with action `storage.quota_warning` (metadata:
+`used_bytes`, `quota_bytes`, `percent`); when usage drops back under 80% the
+stamp is cleared so the next crossing alerts again. Returns
+`{ ok: true, notified, cleared }`.
 
 ### 1.7 `GET /api/public/m/$nonce`
 One-time nonce redemption for restricted media. Redirects to a short-lived
@@ -116,6 +127,13 @@ media — no long-lived signed URLs are handed out.
 ### 1.8 `ALL /api/public/license/activate` *(deprecated)*
 American-spelling legacy path. Every method returns **410 Gone**. Keep it
 deployed so old clients get a clear error rather than a 404.
+
+### 1.9 `GET /sitemap.xml`
+Not under `/api/`, but a public server route (`src/routes/sitemap[.]xml.ts`).
+Serves a **static** list of marketing/landing routes (`/`, use-case pages,
+`/gallery`) against `BASE_URL`, cached one hour. It does **not** enumerate
+published experiences or albums — those are intentionally excluded so private
+or PIN-gated slugs never leak into search indexes.
 
 ---
 
