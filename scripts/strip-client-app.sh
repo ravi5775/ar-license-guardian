@@ -13,7 +13,7 @@
 # NEVER ship these files to a paying customer. Each section is annotated
 # with the risk it mitigates.
 # =============================================================================
-set -euo pipefail
+set -e
 
 echo "==================================================================="
 echo "AETHER AR — client-app strip (security hardening edition)"
@@ -83,7 +83,7 @@ echo "  ✓ Audit/deploy/docs directories removed"
 # ─── Verify no import still references removed files ─────────────────────
 echo ""
 echo "Checking for broken imports..."
-BROKEN=$(grep -rn "licence\.server\|db\.server\|licenses\.functions\|admin\.functions\|approvals\.functions\|sign-manifest" src/ 2>/dev/null || echo "")
+BROKEN=$(grep -rn "licence\.server\|db\.server\|licenses\.functions\|admin\.functions\|approvals\.functions\|sign-manifest" src/ 2>/dev/null || true)
 if [ -n "$BROKEN" ]; then
   echo "  ⚠ BROKEN IMPORT REFERENCES FOUND:"
   echo "$BROKEN"
