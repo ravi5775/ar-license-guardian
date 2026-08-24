@@ -101,4 +101,3 @@ export const Route = createFileRoute("/_authenticated")({
   },
   component: () => <Outlet />,
 });
-

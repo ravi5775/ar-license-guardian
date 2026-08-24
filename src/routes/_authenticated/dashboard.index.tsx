@@ -11,7 +11,12 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
 
 function Overview() {
   const fn = useServerFn(listMyExperiences);
-  const { data: experiences = [], isLoading, error, refetch } = useQuery({
+  const {
+    data: experiences = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["experiences"],
     queryFn: () => fn(),
     staleTime: 60_000,
@@ -33,14 +38,21 @@ function Overview() {
       <p className="text-sm text-muted-foreground mb-8">Welcome back to your AR command center.</p>
 
       <div className="mb-6 empty:mb-0">
-        <QueryState isLoading={isLoading} error={error} onRetry={() => refetch()} label="experiences" />
+        <QueryState
+          isLoading={isLoading}
+          error={error}
+          onRetry={() => refetch()}
+          label="experiences"
+        />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
         {stats.map(({ label, value, icon: Icon }) => (
           <div key={label} className="rounded-2xl border border-border/60 bg-card/40 p-6">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">
+                {label}
+              </span>
               <Icon className="h-4 w-4 text-primary" />
             </div>
             <div className="text-3xl font-serif">{value}</div>
@@ -51,7 +63,9 @@ function Overview() {
       <div className="rounded-2xl border border-border/60 bg-card/40 p-6">
         <h2 className="text-lg font-semibold mb-4">Recent Experiences</h2>
         {experiences.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No experiences yet. Create your first one.</p>
+          <p className="text-sm text-muted-foreground">
+            No experiences yet. Create your first one.
+          </p>
         ) : (
           <div className="divide-y divide-border/60">
             {experiences.slice(0, 5).map((e) => (

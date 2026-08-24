@@ -37,8 +37,6 @@ import {
 import { VrStage } from "@/components/ar/VrStage";
 import { ArVrToggle, PerfToggle } from "@/components/ar/ModeToggle";
 
-
-
 export const Route = createFileRoute("/ar/album/$slug")({
   validateSearch: (search: Record<string, unknown>) => ({
     tok: typeof search.tok === "string" ? search.tok : undefined,
@@ -68,10 +66,7 @@ export const Route = createFileRoute("/ar/album/$slug")({
           { property: "og:type", content: "website" },
           { name: "twitter:card", content: "summary_large_image" },
         ]
-      : [
-          { title: "Album unavailable" },
-          { name: "robots", content: "noindex" },
-        ],
+      : [{ title: "Album unavailable" }, { name: "robots", content: "noindex" }],
   }),
   errorComponent: ({ error }) => (
     <div className="min-h-screen grid place-items-center bg-background text-foreground p-8 text-center">
@@ -110,9 +105,7 @@ function loadScript(src: string) {
   const cached = scriptPromises.get(src);
   if (cached) return cached;
   const p = new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector(
-      `script[src="${src}"]`,
-    ) as HTMLScriptElement | null;
+    const existing = document.querySelector(`script[src="${src}"]`) as HTMLScriptElement | null;
     if (existing) {
       if (existing.dataset.loaded === "true") return resolve();
       existing.addEventListener(
@@ -123,11 +116,9 @@ function loadScript(src: string) {
         },
         { once: true },
       );
-      existing.addEventListener(
-        "error",
-        () => reject(new Error(`Failed to load ${src}`)),
-        { once: true },
-      );
+      existing.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)), {
+        once: true,
+      });
       return;
     }
     const s = document.createElement("script");
@@ -233,8 +224,6 @@ function AlbumViewer() {
     return <PinGate kind="album" slug={album.slug} title={album.title} />;
   }
 
-
-
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <Link
@@ -249,10 +238,10 @@ function AlbumViewer() {
           <div className="max-w-md text-center">
             <h1 className="text-3xl font-serif italic mb-2">{album.title}</h1>
             <p className="text-sm text-white/70 mb-6">
-              Scan complete. Now just point your camera at any photo in this
-              album — {album.target_count} photo
-              {album.target_count === 1 ? "" : "s"} are recognised, and each one
-              plays its own video. No need to scan again.
+              Scan complete. Now just point your camera at any photo in this album —{" "}
+              {album.target_count} photo
+              {album.target_count === 1 ? "" : "s"} are recognised, and each one plays its own
+              video. No need to scan again.
             </p>
             <button
               onClick={() => {
@@ -263,9 +252,7 @@ function AlbumViewer() {
             >
               <Camera className="h-4 w-4" /> Open camera
             </button>
-            <p className="text-xs text-white/40 mt-4">
-              Your camera stays on your device.
-            </p>
+            <p className="text-xs text-white/40 mt-4">Your camera stays on your device.</p>
           </div>
         </div>
       ) : vrMode ? (
@@ -324,7 +311,6 @@ function AlbumStage({
   const detachRecoveryRef = useRef<null | (() => void)>(null);
   const detachFitRef = useRef<null | (() => void)>(null);
 
-
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [recovering, setRecovering] = useState<string | null>(null);
@@ -342,7 +328,7 @@ function AlbumStage({
   const activeTarget =
     activeIndex === null
       ? null
-      : album.targets.find((t: any) => t.target_index === activeIndex) ?? null;
+      : (album.targets.find((t: any) => t.target_index === activeIndex) ?? null);
 
   /**
    * iOS Safari only allows media playback that originates from a user gesture.
@@ -369,29 +355,26 @@ function AlbumStage({
     setPrimed(true);
   }, []);
 
-  const playVideo = useCallback(
-    async (v: HTMLVideoElement, index: number) => {
+  const playVideo = useCallback(async (v: HTMLVideoElement, index: number) => {
+    try {
+      await v.play();
+      setNeedsTapToPlay(false);
+    } catch {
+      // Fallback 1: force muted inline playback (iOS low-power mode).
       try {
+        v.muted = true;
+        v.setAttribute("muted", "");
+        v.playsInline = true;
         await v.play();
+        setMuted(true);
         setNeedsTapToPlay(false);
       } catch {
-        // Fallback 1: force muted inline playback (iOS low-power mode).
-        try {
-          v.muted = true;
-          v.setAttribute("muted", "");
-          v.playsInline = true;
-          await v.play();
-          setMuted(true);
-          setNeedsTapToPlay(false);
-        } catch {
-          // Fallback 2: ask the user for an explicit tap.
-          setNeedsTapToPlay(true);
-          setActiveIndex(index);
-        }
+        // Fallback 2: ask the user for an explicit tap.
+        setNeedsTapToPlay(true);
+        setActiveIndex(index);
       }
-    },
-    [],
-  );
+    }
+  }, []);
 
   const start = useCallback(async () => {
     attemptRef.current += 1;
@@ -411,7 +394,6 @@ function AlbumStage({
     }
 
     try {
-
       const mindUrl = safeHttpsUrl(album.compiled_mind_url);
       if (!mindUrl) throw new Error("This album has no compiled AR marker yet");
 
@@ -442,7 +424,6 @@ function AlbumStage({
       applySceneHygiene(scene);
       // Sizing comes from the scoped `.ar-stage-root` stylesheet (100dvh).
 
-
       const assets = document.createElement("a-assets");
       for (const t of album.targets) {
         const mediaUrl = safeHttpsUrl(t.media_url);
@@ -472,10 +453,7 @@ function AlbumStage({
 
       for (const t of album.targets) {
         const entity = document.createElement("a-entity");
-        entity.setAttribute(
-          "mindar-image-target",
-          `targetIndex: ${t.target_index}`,
-        );
+        entity.setAttribute("mindar-image-target", `targetIndex: ${t.target_index}`);
         if (safeHttpsUrl(t.media_url) && t.media_type === "video") {
           const av = document.createElement("a-video");
           av.setAttribute("src", `#ar-media-${t.target_index}`);
@@ -528,8 +506,7 @@ function AlbumStage({
         });
         // Looping videos never fire "ended" — count 95% watched as complete.
         v.addEventListener("timeupdate", () => {
-          if (completedRef.current[index] || !v.duration || !isFinite(v.duration))
-            return;
+          if (completedRef.current[index] || !v.duration || !isFinite(v.duration)) return;
           if (v.currentTime / v.duration >= 0.95) {
             completedRef.current[index] = true;
             track("playback_complete", {
@@ -570,7 +547,6 @@ function AlbumStage({
         if (sceneElRef.current === scene) gpuAttemptsRef.current.current = 0;
       }, 20_000);
       setStatus("ready");
-
     } catch (e: any) {
       if (attemptRef.current < 2) {
         setTimeout(() => start(), 500);
@@ -601,7 +577,6 @@ function AlbumStage({
         .forEach((el) => el.remove());
       if (sceneRef.current) sceneRef.current.replaceChildren();
       sceneElRef.current = null;
-
     };
   }, [start]);
 
@@ -624,8 +599,7 @@ function AlbumStage({
     return () => document.removeEventListener("visibilitychange", onVis);
   }, []);
 
-  const activeVideo =
-    activeIndex === null ? null : videosRef.current[activeIndex] ?? null;
+  const activeVideo = activeIndex === null ? null : (videosRef.current[activeIndex] ?? null);
 
   const togglePlay = () => {
     if (!activeVideo || activeIndex === null) return;
@@ -686,9 +660,7 @@ function AlbumStage({
     <>
       {status === "loading" && (
         <div className="absolute inset-0 z-20 grid place-items-center pointer-events-none">
-          <div className="text-sm text-white/70 animate-pulse">
-            Loading AR engine…
-          </div>
+          <div className="text-sm text-white/70 animate-pulse">Loading AR engine…</div>
         </div>
       )}
 
@@ -699,8 +671,6 @@ function AlbumStage({
           </div>
         </div>
       )}
-
-
 
       <div ref={sceneRef} onClick={onSceneTap} className={AR_STAGE_CLASS} />
 
@@ -713,15 +683,9 @@ function AlbumStage({
               start();
             }}
           />
-          <ArVrToggle
-            mode="ar"
-            headset={vrSupported}
-            onChange={(m) => m === "vr" && onEnterVr()}
-          />
+          <ArVrToggle mode="ar" headset={vrSupported} onChange={(m) => m === "vr" && onEnterVr()} />
         </div>
       )}
-
-
 
       {status === "ready" && !primed && (
         <div className="absolute inset-x-0 bottom-28 z-30 flex justify-center px-6">
@@ -738,8 +702,7 @@ function AlbumStage({
         <div className="absolute inset-0 z-40 grid place-items-center bg-black/40">
           <button
             onClick={() => {
-              if (activeVideo && activeIndex !== null)
-                void playVideo(activeVideo, activeIndex);
+              if (activeVideo && activeIndex !== null) void playVideo(activeVideo, activeIndex);
             }}
             className="inline-flex items-center gap-2 rounded-full bg-white text-black px-6 py-3 text-sm font-medium"
           >
@@ -754,9 +717,7 @@ function AlbumStage({
             role="status"
             aria-live="polite"
             className={`inline-flex items-center gap-2 rounded-full backdrop-blur px-3 py-1.5 text-xs transition-colors ${
-              activeTarget
-                ? "bg-emerald-500/20 text-emerald-100"
-                : "bg-white/10 text-white/80"
+              activeTarget ? "bg-emerald-500/20 text-emerald-100" : "bg-white/10 text-white/80"
             }`}
           >
             <span
@@ -765,9 +726,7 @@ function AlbumStage({
               }`}
             />
             <span className="truncate">
-              {activeTarget
-                ? activeTarget.title
-                : "Point your camera at any photo in the album"}
+              {activeTarget ? activeTarget.title : "Point your camera at any photo in the album"}
             </span>
           </div>
         </div>
@@ -776,8 +735,8 @@ function AlbumStage({
       {status === "ready" && showHelp && !activeTarget && (
         <div className="absolute top-16 inset-x-0 z-30 flex justify-center px-6 pointer-events-none">
           <p className="rounded-xl bg-black/60 backdrop-blur px-4 py-2 text-center text-[11px] text-white/80">
-            Having trouble recognising the photo? Try better lighting, fill more
-            of the frame with the photo, and hold steady.
+            Having trouble recognising the photo? Try better lighting, fill more of the frame with
+            the photo, and hold steady.
           </p>
         </div>
       )}
@@ -865,9 +824,7 @@ function AlbumStage({
 
       {status === "ready" && activeTarget && !cinema && (
         <div className="absolute bottom-20 inset-x-0 z-20 text-center pointer-events-none">
-          <p className="text-[11px] text-white/50">
-            Double-tap the video to fit it to your screen
-          </p>
+          <p className="text-[11px] text-white/50">Double-tap the video to fit it to your screen</p>
         </div>
       )}
     </>
@@ -893,4 +850,3 @@ function IconBtn({
     </button>
   );
 }
-

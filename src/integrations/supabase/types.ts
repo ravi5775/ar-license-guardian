@@ -313,6 +313,7 @@ export type Database = {
           asset_digest: string | null
           build_id: string | null
           capability_tier: string | null
+          customer_id: string | null
           deployment_domain: string | null
           deployment_platform: string | null
           device_class: string
@@ -325,6 +326,7 @@ export type Database = {
           license_id: string
           origin_host: string | null
           release_after: string | null
+          release_hash: string | null
           released_at: string | null
           revoked_at: string | null
           supabase_ref: string | null
@@ -335,6 +337,7 @@ export type Database = {
           asset_digest?: string | null
           build_id?: string | null
           capability_tier?: string | null
+          customer_id?: string | null
           deployment_domain?: string | null
           deployment_platform?: string | null
           device_class?: string
@@ -347,6 +350,7 @@ export type Database = {
           license_id: string
           origin_host?: string | null
           release_after?: string | null
+          release_hash?: string | null
           released_at?: string | null
           revoked_at?: string | null
           supabase_ref?: string | null
@@ -357,6 +361,7 @@ export type Database = {
           asset_digest?: string | null
           build_id?: string | null
           capability_tier?: string | null
+          customer_id?: string | null
           deployment_domain?: string | null
           deployment_platform?: string | null
           device_class?: string
@@ -369,6 +374,7 @@ export type Database = {
           license_id?: string
           origin_host?: string | null
           release_after?: string | null
+          release_hash?: string | null
           released_at?: string | null
           revoked_at?: string | null
           supabase_ref?: string | null
@@ -449,6 +455,7 @@ export type Database = {
           client_email: string
           client_name: string
           created_at: string
+          customer_id: string | null
           expires_at: string | null
           grace_hours: number
           id: string
@@ -469,6 +476,7 @@ export type Database = {
           client_email: string
           client_name: string
           created_at?: string
+          customer_id?: string | null
           expires_at?: string | null
           grace_hours?: number
           id?: string
@@ -489,6 +497,7 @@ export type Database = {
           client_email?: string
           client_name?: string
           created_at?: string
+          customer_id?: string | null
           expires_at?: string | null
           grace_hours?: number
           id?: string
@@ -725,6 +734,50 @@ export type Database = {
         }
         Relationships: []
       }
+      project_usage: {
+        Row: {
+          created_at: string
+          egress_bytes: number
+          egress_cap_bytes: number
+          id: string
+          month_year: string
+          project_id: string | null
+          request_count: number
+          updated_at: string
+          warning_80_notified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          egress_bytes?: number
+          egress_cap_bytes?: number
+          id?: string
+          month_year: string
+          project_id?: string | null
+          request_count?: number
+          updated_at?: string
+          warning_80_notified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          egress_bytes?: number
+          egress_cap_bytes?: number
+          id?: string
+          month_year?: string
+          project_id?: string | null
+          request_count?: number
+          updated_at?: string
+          warning_80_notified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_usage_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           color: string | null
@@ -782,7 +835,10 @@ export type Database = {
           branch: string
           build_id: string
           created_at: string
+          customer_id: string | null
+          files: Json | null
           id: string
+          mismatch_count: number
           published_at: string
           signature: string
           updated_at: string
@@ -792,7 +848,10 @@ export type Database = {
           branch?: string
           build_id: string
           created_at?: string
+          customer_id?: string | null
+          files?: Json | null
           id?: string
+          mismatch_count?: number
           published_at?: string
           signature: string
           updated_at?: string
@@ -802,10 +861,37 @@ export type Database = {
           branch?: string
           build_id?: string
           created_at?: string
+          customer_id?: string | null
+          files?: Json | null
           id?: string
+          mismatch_count?: number
           published_at?: string
           signature?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      revoked_builds: {
+        Row: {
+          build_id: string
+          notes: string | null
+          reason: string
+          revoked_at: string
+          revoked_by: string | null
+        }
+        Insert: {
+          build_id: string
+          notes?: string | null
+          reason: string
+          revoked_at?: string
+          revoked_by?: string | null
+        }
+        Update: {
+          build_id?: string
+          notes?: string | null
+          reason?: string
+          revoked_at?: string
+          revoked_by?: string | null
         }
         Relationships: []
       }
@@ -920,6 +1006,7 @@ export type Database = {
         Args: { _ip: string; _slug: string }
         Returns: boolean
       }
+      pin_cleanup_old_failures: { Args: never; Returns: number }
       pin_clear_failures: {
         Args: { _ip: string; _slug: string }
         Returns: undefined

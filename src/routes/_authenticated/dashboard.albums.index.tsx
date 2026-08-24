@@ -52,8 +52,6 @@ function AlbumsPage() {
     onError: (e: any) => toast.error(e.message ?? "Update failed"),
   });
 
-
-
   return (
     <div className="p-4 md:p-8 max-w-5xl">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
@@ -66,8 +64,8 @@ function AlbumsPage() {
         </Link>
       </div>
       <p className="text-sm text-muted-foreground mb-6">
-        One QR code per album. Customers scan once, then point their camera at
-        any photo in the album to play that photo's video.
+        One QR code per album. Customers scan once, then point their camera at any photo in the
+        album to play that photo's video.
       </p>
 
       <QueryState
@@ -98,9 +96,7 @@ function AlbumsPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() =>
-                    pubMut.mutate({ id: a.id, published: !a.published })
-                  }
+                  onClick={() => pubMut.mutate({ id: a.id, published: !a.published })}
                   className={`rounded-full px-3 py-1 text-xs border ${
                     a.published
                       ? "border-primary/40 text-primary bg-primary/10"
@@ -111,9 +107,7 @@ function AlbumsPage() {
                 </button>
                 <button
                   disabled={galleryMut.isPending}
-                  onClick={() =>
-                    galleryMut.mutate({ id: a.id, show: !a.show_in_gallery })
-                  }
+                  onClick={() => galleryMut.mutate({ id: a.id, show: !a.show_in_gallery })}
                   title={
                     a.show_in_gallery
                       ? "Listed in the public gallery"
@@ -140,8 +134,7 @@ function AlbumsPage() {
                 </button>
                 <button
                   onClick={() => {
-                    if (confirm(`Delete "${a.title}" and its photos?`))
-                      delMut.mutate(a.id);
+                    if (confirm(`Delete "${a.title}" and its photos?`)) delMut.mutate(a.id);
                   }}
                   className="inline-flex items-center gap-2 rounded-md border border-destructive/40 text-destructive px-3 py-1.5 text-xs hover:bg-destructive/10"
                 >

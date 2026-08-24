@@ -236,10 +236,7 @@ type Cleanup = () => void;
  * re-constrained after the fact, which is the single biggest tracking-lag
  * lever on low-end hardware.
  */
-export function attachArViewportFit(
-  scene: any,
-  tier: DeviceTier = detectDeviceTier(),
-): Cleanup {
+export function attachArViewportFit(scene: any, tier: DeviceTier = detectDeviceTier()): Cleanup {
   if (typeof window === "undefined") return () => {};
   let disposed = false;
   let frame = 0;
@@ -280,17 +277,17 @@ export function attachArViewportFit(
   let pollTimer: ReturnType<typeof setTimeout> | null = null;
   const tuneStream = () => {
     if (disposed) return;
-    const video = scene.systems?.["mindar-image-system"]?.video as
-      | HTMLVideoElement
-      | undefined;
+    const video = scene.systems?.["mindar-image-system"]?.video as HTMLVideoElement | undefined;
     if (video?.videoWidth) {
       const stream = video.srcObject;
       if (stream instanceof MediaStream) {
         const track = stream.getVideoTracks()[0];
-        void track?.applyConstraints({
-          width: { max: CAMERA_CAP[tier] },
-          frameRate: { max: FPS_CAP[tier] },
-        }).catch(() => {});
+        void track
+          ?.applyConstraints({
+            width: { max: CAMERA_CAP[tier] },
+            frameRate: { max: FPS_CAP[tier] },
+          })
+          .catch(() => {});
       }
       video.addEventListener("loadedmetadata", schedule);
       video.addEventListener("resize", schedule);

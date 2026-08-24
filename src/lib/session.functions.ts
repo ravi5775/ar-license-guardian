@@ -36,7 +36,6 @@ export const getSessionContext = createServerFn({ method: "GET" })
       userId: context.userId,
       email: (context.claims as { email?: string } | null)?.email ?? null,
       isAdmin: !!roleRow,
-      approval:
-        (profileRow?.approval_status as SessionContext["approval"]) ?? "pending",
+      approval: (profileRow?.approval_status as SessionContext["approval"]) ?? "pending",
     };
   });

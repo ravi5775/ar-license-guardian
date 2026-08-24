@@ -92,3 +92,8 @@ export function sanitizeProfile(row: Partial<RawProfile> & Record<string, any>):
     created_at: row.created_at || new Date().toISOString(),
   };
 }
+
+export const sanitizeLicenseActivation = sanitizeActivation;
+export const sanitizeProfilePublic = sanitizeProfile;
+
+

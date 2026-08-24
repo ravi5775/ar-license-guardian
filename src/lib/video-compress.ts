@@ -147,7 +147,11 @@ export async function compressVideo(
   const mt = canUseMultithread();
   const originalBytes = file.size;
   const emit = (stage: CompressStage, percent: number) =>
-    onProgress?.({ stage, percent: Math.max(0, Math.min(100, Math.round(percent))), multithreaded: mt });
+    onProgress?.({
+      stage,
+      percent: Math.max(0, Math.min(100, Math.round(percent))),
+      multithreaded: mt,
+    });
 
   const bail = (reason: string): CompressResult => ({
     file,
@@ -197,8 +201,7 @@ export async function compressVideo(
     const { fetchFile } = await import("@ffmpeg/util");
     await ffmpeg.writeFile(inName, await fetchFile(file));
 
-    const onProg = ({ progress }: { progress: number }) =>
-      emit("compressing", progress * 100);
+    const onProg = ({ progress }: { progress: number }) => emit("compressing", progress * 100);
     ffmpeg.on("progress", onProg);
 
     // Downscale so neither edge exceeds 1920x1080 while keeping aspect ratio
@@ -208,16 +211,26 @@ export async function compressVideo(
       "scale=trunc(iw/2)*2:trunc(ih/2)*2";
 
     const args = [
-      "-i", inName,
-      "-vf", scale,
-      "-c:v", "libx264",
-      "-preset", "veryfast",
-      "-profile:v", "high",
-      "-pix_fmt", "yuv420p",
-      "-b:v", `${bitrate}k`,
-      "-maxrate", `${Math.round(bitrate * 1.5)}k`,
-      "-bufsize", `${bitrate * 2}k`,
-      "-movflags", "+faststart",
+      "-i",
+      inName,
+      "-vf",
+      scale,
+      "-c:v",
+      "libx264",
+      "-preset",
+      "veryfast",
+      "-profile:v",
+      "high",
+      "-pix_fmt",
+      "yuv420p",
+      "-b:v",
+      `${bitrate}k`,
+      "-maxrate",
+      `${Math.round(bitrate * 1.5)}k`,
+      "-bufsize",
+      `${bitrate * 2}k`,
+      "-movflags",
+      "+faststart",
       ...(keepAudio ? ["-c:a", "aac", "-b:a", "128k"] : ["-an"]),
       outName,
     ];
@@ -234,11 +247,9 @@ export async function compressVideo(
     if (!out || out.byteLength === 0) return bail("Compression produced an empty file");
 
     const buffer = new Uint8Array(out).slice().buffer as ArrayBuffer;
-    const compressed = new File(
-      [buffer],
-      file.name.replace(/\.[a-z0-9]+$/i, "") + ".mp4",
-      { type: "video/mp4" },
-    );
+    const compressed = new File([buffer], file.name.replace(/\.[a-z0-9]+$/i, "") + ".mp4", {
+      type: "video/mp4",
+    });
 
     // Never hand back something bigger than the source.
     if (compressed.size >= originalBytes) {
@@ -254,7 +265,7 @@ export async function compressVideo(
       multithreaded: mt,
     };
   } catch (e: any) {
-    return bail(timedOut ? "Compression timed out" : e?.message ?? "Compression failed");
+    return bail(timedOut ? "Compression timed out" : (e?.message ?? "Compression failed"));
   } finally {
     clearTimeout(timeout);
   }

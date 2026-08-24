@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WeddingArAlbumsRouteImport } from './routes/wedding-ar-albums'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SetupRouteImport } from './routes/setup'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -38,6 +39,7 @@ import { Route as AuthenticatedDashboardActivationsRouteImport } from './routes/
 import { Route as AuthenticatedDashboardAlbumsIndexRouteImport } from './routes/_authenticated/dashboard.albums.index'
 import { Route as ApiPublicMNonceRouteImport } from './routes/api/public/m.$nonce'
 import { Route as ApiPublicLicenseActivateRouteImport } from './routes/api/public/license/activate'
+import { Route as ApiPublicLicenceStatusRouteImport } from './routes/api/public/licence/status'
 import { Route as ApiPublicLicenceReleaseRouteImport } from './routes/api/public/licence/release'
 import { Route as ApiPublicLicenceRefreshRouteImport } from './routes/api/public/licence/refresh'
 import { Route as ApiPublicLicenceManifestRouteImport } from './routes/api/public/licence/manifest'
@@ -53,6 +55,11 @@ const WeddingArAlbumsRoute = WeddingArAlbumsRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScanRoute = ScanRouteImport.update({
@@ -202,6 +209,11 @@ const ApiPublicLicenseActivateRoute =
     path: '/api/public/license/activate',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicLicenceStatusRoute = ApiPublicLicenceStatusRouteImport.update({
+  id: '/api/public/licence/status',
+  path: '/api/public/licence/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicLicenceReleaseRoute = ApiPublicLicenceReleaseRouteImport.update({
   id: '/api/public/licence/release',
   path: '/api/public/licence/release',
@@ -246,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/setup': typeof SetupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
@@ -269,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
   '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
   '/api/public/licence/release': typeof ApiPublicLicenceReleaseRoute
+  '/api/public/licence/status': typeof ApiPublicLicenceStatusRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -282,6 +296,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/setup': typeof SetupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/mfa': typeof AuthenticatedMfaRoute
@@ -304,6 +319,7 @@ export interface FileRoutesByTo {
   '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
   '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
   '/api/public/licence/release': typeof ApiPublicLicenceReleaseRoute
+  '/api/public/licence/status': typeof ApiPublicLicenceStatusRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/dashboard/albums': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -319,6 +335,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/gallery': typeof GalleryRoute
   '/scan': typeof ScanRoute
+  '/setup': typeof SetupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/wedding-ar-albums': typeof WeddingArAlbumsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
@@ -342,6 +359,7 @@ export interface FileRoutesById {
   '/api/public/licence/manifest': typeof ApiPublicLicenceManifestRoute
   '/api/public/licence/refresh': typeof ApiPublicLicenceRefreshRoute
   '/api/public/licence/release': typeof ApiPublicLicenceReleaseRoute
+  '/api/public/licence/status': typeof ApiPublicLicenceStatusRoute
   '/api/public/license/activate': typeof ApiPublicLicenseActivateRoute
   '/api/public/m/$nonce': typeof ApiPublicMNonceRoute
   '/_authenticated/dashboard/albums/': typeof AuthenticatedDashboardAlbumsIndexRoute
@@ -357,6 +375,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/setup'
     | '/sitemap.xml'
     | '/wedding-ar-albums'
     | '/dashboard'
@@ -380,6 +399,7 @@ export interface FileRouteTypes {
     | '/api/public/licence/manifest'
     | '/api/public/licence/refresh'
     | '/api/public/licence/release'
+    | '/api/public/licence/status'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/dashboard/albums/'
@@ -393,6 +413,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/setup'
     | '/sitemap.xml'
     | '/wedding-ar-albums'
     | '/mfa'
@@ -415,6 +436,7 @@ export interface FileRouteTypes {
     | '/api/public/licence/manifest'
     | '/api/public/licence/refresh'
     | '/api/public/licence/release'
+    | '/api/public/licence/status'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/dashboard/albums'
@@ -429,6 +451,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/gallery'
     | '/scan'
+    | '/setup'
     | '/sitemap.xml'
     | '/wedding-ar-albums'
     | '/_authenticated/dashboard'
@@ -452,6 +475,7 @@ export interface FileRouteTypes {
     | '/api/public/licence/manifest'
     | '/api/public/licence/refresh'
     | '/api/public/licence/release'
+    | '/api/public/licence/status'
     | '/api/public/license/activate'
     | '/api/public/m/$nonce'
     | '/_authenticated/dashboard/albums/'
@@ -467,6 +491,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   GalleryRoute: typeof GalleryRoute
   ScanRoute: typeof ScanRoute
+  SetupRoute: typeof SetupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WeddingArAlbumsRoute: typeof WeddingArAlbumsRoute
   ArSlugRoute: typeof ArSlugRoute
@@ -476,6 +501,7 @@ export interface RootRouteChildren {
   ApiPublicLicenceManifestRoute: typeof ApiPublicLicenceManifestRoute
   ApiPublicLicenceRefreshRoute: typeof ApiPublicLicenceRefreshRoute
   ApiPublicLicenceReleaseRoute: typeof ApiPublicLicenceReleaseRoute
+  ApiPublicLicenceStatusRoute: typeof ApiPublicLicenceStatusRoute
   ApiPublicLicenseActivateRoute: typeof ApiPublicLicenseActivateRoute
   ApiPublicMNonceRoute: typeof ApiPublicMNonceRoute
 }
@@ -494,6 +520,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/scan': {
@@ -685,6 +718,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLicenseActivateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/licence/status': {
+      id: '/api/public/licence/status'
+      path: '/api/public/licence/status'
+      fullPath: '/api/public/licence/status'
+      preLoaderRoute: typeof ApiPublicLicenceStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/licence/release': {
       id: '/api/public/licence/release'
       path: '/api/public/licence/release'
@@ -796,6 +836,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   GalleryRoute: GalleryRoute,
   ScanRoute: ScanRoute,
+  SetupRoute: SetupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   WeddingArAlbumsRoute: WeddingArAlbumsRoute,
   ArSlugRoute: ArSlugRoute,
@@ -805,6 +846,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicLicenceManifestRoute: ApiPublicLicenceManifestRoute,
   ApiPublicLicenceRefreshRoute: ApiPublicLicenceRefreshRoute,
   ApiPublicLicenceReleaseRoute: ApiPublicLicenceReleaseRoute,
+  ApiPublicLicenceStatusRoute: ApiPublicLicenceStatusRoute,
   ApiPublicLicenseActivateRoute: ApiPublicLicenseActivateRoute,
   ApiPublicMNonceRoute: ApiPublicMNonceRoute,
 }

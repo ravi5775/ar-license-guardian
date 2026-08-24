@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useTexture, useVideoTexture } from "@react-three/drei";
+import { useImageTexture, useDirectVideoTexture } from "@/hooks/use-three-texture";
 import * as THREE from "three";
 import { workflowMedia } from "@/lib/workflow-media";
 
@@ -22,13 +22,11 @@ const POSES = [
 ];
 
 function StageContent({ stage }: { stage: StageRef }) {
-  const photo = useTexture(workflowMedia.weddingPhotoLarge);
-  const video = useVideoTexture(workflowMedia.weddingVideo, {
+  const photo = useImageTexture(workflowMedia.weddingPhotoLarge);
+  const video = useDirectVideoTexture(workflowMedia.weddingVideo, {
     muted: true,
     loop: true,
-    start: true,
     playsInline: true,
-    crossOrigin: "anonymous",
   });
 
   const group = useRef<THREE.Group>(null);
@@ -74,7 +72,6 @@ function StageContent({ stage }: { stage: StageRef }) {
     const height = Math.min(maxH, maxW / aspect);
     return { w: height * aspect, h: height };
   }, [photo, viewport.width, viewport.height]);
-
 
   /** Marker feature points scattered across the photo surface. */
   const featureGeom = useMemo(() => {
@@ -154,13 +151,7 @@ function StageContent({ stage }: { stage: StageRef }) {
       {/* the video that lives inside the print */}
       <mesh position={[0, 0, -0.01]}>
         <planeGeometry args={[w, h]} />
-        <meshBasicMaterial
-          ref={videoMat}
-          map={video}
-          transparent
-          opacity={0}
-          toneMapped={false}
-        />
+        <meshBasicMaterial ref={videoMat} map={video} transparent opacity={0} toneMapped={false} />
       </mesh>
 
       {/* the printed photograph */}

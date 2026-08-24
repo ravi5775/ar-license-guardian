@@ -61,7 +61,14 @@ export interface IssuedLicence {
 }
 
 const TOKEN_TTL_SEC = 60 * 60 * 24; // 24h
-const GRACE_HOURS = 72; // §4.5
+/**
+ * §4.5 Grace hours — reduced from 72h to 24h.
+ * Override per-deployment via LICENCE_GRACE_HOURS env var (max 48).
+ * The value is embedded in the issued JWT so the client uses the
+ * server's authoritative setting, not its own default.
+ */
+const _cfgGrace = parseInt(process.env.LICENCE_GRACE_HOURS ?? "", 10);
+const GRACE_HOURS = Number.isFinite(_cfgGrace) && _cfgGrace > 0 ? Math.min(_cfgGrace, 48) : 24; // §4.5
 const RELEASE_COOLDOWN_HOURS = 12; // §4.4
 const NOTIFY_DEDUP_HOURS = 24; // §4.8
 const enc = new TextEncoder();
@@ -117,6 +124,7 @@ const SEVERITY: Record<string, Severity> = {
   unknown_build: "high",
   digest_mismatch: "critical",
   origin_not_allowed: "high",
+  origins_not_configured: "high",
   device_limit: "high",
   device_secret_mismatch: "critical",
   duplicate_deployment: "critical",
@@ -199,6 +207,7 @@ type Attested =
   | { kind: "missing_attestation" }
   | { kind: "unsigned_build" }
   | { kind: "unknown_build"; buildId: string }
+  | { kind: "revoked_build"; buildId: string; reason: string }
   | { kind: "digest_mismatch"; buildId: string; reported: string; expected: string };
 
 async function verifyAttestation(a: Attestation): Promise<Attested> {
@@ -207,6 +216,19 @@ async function verifyAttestation(a: Attestation): Promise<Attested> {
   if (!buildId || !assetDigest) return { kind: "missing_attestation" };
 
   const db = await admin();
+
+  // 1. Server-side kill-switch: check if build has been explicitly revoked
+  const { data: revoked } = await db
+    .from("revoked_builds")
+    .select("build_id, reason")
+    .eq("build_id", buildId)
+    .maybeSingle();
+
+  if (revoked) {
+    return { kind: "revoked_build", buildId, reason: revoked.reason };
+  }
+
+  // 2. Check signed release manifests
   const { data } = await db
     .from("release_manifests")
     .select("asset_digest, signature")
@@ -228,6 +250,7 @@ function attestationAllows(a: Attested): boolean {
     case "missing_attestation":
     case "unsigned_build":
     case "unknown_build":
+    case "revoked_build":
     case "digest_mismatch":
       return false;
     default: {
@@ -241,24 +264,40 @@ function attestationAllows(a: Attested): boolean {
 /* ------------------------------------------------------------------ origin */
 
 function originAllowed(allowed: string[] | null, host: string | null) {
-  if (!allowed || allowed.length === 0) return true; // not yet configured
+  // Deny-by-default: an unconfigured licence (no allowed_origins set) must
+  // not accept activations from any origin. An admin must explicitly allow
+  // at least one origin before the licence can be used in production.
+  // This prevents newly-created licences from being exploited before setup.
+  if (!allowed || allowed.length === 0) return false;
   if (!host) return false;
   const h = host.toLowerCase().replace(/:\d+$/, "");
   return allowed.some((a) => {
-    const want = a.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/:\d+$/, "");
+    const want = a
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/\/.*$/, "")
+      .replace(/:\d+$/, "");
     return h === want || h.endsWith(`.${want}`);
   });
 }
 
 /* ------------------------------------------------------------------ tokens */
 
+function getEffectiveGraceHours(override?: number | null): number {
+  if (typeof override === "number" && override > 0) return Math.min(override, 168); // Max 7 days for special event override
+  const envVal = parseInt(readEnv("LICENCE_GRACE_HOURS") ?? "", 10);
+  if (Number.isFinite(envVal) && envVal > 0) return Math.min(envVal, 48);
+  return 24; // 24-hour hardened default
+}
+
 async function issueToken(
-  licence: { id: string; license_key: string; plan: string },
+  licence: { id: string; license_key: string; plan: string; grace_hours?: number | null },
   deviceId: string,
   platform: DeviceClass,
 ) {
   const iat = Math.floor(Date.now() / 1000);
   const features = featuresFor(licence.plan);
+  const graceHours = getEffectiveGraceHours(licence.grace_hours);
   const token = await signToken({
     sub: licence.license_key,
     dep: licence.id,
@@ -267,11 +306,11 @@ async function issueToken(
     platform,
     plan: licence.plan,
     features,
-    grace: GRACE_HOURS,
+    grace: graceHours,
     iat,
     exp: iat + TOKEN_TTL_SEC,
   });
-  return { token, expiresIn: TOKEN_TTL_SEC, graceHours: GRACE_HOURS, plan: licence.plan, features };
+  return { token, expiresIn: TOKEN_TTL_SEC, graceHours, plan: licence.plan, features };
 }
 
 function featuresFor(plan: string): string[] {
@@ -289,7 +328,7 @@ async function loadLicence(licenceKey: string) {
   const db = await admin();
   const { data } = await db
     .from("licenses")
-    .select("id, license_key, plan, status, expires_at, allowed_origins")
+    .select("id, license_key, plan, status, expires_at, allowed_origins, grace_hours")
     .eq("license_key", licenceKey)
     .maybeSingle();
   return data;
@@ -303,7 +342,9 @@ type ViolationCtx = {
   originHost: string | null;
   ip: string | null;
 };
-type Checked = { ok: false; failure: Failure } | { ok: true; licence: LicenceRow; ctx: ViolationCtx };
+type Checked =
+  | { ok: false; failure: Failure }
+  | { ok: true; licence: LicenceRow; ctx: ViolationCtx };
 
 async function commonChecks(input: ActivateInput): Promise<Checked> {
   const licence = await loadLicence(input.licenceKey);
@@ -321,10 +362,17 @@ async function commonChecks(input: ActivateInput): Promise<Checked> {
     ip: input.ip,
   };
 
-  if (!originAllowed(licence.allowed_origins as string[] | null, input.originHost)) {
+  const allowedOrigins = licence.allowed_origins as string[] | null;
+  if (!originAllowed(allowedOrigins, input.originHost)) {
+    // Separate violation kinds so admins can distinguish "licence was never
+    // configured" from "known bad actor using an unlisted origin".
+    const violationKind =
+      !allowedOrigins || allowedOrigins.length === 0
+        ? "origins_not_configured"
+        : "origin_not_allowed";
     await recordViolation(
-      "origin_not_allowed",
-      { originHost: input.originHost, allowed: licence.allowed_origins },
+      violationKind,
+      { originHost: input.originHost, allowed: allowedOrigins },
       ctx,
     );
     return { ok: false, failure: fail(403, "ORIGIN_NOT_ALLOWED") };
@@ -332,15 +380,46 @@ async function commonChecks(input: ActivateInput): Promise<Checked> {
 
   const attested = await verifyAttestation(input.attestation);
   if (!attestationAllows(attested)) {
+    // If build is explicitly revoked, immediately block and collapse grace window to 0
+    if (attested.kind === "revoked_build") {
+      await recordViolation(
+        "build_revoked",
+        { buildId: attested.buildId, reason: attested.reason },
+        ctx,
+        { suspend: true },
+      );
+      return { ok: false, failure: fail(403, "BUILD_REVOKED") };
+    }
+
+    const db = await admin();
+    // Soft-fail: log violation and alert admin
+    const { count } = await db
+      .from("license_violations")
+      .select("id", { count: "exact", head: true })
+      .eq("license_id", licence.id)
+      .eq("kind", "digest_mismatch");
+
+    const mismatchCount = (count ?? 0) + 1;
+    const threshold = parseInt(readEnv("INTEGRITY_MISMATCH_THRESHOLD") ?? "3", 10);
+    const shouldHardBlock = mismatchCount >= threshold;
+
     await recordViolation(
-      attested.kind,
-      { ...attested, reportedBuild: input.attestation.buildId },
+      attested.kind === "digest_mismatch" ? "integrity_mismatch" : attested.kind,
+      {
+        ...attested,
+        reportedBuild: input.attestation.buildId,
+        mismatchCount,
+        threshold,
+        softFailAllowed: !shouldHardBlock,
+      },
       ctx,
-      // Only a proven mismatch suspends. A missing/unknown build is loud but
-      // must not brick a paid client's viewer over a stale deploy (§10).
-      { suspend: attested.kind === "digest_mismatch" },
+      { suspend: shouldHardBlock },
     );
-    return { ok: false, failure: fail(403, "ATTESTATION_INVALID") };
+
+    // Only hard-block once threshold is exceeded; allows transient CDN cache delays to heal
+    if (shouldHardBlock) {
+      return { ok: false, failure: fail(403, "ATTESTATION_INVALID") };
+    }
   }
 
   return { ok: true, licence, ctx };
@@ -441,7 +520,9 @@ export async function activate(
 }
 
 /** Heartbeat / refresh. Requires the device secret — no slot allocation here. */
-export async function refresh(input: ActivateInput): Promise<IssuedLicence & { ok: true } | Failure> {
+export async function refresh(
+  input: ActivateInput,
+): Promise<(IssuedLicence & { ok: true }) | Failure> {
   if (!input.deviceSecret) return fail(403, "DEVICE_UNKNOWN");
   const checked = await commonChecks(input);
   if ("failure" in checked) return checked.failure;
@@ -521,4 +602,40 @@ export async function adminForceRelease(activationId: string) {
   return { ok: true as const };
 }
 
+/**
+ * Non-sensitive public diagnostic status for client self-service.
+ */
+export async function getLicenceStatus(licenceKey: string) {
+  const licence = await loadLicence(licenceKey);
+  if (!licence) return fail(404, "INVALID_LICENCE");
+
+  const db = await admin();
+  const { data: activations } = await db
+    .from("license_activations")
+    .select("device_class, revoked_at, last_seen_at")
+    .eq("license_id", licence.id)
+    .is("revoked_at", null);
+
+  const active = activations ?? [];
+  const mobileCount = active.filter((a) => a.device_class === "mobile").length;
+  const desktopCount = active.filter((a) => a.device_class === "desktop").length;
+
+  const allowedOrigins = (licence.allowed_origins as string[] | null) ?? [];
+
+  return {
+    ok: true as const,
+    status: licence.status,
+    plan: licence.plan,
+    expiresAt: licence.expires_at,
+    deviceSlots: {
+      mobile: { used: mobileCount, max: 1 },
+      desktop: { used: desktopCount, max: 1 },
+    },
+    graceHours: licence.grace_hours ?? 24,
+    allowedOriginsCount: allowedOrigins.length,
+    features: featuresFor(licence.plan),
+  };
+}
+
 export const __internals = { verifyAttestation, attestationAllows, originAllowed };
+

@@ -39,10 +39,7 @@ export const Route = createFileRoute("/api/public/hooks/storage-alerts")({
           return new Response("Unauthorized", { status: 401 });
         }
 
-
-        const { supabaseAdmin } = await import(
-          "@/integrations/supabase/client.server"
-        );
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const { data: profiles } = await supabaseAdmin
           .from("profiles")

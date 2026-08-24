@@ -10,14 +10,23 @@ import { createServerFn } from "@tanstack/react-start";
  * pin_hash too. This runs server-side with an explicit safe column list.
  */
 export const listPublicExperiences = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("ar_experiences")
-    .select("slug, title, description, cover_image_url")
-    .eq("published", true)
-    .eq("access_mode", "public")
-    .eq("show_in_gallery", true)
-    .order("created_at", { ascending: false })
-    .limit(60);
-  return data ?? [];
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("ar_experiences")
+      .select("slug, title, description, cover_image_url")
+      .eq("published", true)
+      .eq("access_mode", "public")
+      .eq("show_in_gallery", true)
+      .order("created_at", { ascending: false })
+      .limit(60);
+    if (error) {
+      console.error("[gallery] query error:", error);
+      return [];
+    }
+    return data ?? [];
+  } catch (err) {
+    console.error("[gallery] error fetching experiences:", err);
+    return [];
+  }
 });

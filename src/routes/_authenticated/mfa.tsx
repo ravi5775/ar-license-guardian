@@ -86,12 +86,20 @@ function MFAPage() {
         {mode === "enroll" && (
           <>
             <p className="text-sm text-muted-foreground mb-4">
-              Admin accounts require TOTP. Scan this QR code with Google Authenticator, 1Password, or Authy — then enter the 6-digit code below.
+              Admin accounts require TOTP. Scan this QR code with Google Authenticator, 1Password,
+              or Authy — then enter the 6-digit code below.
             </p>
-            {qr && <img src={qr} alt="TOTP QR" className="w-48 h-48 mx-auto mb-3 rounded-md bg-white p-2" />}
+            {qr && (
+              <img
+                src={qr}
+                alt="TOTP QR"
+                className="w-48 h-48 mx-auto mb-3 rounded-md bg-white p-2"
+              />
+            )}
             {secret && (
               <p className="text-xs text-center text-muted-foreground mb-4">
-                Or enter secret manually: <code className="font-mono text-foreground">{secret}</code>
+                Or enter secret manually:{" "}
+                <code className="font-mono text-foreground">{secret}</code>
               </p>
             )}
           </>

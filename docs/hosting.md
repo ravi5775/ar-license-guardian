@@ -19,30 +19,26 @@ the deletions; merges are strictly one-way (`main → self-hosted`, `main → cl
 
 ---
 
-## 2. Default admin account
+## 2. Initial Admin Bootstrap
 
-Bootstrap credentials live in environment variables, never in code or the repo:
+Platform administrators are provisioned using a secure CLI script, never through committed files or static environment variables:
 
-```
-DEFAULT_ADMIN_EMAIL=admin@your-domain.com
-DEFAULT_ADMIN_PASSWORD=change-me-strong-32-chars-min
-DEFAULT_ADMIN_TOTP_REQUIRED=true
+```bash
+# Run on the admin deployment (main or self-hosted):
+SUPABASE_URL=https://<project>.supabase.co \
+SUPABASE_SERVICE_ROLE_KEY=<service_role_key> \
+node scripts/bootstrap-admin.mjs --email=admin@your-domain.com
 ```
 
 Rules:
 
-1. Set them **only** on admin branches (`main`, `self-hosted`). Never on `client-app`.
-2. They are used **once**, at first boot, to create the first account and grant it
-   the `admin` role in `user_roles`.
-3. On first login you are forced through TOTP enrolment at `/dashboard` → MFA.
-4. After that: change the password, then blank both variables and redeploy. A live
-   `DEFAULT_ADMIN_PASSWORD` in a running environment is a standing backdoor.
-5. If you lose access, follow `docs/break-glass.md` — do **not** re-enable the
-   bootstrap variables on a production instance with real client data.
+1. The script is **idempotent**: it verifies no admin exists before creating one, preventing unauthorized elevation.
+2. It generates a **32-character cryptographically random password** and prints it **once** to stdout.
+3. On first login, the admin is forced to change their password and complete TOTP enrolment.
+4. Never store the generated password in `.env` or any repository file.
+5. If you lose access, follow `docs/break-glass.md`.
 
-Every subsequent account is created by signup and requires **manual admin approval**
-(`/dashboard/approvals`). Nobody self-promotes: role writes are blocked by a
-`SECURITY DEFINER` trigger on `profiles`.
+Every subsequent account created by signup is given `viewer` role with `pending` status and requires **manual admin approval** (`/dashboard/approvals`). Nobody self-promotes: role writes are blocked by RLS and database triggers.
 
 ---
 
@@ -78,7 +74,6 @@ R2_PUBLIC_BASE_URL=https://media.your-domain.com
 LICENCE_PRIVATE_KEY_JWK=... RELEASE_MANIFEST_SECRET=...
 RESEND_API_KEY=...          ALERT_TO_EMAIL=...
 STORAGE_ALERTS_CRON_SECRET=...
-DEFAULT_ADMIN_EMAIL=...     DEFAULT_ADMIN_PASSWORD=...
 ```
 
 Client deployment (`client-app`):
@@ -235,7 +230,8 @@ Before handing an instance to a client:
 - [ ] Branch is `client-app`; `scripts/strip-client-app.sh` has run and the issuer
       routes are absent
 - [ ] `LICENCE_ROLE=client`, `DB_DRIVER=none`
-- [ ] `DEFAULT_ADMIN_*` variables are **not** set
+- [ ] Platform admin provisioned via `scripts/bootstrap-admin.mjs`, MFA enrolled
+- [ ] No hardcoded admin credentials in environment files
 - [ ] Licence key issued and bound (one mobile + one desktop activation)
 - [ ] Signed release manifest POSTed to the admin server so heartbeats validate
 - [ ] R2 bucket private, CORS locked to their domain

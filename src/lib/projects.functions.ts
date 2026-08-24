@@ -11,10 +11,7 @@ export const listProjects = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const [projects, albums, experiences] = await Promise.all([
-      context.supabase
-        .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false }),
+      context.supabase.from("projects").select("*").order("created_at", { ascending: false }),
       context.supabase
         .from("albums")
         .select("id, title, slug, project_id, published")
@@ -39,7 +36,7 @@ export const listProjects = createServerFn({ method: "GET" })
 
 export const createProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({
         name: z.string().min(1).max(120),
@@ -63,7 +60,7 @@ export const createProject = createServerFn({ method: "POST" })
 
 export const renameProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({ id: z.string().uuid(), name: z.string().min(1).max(120) })
       .parse(raw),
@@ -80,19 +77,16 @@ export const renameProject = createServerFn({ method: "POST" })
 /** Deleting a folder never deletes content — items simply become unfiled. */
 export const deleteProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
+  .validator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("projects")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("projects").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
 export const assignToProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({
         kind: z.enum(["album", "experience"]),

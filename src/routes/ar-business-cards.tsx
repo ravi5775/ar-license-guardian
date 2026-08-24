@@ -14,8 +14,14 @@ const content: UseCaseContent = {
   steps: [
     { title: "Register the card art", body: "Upload the card front as the tracked image." },
     { title: "Link the video", body: "Attach an intro, portfolio reel or product demo clip." },
-    { title: "Print the QR", body: "Add the QR to the reverse side so first-time scanners know what to do." },
-    { title: "Play anywhere", body: "The video plays over the card, or full-screen if the contact prefers." },
+    {
+      title: "Print the QR",
+      body: "Add the QR to the reverse side so first-time scanners know what to do.",
+    },
+    {
+      title: "Play anywhere",
+      body: "The video plays over the card, or full-screen if the contact prefers.",
+    },
   ],
   bullets: [
     "One tracked card design per client, unlimited scans",

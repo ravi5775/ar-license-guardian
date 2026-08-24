@@ -3,7 +3,6 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAdmin } from "@/lib/admin-guard";
 
-
 function generateKey() {
   const seg = () =>
     Array.from(crypto.getRandomValues(new Uint8Array(4)))
@@ -41,7 +40,7 @@ export const listActivations = createServerFn({ method: "GET" })
 
 export const createLicense = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({
         client_name: z.string().min(1),
@@ -73,7 +72,7 @@ export const createLicense = createServerFn({ method: "POST" })
 
 export const revokeActivation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
+  .validator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
     const { error } = await context.supabase
@@ -92,7 +91,7 @@ export const revokeActivation = createServerFn({ method: "POST" })
 
 export const setLicenseStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({
         id: z.string().uuid(),
@@ -144,7 +143,7 @@ export const listAuditLog = createServerFn({ method: "GET" })
  */
 export const forceReleaseActivation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({
         id: z.string().uuid(),

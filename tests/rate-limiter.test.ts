@@ -2,8 +2,12 @@ import { describe, it, expect, beforeAll } from "vitest";
 import { enforceRateLimit, getClientIp } from "../src/lib/rate-limiter.middleware";
 
 describe("Enterprise Rate Limiting Middleware", () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     process.env.RATELIMIT_DRIVER = "memory";
+    process.env.RUNTIME = "node";
+    process.env.LICENCE_ROLE = "client";
+    const { __setBackend } = await import("../src/lib/adapters/ratelimit.server");
+    __setBackend(null);
   });
 
   it("correctly extracts IP from Cloudflare and proxy headers", () => {

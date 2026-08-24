@@ -10,8 +10,7 @@ export function FilmTexture() {
         aria-hidden
         className="pointer-events-none fixed inset-0 z-[60] opacity-[0.06]"
         style={{
-          backgroundImage:
-            "radial-gradient(oklch(0.97 0.008 90) 0.5px, transparent 0.5px)",
+          backgroundImage: "radial-gradient(oklch(0.97 0.008 90) 0.5px, transparent 0.5px)",
           backgroundSize: "3px 3px",
         }}
       />

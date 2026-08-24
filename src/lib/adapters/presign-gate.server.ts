@@ -14,7 +14,6 @@
  */
 import { getCookie, getRequestHeader } from "@tanstack/react-start/server";
 import { readEnv } from "./env.server";
-import { recordViolation } from "./licence.server";
 
 /** Set by the client licence runtime so SSR loaders and serverFns both see it. */
 export const LICENCE_COOKIE = "aether_licence";
@@ -42,7 +41,6 @@ export function presignGatingEnabled() {
   if (raw === "false" || raw === "0") return false;
   return (readEnv("LICENCE_ROLE") ?? "issuer").trim().toLowerCase() === "client";
 }
-
 
 interface TokenPayload {
   sub?: string;
@@ -87,9 +85,7 @@ async function verifyToken(token: string): Promise<TokenPayload | null> {
   const [header, body, sig] = token.split(".");
   if (!header || !body || !sig) return null;
   try {
-    const key = await crypto.subtle.importKey("jwk", jwk, { name: "Ed25519" }, false, [
-      "verify",
-    ]);
+    const key = await crypto.subtle.importKey("jwk", jwk, { name: "Ed25519" }, false, ["verify"]);
     const valid = await crypto.subtle.verify(
       "Ed25519",
       key,
@@ -119,7 +115,10 @@ const deny = (reason: string, message: string): GateResult => ({
  * Decide whether this request may be handed a presigned URL.
  * Never throws — callers translate the refusal into their own shape.
  */
-export async function checkPresignLicence(purpose: PresignPurpose): Promise<GateResult> {
+export async function checkPresignLicence(
+  purpose: PresignPurpose,
+  projectId?: string,
+): Promise<GateResult> {
   if (!presignGatingEnabled()) return { ok: true, enforced: false };
 
   const token = presentedToken();
@@ -140,7 +139,10 @@ export async function checkPresignLicence(purpose: PresignPurpose): Promise<Gate
   // covers viewing already-loaded state, never minting fresh asset URLs.
   const now = Math.floor(Date.now() / 1000);
   if (!payload.exp || payload.exp < now) {
-    return deny("LICENCE_EXPIRED_TOKEN", "This device's licence needs to refresh. Reload the page.");
+    return deny(
+      "LICENCE_EXPIRED_TOKEN",
+      "This device's licence needs to refresh. Reload the page.",
+    );
   }
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -191,7 +193,12 @@ export async function checkPresignLicence(purpose: PresignPurpose): Promise<Gate
   const buildId = (device.build_id ?? "").trim();
   const assetDigest = (device.asset_digest ?? "").trim();
   if (!buildId || !assetDigest) {
-    await safeViolation("presign_missing_attestation", { purpose }, licence.id, licence.license_key);
+    await safeViolation(
+      "presign_missing_attestation",
+      { purpose },
+      licence.id,
+      licence.license_key,
+    );
     return deny("ATTESTATION_INVALID", "This build could not be verified.");
   }
   const { data: manifest } = await supabaseAdmin
@@ -218,6 +225,20 @@ export async function checkPresignLicence(purpose: PresignPurpose): Promise<Gate
     return deny("ATTESTATION_INVALID", "This build could not be verified.");
   }
 
+  // Monthly bandwidth quota accounting & hard stop check
+  if (projectId) {
+    try {
+      const { accountEgress } = await import("@/lib/project-usage.server");
+      const usage = await accountEgress(projectId);
+      if (!usage.allowed) {
+        await safeViolation("quota_exceeded", { purpose, projectId, usage }, licence.id, licence.license_key);
+        return deny("QUOTA_EXCEEDED", "Monthly bandwidth quota exceeded for this project.");
+      }
+    } catch {
+      // Non-blocking fallback if usage tracking fails
+    }
+  }
+
   return { ok: true, enforced: true, deviceId: device.id, licenceKey: licence.license_key };
 }
 
@@ -229,7 +250,14 @@ async function safeViolation(
   licenceKey?: string,
 ) {
   try {
-    await recordViolation(kind, detail, { licenseId: licenseId ?? null, licenceKey });
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("license_violations").insert({
+      license_id: licenseId ?? null,
+      kind,
+      detail: { ...detail, ...(licenceKey ? { licenceKey } : {}) },
+      ip_address: null,
+      origin_host: null,
+    });
   } catch {
     /* ignore */
   }

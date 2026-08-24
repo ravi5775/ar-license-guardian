@@ -88,9 +88,7 @@ export function VrStage({
 
         // Floating cinema screen 2.6m in front of the viewer.
         if (mediaUrl) {
-          const screen = document.createElement(
-            mediaType === "image" ? "a-image" : "a-video",
-          );
+          const screen = document.createElement(mediaType === "image" ? "a-image" : "a-video");
           screen.setAttribute("src", "#vr-media");
           screen.setAttribute("width", "3.2");
           screen.setAttribute("height", mediaType === "image" ? "3.2" : "1.8");

@@ -19,3 +19,15 @@ export const assertAdmin = createServerFn({ method: "GET" })
     await requireAdmin(context);
     return { ok: true as const };
   });
+
+/**
+ * Surface project bandwidth usage summary in the admin dashboard.
+ */
+export const getBandwidthUsageSummary = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context);
+    const { getAdminUsageSummary } = await import("@/lib/project-usage.server");
+    return await getAdminUsageSummary();
+  });
+

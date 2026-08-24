@@ -14,24 +14,15 @@ function b64url(bytes: Uint8Array) {
 }
 
 export async function sha256Hex(input: string) {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(input),
-  );
-  return Array.from(new Uint8Array(digest), (b) =>
-    b.toString(16).padStart(2, "0"),
-  ).join("");
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 /** Short-lived media URLs — 15 minutes, never permanent. */
 export const MEDIA_URL_TTL_SECONDS = 15 * 60;
 
 export function callerIp() {
-  return (
-    getRequestIP({ xForwardedFor: true }) ||
-    getRequestHeader("cf-connecting-ip") ||
-    "unknown"
-  );
+  return getRequestIP({ xForwardedFor: true }) || getRequestHeader("cf-connecting-ip") || "unknown";
 }
 
 /**
@@ -80,7 +71,10 @@ export async function signMedia(
       single_use: singleUse,
       ip: callerIp(),
     })
-    .then(() => undefined, () => undefined);
+    .then(
+      () => undefined,
+      () => undefined,
+    );
 
   if (!singleUse) {
     const { createPresignedDownloadUrl } = await import("@/lib/storage.server");
@@ -126,10 +120,11 @@ export async function resolveAccess(args: {
       _ip: ip,
     });
     if (allowed !== false) {
-      const { data: result } = await supabaseAdmin.rpc(
-        "verify_content_access_token",
-        { _kind: args.kind, _slug: args.slug, _token: args.tok },
-      );
+      const { data: result } = await supabaseAdmin.rpc("verify_content_access_token", {
+        _kind: args.kind,
+        _slug: args.slug,
+        _token: args.tok,
+      });
       if (result === "ok") {
         await supabaseAdmin.rpc("pin_clear_failures", { _slug: args.slug, _ip: ip });
         return true;

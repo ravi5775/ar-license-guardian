@@ -14,7 +14,9 @@ import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/activations")({
   beforeLoad: async () => {
-    const ok = await assertAdmin().then(() => true).catch(() => false);
+    const ok = await assertAdmin()
+      .then(() => true)
+      .catch(() => false);
     if (!ok) {
       toast.error("You don't have access to device activations.");
       throw redirect({ to: "/dashboard" });
@@ -23,12 +25,16 @@ export const Route = createFileRoute("/_authenticated/dashboard/activations")({
   component: ActivationsPage,
 });
 
-
 function ActivationsPage() {
   const qc = useQueryClient();
   const listFn = useServerFn(listActivations);
   const revokeFn = useServerFn(revokeActivation);
-  const { data: activations = [], isLoading, error, refetch } = useQuery({
+  const {
+    data: activations = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["activations"],
     queryFn: () => listFn(),
     staleTime: 30_000,
@@ -41,8 +47,7 @@ function ActivationsPage() {
   const [lastEntry, setLastEntry] = useState<any | null>(null);
 
   const releaseMut = useMutation({
-    mutationFn: () =>
-      releaseFn({ data: { id: target.id, password, reason: reason || undefined } }),
+    mutationFn: () => releaseFn({ data: { id: target.id, password, reason: reason || undefined } }),
     onSuccess: (entry) => {
       qc.invalidateQueries({ queryKey: ["activations"] });
       setLastEntry(entry);
@@ -65,9 +70,16 @@ function ActivationsPage() {
   return (
     <div className="p-8 max-w-6xl">
       <h1 className="text-3xl font-serif italic mb-1">Activations</h1>
-      <p className="text-sm text-muted-foreground mb-8">Deployment instances that have activated a license.</p>
+      <p className="text-sm text-muted-foreground mb-8">
+        Deployment instances that have activated a license.
+      </p>
 
-      <QueryState isLoading={isLoading} error={error} onRetry={() => refetch()} label="activations" />
+      <QueryState
+        isLoading={isLoading}
+        error={error}
+        onRetry={() => refetch()}
+        label="activations"
+      />
 
       <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden">
         <table className="w-full text-sm">
@@ -86,7 +98,9 @@ function ActivationsPage() {
               <tr key={a.id}>
                 <td className="px-4 py-3">
                   <div>{a.licenses?.client_name}</div>
-                  <div className="text-xs font-mono text-muted-foreground">{a.licenses?.license_key}</div>
+                  <div className="text-xs font-mono text-muted-foreground">
+                    {a.licenses?.license_key}
+                  </div>
                 </td>
                 <td className="px-4 py-3">
                   <div>{a.deployment_domain || "—"}</div>

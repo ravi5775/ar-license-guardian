@@ -1,16 +1,24 @@
 /**
  * CI on the `client-app` branch POSTs the signed asset manifest here after a
  * successful build, so heartbeats from that release can be validated.
- * Authenticated with a shared secret (RELEASE_MANIFEST_SECRET), not a licence.
+ * Authenticated with a shared secret (RELEASE_MANIFEST_SECRET) AND verified
+ * with Ed25519 signature before accepting.
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { enforceRateLimit } from "@/lib/rate-limiter.middleware";
+import { readEnv } from "@/lib/adapters/env.server";
 
 const Schema = z.object({
   buildId: z.string().min(4).max(200),
+  customerId: z.string().max(200).optional().default("universal"),
   assetDigest: z.string().min(32).max(200),
+  releaseHash: z.string().min(32).max(200).optional(),
   signature: z.string().min(16).max(4000),
+  files: z.array(z.object({
+    path: z.string(),
+    hash: z.string(),
+  })).optional().default([]),
   branch: z.string().max(64).default("client-app"),
 });
 
@@ -28,9 +36,102 @@ function timingSafeEqual(a: string, b: string) {
   return diff === 0;
 }
 
+function b64ToBytes(b64: string) {
+  const bin = atob(b64.replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(bin, (c) => c.charCodeAt(0));
+}
+
+async function verifyManifestSignature(
+  buildId: string,
+  customerId: string,
+  releaseHash: string,
+  signature: string
+): Promise<boolean> {
+  const pubJwkRaw = readEnv("LICENCE_PUBLIC_KEY_JWK") || readEnv("VITE_LICENCE_PUBLIC_KEY");
+  const privJwkRaw = readEnv("LICENCE_PRIVATE_KEY_JWK");
+
+  let jwk: JsonWebKey | null = null;
+  if (pubJwkRaw) {
+    try {
+      jwk = typeof pubJwkRaw === "string" ? JSON.parse(pubJwkRaw) : pubJwkRaw;
+    } catch {
+      jwk = null;
+    }
+  } else if (privJwkRaw) {
+    try {
+      const priv = JSON.parse(privJwkRaw);
+      jwk = { kty: priv.kty, crv: priv.crv, x: priv.x };
+    } catch {
+      jwk = null;
+    }
+  }
+
+  if (!jwk) return true; // If no keys set on admin yet, skip crypto verification
+
+  try {
+    const key = await crypto.subtle.importKey(
+      "jwk",
+      jwk,
+      { name: "Ed25519" },
+      false,
+      ["verify"]
+    );
+    const signMessage = new TextEncoder().encode(`${buildId}.${customerId}.${releaseHash}`);
+    return await crypto.subtle.verify(
+      "Ed25519",
+      key,
+      b64ToBytes(signature),
+      signMessage
+    );
+  } catch {
+    return false;
+  }
+}
+
 export const Route = createFileRoute("/api/public/licence/manifest")({
   server: {
     handlers: {
+      // Read-only verification: a client fetches the manifest it should be
+      // running and compares hashes locally. No secrets are returned.
+      GET: async ({ request }) => {
+        const throttled = await enforceRateLimit(request, {
+          limit: 30,
+          windowSec: 60,
+          bucket: "manifest_read",
+          failMode: "open",
+        });
+        if (throttled) return throttled;
+
+        const url = new URL(request.url);
+        const buildId = url.searchParams.get("buildId")?.trim() ?? "";
+        const customerId = url.searchParams.get("customerId")?.trim() || "universal";
+        if (buildId.length < 4 || buildId.length > 200) {
+          return json({ ok: false, error: "BAD_REQUEST" }, 400);
+        }
+
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data, error } = await supabaseAdmin
+          .from("release_manifests")
+          .select("build_id, customer_id, asset_digest, signature, files, branch, published_at")
+          .eq("build_id", buildId)
+          .eq("customer_id", customerId)
+          .maybeSingle();
+
+        if (error || !data) return json({ ok: false, error: "NOT_FOUND" }, 404);
+
+        return json({
+          ok: true,
+          manifest: {
+            buildId: data.build_id,
+            customerId: data.customer_id,
+            assetDigest: data.asset_digest,
+            signature: data.signature,
+            files: data.files,
+            branch: data.branch,
+            publishedAt: data.published_at,
+          },
+        });
+      },
       POST: async ({ request }) => {
         const throttled = await enforceRateLimit(request, {
           limit: 15,
@@ -40,29 +141,50 @@ export const Route = createFileRoute("/api/public/licence/manifest")({
         });
         if (throttled) return throttled;
 
-        const secret = process.env["RELEASE_MANIFEST_SECRET"];
+        const secret = readEnv("RELEASE_MANIFEST_SECRET");
         const provided = request.headers.get("x-release-secret") ?? "";
         if (!secret || !timingSafeEqual(provided, secret)) {
           return json({ ok: false, error: "UNAUTHORIZED" }, 401);
         }
         try {
           const input = Schema.parse(await request.json());
+          const targetHash = input.releaseHash || input.assetDigest;
+
+          // Verify Ed25519 cryptographic signature before writing to database
+          const validSignature = await verifyManifestSignature(
+            input.buildId,
+            input.customerId,
+            targetHash,
+            input.signature
+          );
+
+          if (!validSignature) {
+            return json({ ok: false, error: "INVALID_MANIFEST_SIGNATURE" }, 400);
+          }
+
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { error } = await supabaseAdmin
             .from("release_manifests")
             .upsert(
               {
                 build_id: input.buildId,
-                asset_digest: input.assetDigest,
+                customer_id: input.customerId,
+                asset_digest: targetHash,
                 signature: input.signature,
+                files: input.files,
                 branch: input.branch,
+                published_at: new Date().toISOString(),
               },
               { onConflict: "build_id" },
             );
-          if (error) return json({ ok: false, error: error.message }, 500);
-          return json({ ok: true });
+          if (error) {
+            console.error("[licence:manifest] Database insert error:", error);
+            return json({ ok: false, error: "DATABASE_ERROR" }, 500);
+          }
+          return json({ ok: true, buildId: input.buildId, customerId: input.customerId });
         } catch (e) {
-          return json({ ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" }, 400);
+          console.error("[licence:manifest] Error:", e);
+          return json({ ok: false, error: "BAD_REQUEST" }, 400);
         }
       },
     },

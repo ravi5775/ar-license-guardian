@@ -17,16 +17,17 @@ const Schema = z.object({
 export const Route = createFileRoute("/api/public/licence/refresh")({
   server: {
     handlers: {
-      OPTIONS: async () => json({ ok: true }),
+      OPTIONS: async ({ request }) => json({ ok: true }, 200, {}, request),
       POST: async ({ request }) => {
         let input: z.infer<typeof Schema>;
         try {
           input = Schema.parse(await request.json());
         } catch (e) {
-          return json({ ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" }, 400);
+          return json({ ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" }, 400, {}, request);
         }
 
         const ip = clientIp(request);
+        const originHost = serverDerivedOrigin(request);
 
         // Refresh allocates nothing and every live viewer depends on it, so a
         // limiter outage fails OPEN here — but it is logged and the response
@@ -37,12 +38,12 @@ export const Route = createFileRoute("/api/public/licence/refresh")({
           3600,
           { failMode: "open" },
         );
-        if (!allowed) return json({ ok: false, error: "RATE_LIMITED" }, 429);
+        if (!allowed) return json({ ok: false, error: "RATE_LIMITED" }, 429, {}, request, originHost);
 
         const result = await refresh({
           licenceKey: input.licenceKey,
           platform: input.platform,
-          originHost: serverDerivedOrigin(request),
+          originHost,
           ip,
           userAgent: request.headers.get("user-agent"),
           attestation: { buildId: input.buildId, assetDigest: input.assetDigest },
@@ -51,18 +52,25 @@ export const Route = createFileRoute("/api/public/licence/refresh")({
           capabilityTier: input.capabilityTier ?? null,
         });
 
-        if (!result.ok) return json({ ok: false, error: result.error }, result.status);
-        return json({
-          ok: true,
-          token: result.token,
-          plan: result.plan,
-          features: result.features,
-          expiresIn: result.expiresIn,
-          graceHours: result.graceHours,
-          deviceId: result.deviceId,
-          limiterDegraded: degraded ?? false,
-        });
+        if (!result.ok) return json({ ok: false, error: result.error }, result.status, {}, request, originHost);
+        return json(
+          {
+            ok: true,
+            token: result.token,
+            plan: result.plan,
+            features: result.features,
+            expiresIn: result.expiresIn,
+            graceHours: result.graceHours,
+            deviceId: result.deviceId,
+            limiterDegraded: degraded ?? false,
+          },
+          200,
+          {},
+          request,
+          originHost,
+        );
       },
     },
   },
 });
+

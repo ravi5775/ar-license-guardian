@@ -95,7 +95,7 @@ export const listMarkerTests = createServerFn({ method: "GET" })
 
 export const recordMarkerTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => TestInput.parse(raw))
+  .validator((raw) => TestInput.parse(raw))
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("marker_tests")
@@ -108,12 +108,9 @@ export const recordMarkerTest = createServerFn({ method: "POST" })
 
 export const deleteMarkerTest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
+  .validator((raw) => z.object({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("marker_tests")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await context.supabase.from("marker_tests").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

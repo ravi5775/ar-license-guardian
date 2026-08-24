@@ -1,23 +1,90 @@
-name: Deploy main (Cloudflare Workers)
+name: Production Pipeline — Deploy Main (Cloudflare Workers)
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  pre-deploy-verification:
+    name: Pre-Deploy Quality Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: bun run build
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Lint Check
+        run: bun run lint
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Unit & Security Tests
+        run: bun test tests/api-contract.test.ts tests/dto-sanitizer.test.ts tests/env-and-adapters.test.ts tests/rate-limiter.test.ts tests/security-critical-fixes.test.ts tests/security-headers.test.ts tests/upload-security.test.ts tests/comprehensive-security-regression.test.ts
+      - name: RLS Integration Tests (if secrets present)
+        if: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
+        run: bunx vitest run tests/rls-regression.test.ts
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  deploy:
+    name: Deploy to Cloudflare Workers
+    needs: [pre-deploy-verification]
+    runs-on: ubuntu-latest
+    outputs:
+      deployment-url: ${{ steps.wrangler.outputs.deployment-url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build Edge Bundle
+        run: bun run build
         env:
           RUNTIME: edge
           DB_DRIVER: neon
           RATELIMIT_DRIVER: upstash
-      - name: Wrangler deploy
-        run: bunx wrangler deploy
+          LICENCE_ROLE: issuer
+          NODE_ENV: production
+      - name: Wrangler Deploy
+        id: wrangler
+        run: |
+          DEPLOY_OUTPUT=$(bunx wrangler deploy)
+          echo "$DEPLOY_OUTPUT"
+          # Extract URL if present in wrangler output
+          URL=$(echo "$DEPLOY_OUTPUT" | grep -o 'https://[a-zA-Z0-9.-]*\.workers\.dev' | head -n 1 || true)
+          echo "deployment-url=${URL}" >> $GITHUB_OUTPUT
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  post-deploy-smoke:
+    name: Post-Deploy Smoke & Rollback Readiness
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Execute Live Smoke & Security Header Verification
+        run: |
+          TARGET="${{ needs.deploy.outputs.deployment-url }}"
+          if [ -z "$TARGET" ]; then
+            TARGET="${{ vars.PRODUCTION_DEPLOY_URL || 'https://aether-ar.workers.dev' }}"
+          fi
+          echo "Testing deployment target: $TARGET"
+          node scripts/post-deploy-smoke.mjs
+        env:
+          DEPLOY_URL: ${{ needs.deploy.outputs.deployment-url || vars.PRODUCTION_DEPLOY_URL || 'https://aether-ar.workers.dev' }}
+          GITHUB_SHA: ${{ github.sha }}
+          DEPLOY_ENV: production-cloudflare-workers

@@ -2,8 +2,8 @@
 
 **Hosting & branches:** see [docs/hosting.md](docs/hosting.md) — where to host the
 admin platform vs. client apps, Cloudflare Pages + R2 setup, cost plans, and the
-default admin bootstrap credentials (`DEFAULT_ADMIN_EMAIL` / `DEFAULT_ADMIN_PASSWORD`
-in `.env.branches.example`).
+platform admin bootstrap workflow (`node scripts/bootstrap-admin.mjs --email=admin@your-domain.com`).
+
 
 
 

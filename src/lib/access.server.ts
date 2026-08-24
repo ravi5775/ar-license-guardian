@@ -71,10 +71,7 @@ export async function verifyAccessCookie(slug: string, value: string | undefined
   const expiresAt = Number(value.slice(0, idx));
   const sig = value.slice(idx + 1);
   if (!Number.isFinite(expiresAt) || expiresAt < Date.now()) return false;
-  const expected = await hmac(
-    requireEnv("ACCESS_SESSION_SECRET"),
-    `${slug}.${expiresAt}`,
-  );
+  const expected = await hmac(requireEnv("ACCESS_SESSION_SECRET"), `${slug}.${expiresAt}`);
   return safeEqual(expected, sig);
 }
 
@@ -82,8 +79,7 @@ export async function verifyAccessCookie(slug: string, value: string | undefined
 /* Slug generation                                                     */
 /* ------------------------------------------------------------------ */
 
-const SLUG_ALPHABET =
-  "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const SLUG_ALPHABET = "abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 function pick(alphabet: string, n: number) {
   const bytes = crypto.getRandomValues(new Uint8Array(n));

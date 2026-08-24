@@ -24,7 +24,7 @@ const TOKEN_TTL_DAYS = 365;
  * generic "incorrect" would send the customer down the wrong path.
  */
 export const submitAccessPin = createServerFn({ method: "POST" })
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({
         kind: Kind,
@@ -90,11 +90,7 @@ export const submitAccessPin = createServerFn({ method: "POST" })
 /* Admin/owner: issue + rotate credentials                             */
 /* ------------------------------------------------------------------ */
 
-async function loadOwnedRow(
-  supabase: any,
-  kind: "album" | "experience",
-  id: string,
-) {
+async function loadOwnedRow(supabase: any, kind: "album" | "experience", id: string) {
   const table = kind === "album" ? "albums" : "ar_experiences";
   const { data, error } = await supabase
     .from(table)
@@ -130,10 +126,12 @@ async function issueCredentials(kind: "album" | "experience", id: string) {
     _content_id: id,
   });
 
-  const { data: tok, error: tokErr } = await supabaseAdmin.rpc(
-    "issue_content_access_token",
-    { _kind: kind, _content_id: id, _ttl_days: TOKEN_TTL_DAYS, _label: "printed-qr" },
-  );
+  const { data: tok, error: tokErr } = await supabaseAdmin.rpc("issue_content_access_token", {
+    _kind: kind,
+    _content_id: id,
+    _ttl_days: TOKEN_TTL_DAYS,
+    _label: "printed-qr",
+  });
   if (tokErr) throw new Error(tokErr.message);
 
   return { pin: pin as string, tok: tok as string, pinExpiresAt: pinExpires as string };
@@ -145,7 +143,7 @@ async function issueCredentials(kind: "album" | "experience", id: string) {
  */
 export const getShareCredentials = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => z.object({ kind: Kind, id: z.string().uuid() }).parse(raw))
+  .validator((raw) => z.object({ kind: Kind, id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     const row = await loadOwnedRow(context.supabase, data.kind, data.id);
     return {
@@ -166,7 +164,7 @@ export const getShareCredentials = createServerFn({ method: "POST" })
  */
 export const setAccessMode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({ kind: Kind, id: z.string().uuid(), mode: z.enum(["public", "restricted"]) })
       .parse(raw),
@@ -221,7 +219,7 @@ export const setAccessMode = createServerFn({ method: "POST" })
  */
 export const regeneratePin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) => z.object({ kind: Kind, id: z.string().uuid() }).parse(raw))
+  .validator((raw) => z.object({ kind: Kind, id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     const row = await loadOwnedRow(context.supabase, data.kind, data.id);
     if (row.access_mode !== "restricted") throw new Error("Content is not restricted");

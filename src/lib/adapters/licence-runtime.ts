@@ -13,7 +13,17 @@ const STORAGE_LAST_OK = "aether.licence.lastOk";
 /** Server-minted device identity. The fingerprint is only a support signal. */
 const STORAGE_DEVICE_SECRET = "aether.licence.deviceSecret";
 const REFRESH_EVERY_MS = 12 * 60 * 60 * 1000; // 12h
-const DEFAULT_GRACE_HOURS = 72;
+/**
+ * §4.5 Grace hours — reduced from 72h to 24h.
+ * A cracked deployment now goes dark within one day without a server check-in.
+ * The server can override this per-licence via the JWT `grace` claim.
+ * Env: VITE_LICENCE_GRACE_HOURS (optional, integer, max 48).
+ */
+const _envGrace = parseInt(
+  (import.meta.env as Record<string, string>)["VITE_LICENCE_GRACE_HOURS"] ?? "",
+  10,
+);
+const DEFAULT_GRACE_HOURS = Number.isFinite(_envGrace) && _envGrace > 0 ? Math.min(_envGrace, 48) : 24;
 
 export interface LicencePayload {
   sub: string;
@@ -38,6 +48,28 @@ export interface LicenceState {
 
 function envVar(name: string): string | undefined {
   return (import.meta.env as Record<string, string | undefined>)[name];
+}
+
+/**
+ * Build integrity check — runs once at module load on the client-app branch.
+ * Ensures VITE_CUSTOMER_ID, VITE_BUILD_ID, and VITE_RELEASE_HASH are present
+ * and non-placeholder. If missing, the app renders in a locked state.
+ * This is NOT a security gate (JS is client-side) but it prevents accidental
+ * deployments of un-provisioned builds and catches mis-configurations early.
+ */
+export function buildIntegrityOk(): boolean {
+  const customerId = envVar("VITE_CUSTOMER_ID");
+  const buildId = envVar("VITE_BUILD_ID");
+  const releaseHash = envVar("VITE_RELEASE_HASH");
+  // Placeholders that provision-client.mjs replaces at generation time
+  const PLACEHOLDERS = ["", "REPLACE_ME", "YOUR_CUSTOMER_ID", "undefined", "null"];
+  if (!customerId || PLACEHOLDERS.includes(customerId)) return false;
+  if (!buildId || PLACEHOLDERS.includes(buildId)) return false;
+  // release hash is optional in dev but required in production
+  if (envVar("VITE_NODE_ENV") === "production") {
+    if (!releaseHash || PLACEHOLDERS.includes(releaseHash)) return false;
+  }
+  return true;
 }
 
 export function isLicenceEnforced() {
@@ -192,8 +224,7 @@ export async function ensureLicence(): Promise<LicenceState> {
   const cached = localStorage.getItem(STORAGE_TOKEN);
   const cachedPayload = cached ? decode(cached) : null;
   const now = Math.floor(Date.now() / 1000);
-  const stillFresh =
-    cachedPayload && cachedPayload.exp - now > 24 * 3600 - REFRESH_EVERY_MS / 1000;
+  const stillFresh = cachedPayload && cachedPayload.exp - now > 24 * 3600 - REFRESH_EVERY_MS / 1000;
 
   if (cached && stillFresh && (await verifySignature(cached))) {
     localStorage.setItem(STORAGE_LAST_OK, String(Date.now()));
@@ -205,9 +236,7 @@ export async function ensureLicence(): Promise<LicenceState> {
   try {
     const attestation = await attest();
     // Refresh only once the server has minted a device identity for us.
-    const path = secret
-      ? "/api/public/licence/refresh"
-      : "/api/public/licence/activate";
+    const path = secret ? "/api/public/licence/refresh" : "/api/public/licence/activate";
     const result = await callLicenceApi(path, {
       licenceKey: envVar("VITE_LICENCE_KEY"),
       platform: deviceClass(),
@@ -245,17 +274,19 @@ export async function ensureLicence(): Promise<LicenceState> {
       return { status: "invalid", payload: null, error };
     }
 
-    // Offline grace is anchored to the SIGNED token's `iat`, not to a local
-    // "last ok" timestamp — otherwise the customer extends their own grace
-    // window just by rewriting localStorage.
+    // Offline grace is anchored to the SIGNED token's `exp` + `graceHours`,
+    // not to a local "last ok" timestamp — preventing client-side clock/storage tampering.
     if (cachedPayload && (await verifySignature(cached!))) {
       const graceHours = cachedPayload.grace ?? DEFAULT_GRACE_HOURS;
-      const graceEndsAt = (cachedPayload.iat + graceHours * 3600) * 1000;
+      const graceEndsAt = (cachedPayload.exp + graceHours * 3600) * 1000;
       if (Date.now() < graceEndsAt) {
         return { status: "grace", payload: cachedPayload, error, graceEndsAt };
       }
     }
-    return { status: "invalid", payload: null, error };
+    // If exp + graceHours has passed, refuse cached token, clear storage and cookie immediately
+    localStorage.removeItem(STORAGE_TOKEN);
+    clearLicenceCookie();
+    return { status: "invalid", payload: null, error: "GRACE_EXPIRED" };
   }
 }
 
@@ -295,4 +326,3 @@ export function startLicenceHeartbeat() {
 export function currentToken() {
   return localStorage.getItem(STORAGE_TOKEN);
 }
-

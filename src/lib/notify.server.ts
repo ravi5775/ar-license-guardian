@@ -32,8 +32,7 @@ export async function sendDuplicateFingerprintAlert(
 ): Promise<{ ok: boolean; skipped?: boolean }> {
   const apiKey = process.env.RESEND_API_KEY;
   const lovableKey = process.env.LOVABLE_API_KEY;
-  const from =
-    process.env.ALERT_FROM_EMAIL || "Aether AR <onboarding@resend.dev>";
+  const from = process.env.ALERT_FROM_EMAIL || "Aether AR <onboarding@resend.dev>";
   const to = process.env.ALERT_TO_EMAIL;
 
   if (!apiKey || !lovableKey || !to) {
@@ -59,23 +58,20 @@ export async function sendDuplicateFingerprintAlert(
       <p>This is evidence of contract breach — see the audit log and license agreement §5.</p>
     `;
 
-    const res = await fetch(
-      "https://connector-gateway.lovable.dev/resend/emails",
-      {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          Authorization: `Bearer ${lovableKey}`,
-          "X-Connection-Api-Key": apiKey,
-        },
-        body: JSON.stringify({
-          from,
-          to: [to],
-          subject: `⚠️ Duplicate license activation — ${data.license_key}`,
-          html,
-        }),
+    const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        Authorization: `Bearer ${lovableKey}`,
+        "X-Connection-Api-Key": apiKey,
       },
-    );
+      body: JSON.stringify({
+        from,
+        to: [to],
+        subject: `⚠️ Duplicate license activation — ${data.license_key}`,
+        html,
+      }),
+    });
     if (!res.ok) {
       console.error("[notify] resend failed", res.status, await res.text());
       return { ok: false };

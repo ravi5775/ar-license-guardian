@@ -45,7 +45,7 @@ export const listAccounts = createServerFn({ method: "GET" })
 
 export const decideAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((raw) =>
+  .validator((raw) =>
     z
       .object({
         userId: z.string().uuid(),
