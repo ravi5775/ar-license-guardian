@@ -84,9 +84,9 @@ Read-only diagnostics for the customer. Key via `?key=` or `x-licence-key`
 header. Returns plan, expiry, status and active slot count — no IDs or keys.
 Rate limit 30/min, fail open. `MISSING_LICENCE_KEY` → 400.
 
-### 1.5 `POST /api/public/licence/manifest`
-CI on the `client-app` branch posts the signed release manifest after a build,
-so heartbeats from that release validate.
+### 1.5 `POST` / `GET /api/public/licence/manifest`
+**POST** — CI on the `client-app` branch posts the signed release manifest after
+a build, so heartbeats from that release validate.
 
 ```jsonc
 {
