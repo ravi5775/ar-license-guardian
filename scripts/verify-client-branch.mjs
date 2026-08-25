@@ -43,7 +43,11 @@ try {
 
   console.log("\n🔍 Step 3: Verifying no forbidden issuer files exist in client tree...");
   const FORBIDDEN_FILES = [
-    "src/routes/_authenticated",
+    "src/routes/_authenticated/dashboard.licenses.tsx",
+    "src/routes/_authenticated/dashboard.activations.tsx",
+    "src/routes/_authenticated/dashboard.audit.tsx",
+    "src/routes/_authenticated/dashboard.approvals.tsx",
+    "src/routes/_authenticated/dashboard.diagnostics.tsx",
     "src/routes/api/public/licence",
     "src/lib/adapters/db.server.ts",
     "src/lib/adapters/licence.server.ts",
@@ -66,6 +70,34 @@ try {
       violations++;
     } else {
       console.log(`  ✓ Stripped: ${forbidden}`);
+    }
+  }
+
+  console.log("\n📦 Step 3b: Verifying customer-facing features survived the strip...");
+  const REQUIRED_FILES = [
+    "src/routes/_authenticated/route.tsx",
+    "src/routes/_authenticated/dashboard.tsx",
+    "src/routes/_authenticated/dashboard.index.tsx",
+    "src/routes/_authenticated/dashboard.projects.tsx",
+    "src/routes/_authenticated/dashboard.experiences.tsx",
+    "src/routes/_authenticated/dashboard.albums.index.tsx",
+    "src/routes/_authenticated/dashboard.albums.new.tsx",
+    "src/routes/_authenticated/dashboard.analytics.tsx",
+    "src/routes/_authenticated/dashboard.marker-tests.tsx",
+    "src/routes/_authenticated/pending.tsx",
+    "src/lib/account.functions.ts",
+    "src/lib/projects.functions.ts",
+    "src/lib/experiences.functions.ts",
+    "src/lib/albums.functions.ts",
+    "src/lib/analytics.functions.ts",
+    "src/lib/marker-tests.functions.ts",
+  ];
+  for (const required of REQUIRED_FILES) {
+    if (existsSync(join(scratchDir, required))) {
+      console.log(`  ✓ Present: ${required}`);
+    } else {
+      console.error(`❌ MISSING CLIENT FEATURE FILE: ${required}`);
+      violations++;
     }
   }
 

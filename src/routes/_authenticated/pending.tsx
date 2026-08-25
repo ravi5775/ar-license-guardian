@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getMyAccount } from "@/lib/approvals.functions";
+import { getMyAccount } from "@/lib/account.functions";
 import { Clock, Copy, LogOut, ShieldX, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
