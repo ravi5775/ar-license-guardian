@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * Self-scoped account read (own profile + own licence, if the deployment has
  * a licences table at all).
  *
- * This lives outside `approvals.functions.ts` on purpose: the approvals module
+ * This lives outside the admin approvals module on purpose: that module
  * is admin/issuer-only and is stripped from customer (client-app) deliveries,
  * but the holding page at /pending still has to work there.
  */
