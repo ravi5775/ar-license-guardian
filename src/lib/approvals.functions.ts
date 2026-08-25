@@ -90,21 +90,5 @@ export const decideAccount = createServerFn({ method: "POST" })
   });
 
 /** The signed-in user's own approval state + auto-issued licence. */
-export const getMyAccount = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data: profile, error } = await context.supabase
-      .from("profiles")
-      .select("id, display_name, email, approval_status, approval_decided_at, rejection_reason")
-      .eq("id", context.userId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-
-    const { data: license } = await context.supabase
-      .from("licenses")
-      .select("license_key, plan, status, max_activations, issued_at, expires_at")
-      .eq("owner_user_id", context.userId)
-      .maybeSingle();
-
-    return { profile: profile ?? null, license: license ?? null };
-  });
+// `getMyAccount` moved to src/lib/account.functions.ts so the /pending page
+// survives the client-app strip (this module is issuer/admin-only).
