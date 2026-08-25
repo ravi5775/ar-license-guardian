@@ -252,3 +252,81 @@ BEGIN
   RETURN QUERY SELECT _row.storage_path;
 END;
 $$;
+
+-- 8. SCAN EVENTS (Analytics)
+CREATE TABLE IF NOT EXISTS public.scan_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  album_id uuid REFERENCES public.albums(id) ON DELETE CASCADE,
+  experience_id uuid REFERENCES public.ar_experiences(id) ON DELETE CASCADE,
+  target_index integer,
+  event_type text NOT NULL,
+  session_id text NOT NULL,
+  duration_ms integer,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS scan_events_album_idx ON public.scan_events (album_id);
+CREATE INDEX IF NOT EXISTS scan_events_experience_idx ON public.scan_events (experience_id);
+CREATE INDEX IF NOT EXISTS scan_events_created_idx ON public.scan_events (created_at DESC);
+
+GRANT INSERT ON public.scan_events TO anon, authenticated;
+GRANT SELECT ON public.scan_events TO authenticated;
+GRANT ALL ON public.scan_events TO service_role;
+
+ALTER TABLE public.scan_events ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Scan events only for published content" ON public.scan_events;
+CREATE POLICY "Scan events only for published content" ON public.scan_events
+  FOR INSERT TO anon, authenticated
+  WITH CHECK (
+    (album_id IS NULL OR EXISTS (SELECT 1 FROM public.albums a WHERE a.id = album_id AND a.published = true))
+    AND (experience_id IS NULL OR EXISTS (SELECT 1 FROM public.ar_experiences e WHERE e.id = experience_id AND e.published = true))
+    AND (experience_id IS NULL OR album_id IS NULL OR EXISTS (
+      SELECT 1 FROM public.ar_experiences e WHERE e.id = experience_id AND e.album_id = scan_events.album_id))
+  );
+
+DROP POLICY IF EXISTS "Owners and admins can read scan events" ON public.scan_events;
+CREATE POLICY "Owners and admins can read scan events" ON public.scan_events
+  FOR SELECT TO authenticated
+  USING (
+    EXISTS (SELECT 1 FROM public.albums a WHERE a.id = scan_events.album_id AND a.owner_id = auth.uid())
+    OR EXISTS (SELECT 1 FROM public.ar_experiences e WHERE e.id = scan_events.experience_id AND e.owner_id = auth.uid())
+    OR public.has_role(auth.uid(), 'admin')
+  );
+
+-- 9. MARKER TESTS (Marker accuracy testing)
+CREATE TABLE IF NOT EXISTS public.marker_tests (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  owner_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  album_id uuid REFERENCES public.albums(id) ON DELETE SET NULL,
+  experience_id uuid REFERENCES public.ar_experiences(id) ON DELETE SET NULL,
+  marker_label text NOT NULL,
+  step_key text NOT NULL,
+  lighting text NOT NULL,
+  distance_cm integer,
+  angle_deg integer,
+  device text,
+  outcome text NOT NULL CHECK (outcome IN ('success','partial','fail')),
+  time_to_detect_ms integer,
+  notes text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS marker_tests_owner_idx ON public.marker_tests (owner_id, created_at DESC);
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.marker_tests TO authenticated;
+GRANT ALL ON public.marker_tests TO service_role;
+
+ALTER TABLE public.marker_tests ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "marker_tests_own" ON public.marker_tests;
+CREATE POLICY "marker_tests_own" ON public.marker_tests
+  FOR ALL TO authenticated
+  USING (owner_id = auth.uid() AND public.is_approved(auth.uid()))
+  WITH CHECK (owner_id = auth.uid() AND public.is_approved(auth.uid()));
+
+DROP POLICY IF EXISTS "Admins can read all marker tests" ON public.marker_tests;
+CREATE POLICY "Admins can read all marker tests" ON public.marker_tests
+  FOR SELECT TO authenticated
+  USING (public.has_role(auth.uid(), 'admin'));
