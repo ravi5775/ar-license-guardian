@@ -23,7 +23,14 @@ echo "==================================================================="
 # Removes the license-issuing server code so a client cannot restore the
 # issuer from the delivered repo — even via git history (new history is
 # created by the delivery workflow).
-rm -rf src/routes/_authenticated
+# NOTE: the dashboard itself SHIPS to the customer. Only the issuer/admin
+# pages are removed. The client keeps: Overview, Projects, AR Experiences,
+# Albums, Analytics, Marker Testing (+ /pending and /mfa).
+rm -f  src/routes/_authenticated/dashboard.licenses.tsx
+rm -f  src/routes/_authenticated/dashboard.activations.tsx
+rm -f  src/routes/_authenticated/dashboard.audit.tsx
+rm -f  src/routes/_authenticated/dashboard.approvals.tsx
+rm -f  src/routes/_authenticated/dashboard.diagnostics.tsx
 rm -rf src/routes/api/public/licence
 rm -f  src/lib/adapters/db.server.ts
 rm -f  src/lib/adapters/licence.server.ts
