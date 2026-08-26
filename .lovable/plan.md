@@ -1,62 +1,130 @@
-## Goal
+# Interior Design AR — Implementation Plan (Pilot)
 
-Two problems to fix:
-1. **QR flow is broken** — scanning from Google Lens used to open the AR page and autoplay; now it doesn't. Users also want to scan the QR *from inside the site* instead of leaving to a camera app.
-2. **AR viewer is laggy** — MindAR + A-Frame is heavy on mid-range phones.
+Add markerless room visualization ("see this sofa / paint / floor in my room") alongside the
+existing marker-based Aether AR viewer. No app download: WebAR only, same TanStack Start app,
+same auth, same per-project ownership and licensing rules.
 
-## Part 1 — In-app QR scanner
+## 1. Decisions taken up front
 
-Add a "Scan QR" entry point on the site so users never leave the browser.
+| Item | Decision |
+| --- | --- |
+| AR type | Markerless SLAM + plane detection (no QR/marker) |
+| Platform | WebAR — browser only, no install |
+| Android/Chrome | WebXR `immersive-ar` with `hit-test` (live 6DoF placement) |
+| iOS/Safari | No WebXR → USDZ AR Quick Look fallback (`<model-viewer ar>`) |
+| Model formats | GLB/glTF (Android/Web) + USDZ (iOS) — both required per SKU |
+| Hosting | Our own model library in R2, private, served via existing signed-URL path |
+| Branding | White-label — reuses existing design tokens, no third-party logos |
+| Vendors | None. Built in-house on WebXR + three.js (already a dependency) |
 
-- New route `src/routes/scan.tsx` with a full-screen camera view that decodes QR codes live.
-- Use **`@zxing/browser`** (pure JS, ~50KB gz, no WASM, works on iOS Safari + Android Chrome). Lighter and more reliable than `jsQR` for live video.
-- On decode: if the payload URL points to our own origin `/ar/<slug>`, navigate client-side (fast, no reload). Otherwise show the URL with an "Open" confirm button (safety — don't auto-follow arbitrary URLs).
-- Add a **"Scan QR"** button in the site header and on the landing hero so it's discoverable.
-- Handle camera permission denial, no-camera devices, and non-HTTPS contexts with a clear message.
+MVP scope: **one item placed at a time**, wall (vertical) + floor (horizontal) planes, screenshot
+capture. Multi-item scenes, occlusion, and checkout are Phase 2.
 
-## Part 2 — Fix the "used to autoplay, now doesn't" regression
+## 2. Data model (new migration)
 
-Likely cause: mobile browsers block `autoplay` on `<video>` without a user gesture, and our recent scene rebuild lost the `muted` + `playsinline` combo required for iOS autoplay. Also the `.mind` marker path may have changed the code branch.
+Two new tables, owned per `project_id` exactly like `ar_experiences`, with GRANTs + RLS scoped
+to `owner_id` (and admin via `has_role`).
 
-Fixes on `src/routes/ar.$slug.tsx`:
-- Ensure the `<video id="ar-media">` asset has `muted`, `playsinline`, `webkit-playsinline`, `autoplay` set as **attributes** (not just properties) before it's added to `<a-assets>`. iOS reads them at parse time.
-- In the "Launch AR" click handler (already a user gesture), pre-call `video.play().catch(()=>{})` so the browser records the gesture.
-- Fallback: if `play()` rejects, show a tap-to-play overlay on the video plane.
-- Fix the plain-camera fallback video the same way (currently missing `muted`, which is why iOS silently blocks autoplay).
+- `design_catalogs` — `id, project_id, owner_id, name, slug, is_active, created_at`
+- `catalog_items` — `id, catalog_id, owner_id, name, sku, category` (`furniture` | `paint` |
+  `flooring`), `glb_path, usdz_path, thumb_path, width_m, height_m, depth_m, color_hex,
+  placement` (`floor` | `wall`), `sort_order, is_active`
 
-## Part 3 — Reduce AR lag
+Analytics reuses the existing `scan_events` table with a new `event_type` of `ar_place`, so
+"which items get placed most" needs no new table.
 
-Cheap wins without swapping the engine:
+## 3. Server layer (no direct DB from UI)
 
-- **Lower MindAR filter/tracking cost**: pass tuning params `maxTrack: 1; filterMinCF: 0.0001; filterBeta: 0.01; warmupTolerance: 5; missTolerance: 5` — cuts per-frame CPU noticeably.
-- **Downscale the video source**: constrain `getUserMedia` to `{ width: 640, height: 480, frameRate: 30 }` before MindAR grabs it (MindAR reads from `<video>`; smaller frame = less work per frame).
-- **Compress the overlay media**: add a note in the upload UI recommending ≤720p H.264 for the video overlay; oversized 1080p/4K clips are the #1 lag source. (No transcoding server-side — just guidance + a soft warning if file >20 MB.)
-- **Compress the `.mind` marker input image** before compilation guidance updated (smaller marker → smaller `.mind` → faster warm start).
-- **Preload MindAR scripts** on the pre-launch screen (in parallel with the user reading the intro) instead of only after "Launch AR" is tapped — feels much snappier.
-- **Lazy-mount the scene** with `requestIdleCallback` fallback so the initial paint isn't blocked.
+New `src/lib/catalog.functions.ts` (thin wrapper, logic in `catalog.server.ts`):
 
-## Part 4 — Small UX polish
+- `listCatalogs`, `createCatalog`, `updateCatalog`, `deleteCatalog` — authenticated, owner-scoped
+- `listCatalogItems({ catalogSlug })` — public read of *active* items only, safe columns +
+  short-TTL signed GLB/USDZ/thumb URLs via existing `access.server.ts` helpers
+- `signCatalogUpload` — reuses `uploader-guard.server.ts` (`authorizeUploader` +
+  `scopeUploadPath`) so editors upload only under their own prefix
+- `logPlacement` — rate-limited item-placement event into `scan_events`
 
-- Add a "Having trouble? Tap here" link on the AR page that jumps straight to the plain-camera fallback (bypasses MindAR entirely for weak devices).
-- Show a subtle FPS/tracking indicator in dev only.
+Presign gating (`presign-gate.server.ts`) applies to catalog assets the same as AR media, so
+licence state still governs asset delivery.
 
-## Files touched
+## 4. Client: the AR room viewer
 
-- **New**: `src/routes/scan.tsx` (in-app QR scanner)
-- **New**: `src/components/QRScannerButton.tsx` (header/hero entry)
-- **Edit**: `src/routes/ar.$slug.tsx` (autoplay fix, perf tuning, preloaded scripts, tap-to-play fallback)
-- **Edit**: `src/routes/index.tsx` (add "Scan QR" CTA in hero)
-- **Edit**: `src/routes/__root.tsx` or header component (nav link to `/scan`)
-- **Edit**: `src/routes/_authenticated/dashboard.experiences.tsx` (soft warning on oversized media)
-- **Package**: `bun add @zxing/browser @zxing/library`
+New route `src/routes/room.$catalog.tsx` (public, own `head()` metadata).
 
-## Out of scope (ask before doing)
+- Capability probe on mount: `navigator.xr?.isSessionSupported('immersive-ar')`
+  - **supported** → WebXR path
+  - **not supported** → iOS Quick Look path (USDZ) or a "not supported on this browser" card
+- WebXR path, in a new `src/components/room/RoomArSession.tsx`:
+  - `three` WebGLRenderer with `xr.enabled`, session requested with
+    `requiredFeatures: ['hit-test']`, `optionalFeatures: ['dom-overlay','light-estimation']`,
+    `domOverlay: { root: uiRef.current }` so the catalog drawer renders over the camera feed
+  - reticle driven by an `XRHitTestSource` from the viewer space; tap places the loaded GLB at
+    the hit pose, anchored (uses `XRAnchor` when available, otherwise the hit matrix)
+  - `placement: 'wall'` items snap to vertical hit normals, `'floor'` to horizontal
+  - real-world scale straight from `width_m/height_m/depth_m` — no manual scaling
+  - paint/flooring items render as a tinted plane/quad rather than a mesh
+  - single-item MVP: placing a new item replaces the current one; drag to reposition,
+    two-finger twist to rotate on Y
+- Reuses the existing `webgl-recovery.ts` context-lost handling and `ar-runtime.ts` device-tier
+  resolution capping so mid-range phones stay smooth.
+- Session cleanup on unmount (end session, stop tracks, dispose renderer/geometries).
 
-- Replacing MindAR with a lighter engine (e.g. AR.js NFT, or a WebGPU tracker) — bigger project.
-- Server-side video transcoding to force ≤720p (needs a worker + ffmpeg-wasm; adds cost).
+iOS fallback (`src/components/room/QuickLookFallback.tsx`): `<model-viewer>` loaded from our
+vendored assets with `ar ar-modes="quick-look webxr scene-viewer"` and the signed USDZ URL.
+Tracking quality is Apple's; placement UI is theirs. Documented as an expected difference.
 
-## Confirm before I build
+Capture: `renderer.domElement.toDataURL()` composited over a captured camera frame on the
+WebXR path; Quick Look uses the OS-native screenshot (documented, not built).
 
-1. OK to add `@zxing/browser` (~50KB) for in-app QR scanning?
-2. Should the scanner **auto-navigate** on any URL from our own domain, or always show a confirm step?
-3. Add a size warning at what threshold — **20 MB** for overlay video sounds right?
+## 5. Dashboard: catalog management
+
+New `src/routes/_authenticated/dashboard.catalogs.tsx` (+ `dashboard.catalogs.$id.tsx`):
+
+- Create a catalog, get a shareable `/room/<slug>` link and a QR via the existing
+  `QRCodeDialog`
+- Item editor: name, SKU, category, real dimensions in metres, placement surface, colour swatch
+  for paint/flooring, GLB + USDZ + thumbnail upload through `MediaUploader`
+- Validation: GLB and USDZ both required for furniture, size cap (default 15 MB per model) with
+  a soft warning above 8 MB, dimensions must be non-zero
+- Nav entry added to the dashboard sidebar behind a new `catalog` feature flag in
+  `deployment.server.ts` (on for all branches by default, so it ships in `client-app` too)
+- `scripts/verify-client-branch.mjs` updated to assert the catalog route survives stripping
+
+## 6. Analytics
+
+Extend `dashboard.analytics.tsx` with a "Room AR" panel: sessions started, AR-supported vs
+fallback split, placements per item (top SKUs), and screenshot saves. All read through
+`analytics.functions.ts`, no new client DB access.
+
+## 7. Content pipeline (the real bottleneck)
+
+Documented in a new `docs/room-ar-content.md`:
+
+- Per SKU: GLB (Draco-compressed, ≤ 5 MB, Y-up, origin at floor contact point, real-world
+  metres) + USDZ converted with Apple's `usdzconvert` or Reality Converter
+- Texture budget 2K max, single material where possible
+- Paint/flooring need no model — just a hex/texture swatch
+- Pilot target: 25–50 SKUs
+
+## 8. Out of scope for this phase
+
+Occlusion (LiDAR depth), multi-item room layouts, saved/shared design projects, e-commerce
+checkout, outdoor/geospatial AR, AI virtual staging.
+
+## 9. Build order
+
+1. Migration + GRANTs + RLS for `design_catalogs` / `catalog_items`
+2. `catalog.server.ts` + `catalog.functions.ts` + upload guard wiring
+3. Dashboard catalog CRUD + item editor + feature flag + branch verify
+4. `/room/$catalog` route: capability probe, WebXR hit-test placement, catalog drawer
+5. iOS Quick Look fallback + unsupported-browser card
+6. Screenshot capture + placement analytics + analytics panel
+7. `docs/room-ar-content.md`, device matrix update, CI/lint/typecheck pass
+
+## 10. Open questions
+
+1. Should the room viewer be **public** (anyone with the link) or gated behind the existing
+   PIN/QR-token access like AR experiences?
+2. Furniture, paint, and flooring all in the pilot — or narrow to one to cut modelling cost?
+3. Do catalog items need to sync from an existing product catalog/CMS, or is dashboard-managed
+   enough for the pilot?
