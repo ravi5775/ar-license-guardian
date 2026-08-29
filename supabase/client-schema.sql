@@ -48,11 +48,34 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   display_name text,
   avatar_url text,
   storage_quota_bytes bigint NOT NULL DEFAULT (2::bigint * 1024 * 1024 * 1024), -- 2 GB
+  -- A client instance ships without the admin approval queue, so accounts are
+  -- usable immediately. The column exists so policies stay identical to the
+  -- managed build; flip the default to 'pending' to gate signups manually.
+  approval_status text NOT NULL DEFAULT 'approved'
+    CHECK (approval_status IN ('pending', 'approved', 'rejected')),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- Idempotent for instances provisioned before this column existed.
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS approval_status text NOT NULL DEFAULT 'approved';
+
+-- Used by every owner-scoped policy below. Must be defined before the first
+-- CREATE POLICY that references it, or the script aborts.
+CREATE OR REPLACE FUNCTION public.is_approved(_user_id uuid)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles p
+    WHERE p.id = _user_id AND p.approval_status = 'approved'
+  );
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.is_approved(uuid) FROM anon;
+
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
 
 DROP POLICY IF EXISTS "profiles_read_own" ON public.profiles;
 CREATE POLICY "profiles_read_own" ON public.profiles
