@@ -79,7 +79,7 @@ export function validateMagicBytes(buffer: Uint8Array, extension: string): boole
  */
 export function sanitizeFilename(filename: string): string {
   const base = filename
-    .replace(/^.*[\\\/]/, "") // strip leading paths
+    .replace(/^.*[\\/]/, "") // strip leading paths
     .replace(/[^a-zA-Z0-9._-]/g, "_"); // replace dangerous chars
   const ext = base.split(".").pop()?.toLowerCase() || "bin";
 
