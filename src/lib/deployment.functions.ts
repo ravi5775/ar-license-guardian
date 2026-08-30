@@ -8,6 +8,7 @@ export type PublicDeploymentProfile = {
     approvals: boolean;
     diagnostics: boolean;
     analytics: boolean;
+    catalog: boolean;
     adminMfa: boolean;
   };
 };

@@ -21,6 +21,7 @@ import { Route as ArGreetingCardsRouteImport } from './routes/ar-greeting-cards'
 import { Route as ArBusinessCardsRouteImport } from './routes/ar-business-cards'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RoomCatalogRouteImport } from './routes/room.$catalog'
 import { Route as ArSlugRouteImport } from './routes/ar.$slug'
 import { Route as AuthenticatedPendingRouteImport } from './routes/_authenticated/pending'
 import { Route as AuthenticatedMfaRouteImport } from './routes/_authenticated/mfa'
@@ -32,6 +33,7 @@ import { Route as AuthenticatedDashboardMarkerTestsRouteImport } from './routes/
 import { Route as AuthenticatedDashboardLicensesRouteImport } from './routes/_authenticated/dashboard.licenses'
 import { Route as AuthenticatedDashboardExperiencesRouteImport } from './routes/_authenticated/dashboard.experiences'
 import { Route as AuthenticatedDashboardDiagnosticsRouteImport } from './routes/_authenticated/dashboard.diagnostics'
+import { Route as AuthenticatedDashboardCatalogsRouteImport } from './routes/_authenticated/dashboard.catalogs'
 import { Route as AuthenticatedDashboardAuditRouteImport } from './routes/_authenticated/dashboard.audit'
 import { Route as AuthenticatedDashboardApprovalsRouteImport } from './routes/_authenticated/dashboard.approvals'
 import { Route as AuthenticatedDashboardAnalyticsRouteImport } from './routes/_authenticated/dashboard.analytics'
@@ -107,6 +109,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoomCatalogRoute = RoomCatalogRouteImport.update({
+  id: '/room/$catalog',
+  path: '/room/$catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ArSlugRoute = ArSlugRouteImport.update({
   id: '/ar/$slug',
   path: '/ar/$slug',
@@ -166,6 +173,12 @@ const AuthenticatedDashboardDiagnosticsRoute =
   AuthenticatedDashboardDiagnosticsRouteImport.update({
     id: '/diagnostics',
     path: '/diagnostics',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardCatalogsRoute =
+  AuthenticatedDashboardCatalogsRouteImport.update({
+    id: '/catalogs',
+    path: '/catalogs',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedDashboardAuditRoute =
@@ -265,10 +278,12 @@ export interface FileRoutesByFullPath {
   '/mfa': typeof AuthenticatedMfaRoute
   '/pending': typeof AuthenticatedPendingRoute
   '/ar/$slug': typeof ArSlugRoute
+  '/room/$catalog': typeof RoomCatalogRoute
   '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
   '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/dashboard/catalogs': typeof AuthenticatedDashboardCatalogsRoute
   '/dashboard/diagnostics': typeof AuthenticatedDashboardDiagnosticsRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
@@ -302,10 +317,12 @@ export interface FileRoutesByTo {
   '/mfa': typeof AuthenticatedMfaRoute
   '/pending': typeof AuthenticatedPendingRoute
   '/ar/$slug': typeof ArSlugRoute
+  '/room/$catalog': typeof RoomCatalogRoute
   '/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
   '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/dashboard/catalogs': typeof AuthenticatedDashboardCatalogsRoute
   '/dashboard/diagnostics': typeof AuthenticatedDashboardDiagnosticsRoute
   '/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
@@ -342,10 +359,12 @@ export interface FileRoutesById {
   '/_authenticated/mfa': typeof AuthenticatedMfaRoute
   '/_authenticated/pending': typeof AuthenticatedPendingRoute
   '/ar/$slug': typeof ArSlugRoute
+  '/room/$catalog': typeof RoomCatalogRoute
   '/_authenticated/dashboard/activations': typeof AuthenticatedDashboardActivationsRoute
   '/_authenticated/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRoute
   '/_authenticated/dashboard/approvals': typeof AuthenticatedDashboardApprovalsRoute
   '/_authenticated/dashboard/audit': typeof AuthenticatedDashboardAuditRoute
+  '/_authenticated/dashboard/catalogs': typeof AuthenticatedDashboardCatalogsRoute
   '/_authenticated/dashboard/diagnostics': typeof AuthenticatedDashboardDiagnosticsRoute
   '/_authenticated/dashboard/experiences': typeof AuthenticatedDashboardExperiencesRoute
   '/_authenticated/dashboard/licenses': typeof AuthenticatedDashboardLicensesRoute
@@ -382,10 +401,12 @@ export interface FileRouteTypes {
     | '/mfa'
     | '/pending'
     | '/ar/$slug'
+    | '/room/$catalog'
     | '/dashboard/activations'
     | '/dashboard/analytics'
     | '/dashboard/approvals'
     | '/dashboard/audit'
+    | '/dashboard/catalogs'
     | '/dashboard/diagnostics'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
@@ -419,10 +440,12 @@ export interface FileRouteTypes {
     | '/mfa'
     | '/pending'
     | '/ar/$slug'
+    | '/room/$catalog'
     | '/dashboard/activations'
     | '/dashboard/analytics'
     | '/dashboard/approvals'
     | '/dashboard/audit'
+    | '/dashboard/catalogs'
     | '/dashboard/diagnostics'
     | '/dashboard/experiences'
     | '/dashboard/licenses'
@@ -458,10 +481,12 @@ export interface FileRouteTypes {
     | '/_authenticated/mfa'
     | '/_authenticated/pending'
     | '/ar/$slug'
+    | '/room/$catalog'
     | '/_authenticated/dashboard/activations'
     | '/_authenticated/dashboard/analytics'
     | '/_authenticated/dashboard/approvals'
     | '/_authenticated/dashboard/audit'
+    | '/_authenticated/dashboard/catalogs'
     | '/_authenticated/dashboard/diagnostics'
     | '/_authenticated/dashboard/experiences'
     | '/_authenticated/dashboard/licenses'
@@ -495,6 +520,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   WeddingArAlbumsRoute: typeof WeddingArAlbumsRoute
   ArSlugRoute: typeof ArSlugRoute
+  RoomCatalogRoute: typeof RoomCatalogRoute
   ArAlbumSlugRoute: typeof ArAlbumSlugRoute
   ApiPublicHooksStorageAlertsRoute: typeof ApiPublicHooksStorageAlertsRoute
   ApiPublicLicenceActivateRoute: typeof ApiPublicLicenceActivateRoute
@@ -592,6 +618,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/room/$catalog': {
+      id: '/room/$catalog'
+      path: '/room/$catalog'
+      fullPath: '/room/$catalog'
+      preLoaderRoute: typeof RoomCatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ar/$slug': {
       id: '/ar/$slug'
       path: '/ar/$slug'
@@ -667,6 +700,13 @@ declare module '@tanstack/react-router' {
       path: '/diagnostics'
       fullPath: '/dashboard/diagnostics'
       preLoaderRoute: typeof AuthenticatedDashboardDiagnosticsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/catalogs': {
+      id: '/_authenticated/dashboard/catalogs'
+      path: '/catalogs'
+      fullPath: '/dashboard/catalogs'
+      preLoaderRoute: typeof AuthenticatedDashboardCatalogsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/audit': {
@@ -775,6 +815,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAnalyticsRoute: typeof AuthenticatedDashboardAnalyticsRoute
   AuthenticatedDashboardApprovalsRoute: typeof AuthenticatedDashboardApprovalsRoute
   AuthenticatedDashboardAuditRoute: typeof AuthenticatedDashboardAuditRoute
+  AuthenticatedDashboardCatalogsRoute: typeof AuthenticatedDashboardCatalogsRoute
   AuthenticatedDashboardDiagnosticsRoute: typeof AuthenticatedDashboardDiagnosticsRoute
   AuthenticatedDashboardExperiencesRoute: typeof AuthenticatedDashboardExperiencesRoute
   AuthenticatedDashboardLicensesRoute: typeof AuthenticatedDashboardLicensesRoute
@@ -792,6 +833,7 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardAnalyticsRoute: AuthenticatedDashboardAnalyticsRoute,
     AuthenticatedDashboardApprovalsRoute: AuthenticatedDashboardApprovalsRoute,
     AuthenticatedDashboardAuditRoute: AuthenticatedDashboardAuditRoute,
+    AuthenticatedDashboardCatalogsRoute: AuthenticatedDashboardCatalogsRoute,
     AuthenticatedDashboardDiagnosticsRoute:
       AuthenticatedDashboardDiagnosticsRoute,
     AuthenticatedDashboardExperiencesRoute:
@@ -840,6 +882,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   WeddingArAlbumsRoute: WeddingArAlbumsRoute,
   ArSlugRoute: ArSlugRoute,
+  RoomCatalogRoute: RoomCatalogRoute,
   ArAlbumSlugRoute: ArAlbumSlugRoute,
   ApiPublicHooksStorageAlertsRoute: ApiPublicHooksStorageAlertsRoute,
   ApiPublicLicenceActivateRoute: ApiPublicLicenceActivateRoute,

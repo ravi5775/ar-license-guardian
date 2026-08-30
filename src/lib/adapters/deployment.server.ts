@@ -30,6 +30,8 @@ export type DeploymentProfile = {
     diagnostics: boolean;
     /** Scan analytics + marker testing. */
     analytics: boolean;
+    /** Room catalog / AR furniture + paint placement viewer. */
+    catalog: boolean;
     /** Enforce TOTP step-up for admins. */
     adminMfa: boolean;
   };
@@ -55,6 +57,8 @@ export function deploymentProfile(): DeploymentProfile {
       // A client deployment still records its own scans; it just cannot see
       // anybody else's. Opt out with FEATURE_ANALYTICS=false.
       analytics: readEnv("FEATURE_ANALYTICS") !== "false",
+      // Default ON for all branches so the room catalog ships with the client app too.
+      catalog: readEnv("FEATURE_CATALOG") !== "false",
       adminMfa: isAdminBuild && readEnv("FEATURE_ADMIN_MFA") !== "false",
     },
   };

@@ -25,6 +25,7 @@ import {
   UserCheck,
   FolderOpen,
   Activity,
+  Package,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -67,6 +68,9 @@ function DashboardLayout() {
     { to: "/dashboard/projects", label: "Projects", icon: FolderOpen },
     { to: "/dashboard/experiences", label: "AR Experiences", icon: Boxes },
     { to: "/dashboard/albums", label: "Albums", icon: Images },
+    ...(can("catalog")
+      ? [{ to: "/dashboard/catalogs", label: "Catalogs", icon: Package }]
+      : []),
     ...(can("analytics")
       ? [
           { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },

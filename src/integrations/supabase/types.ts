@@ -226,6 +226,107 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_items: {
+        Row: {
+          catalog_id: string
+          category: string
+          color_hex: string | null
+          created_at: string
+          depth_m: number
+          glb_path: string
+          height_m: number
+          id: string
+          is_active: boolean
+          name: string
+          owner_id: string | null
+          placement: string
+          sku: string
+          sort_order: number
+          thumb_path: string | null
+          updated_at: string
+          usdz_path: string
+          width_m: number
+        }
+        Insert: {
+          catalog_id: string
+          category: string
+          color_hex?: string | null
+          created_at?: string
+          depth_m: number
+          glb_path: string
+          height_m: number
+          id?: string
+          is_active?: boolean
+          name: string
+          owner_id?: string | null
+          placement: string
+          sku: string
+          sort_order?: number
+          thumb_path?: string | null
+          updated_at?: string
+          usdz_path: string
+          width_m: number
+        }
+        Update: {
+          catalog_id?: string
+          category?: string
+          color_hex?: string | null
+          created_at?: string
+          depth_m?: number
+          glb_path?: string
+          height_m?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          owner_id?: string | null
+          placement?: string
+          sku?: string
+          sort_order?: number
+          thumb_path?: string | null
+          updated_at?: string
+          usdz_path?: string
+          width_m?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_items_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "design_catalogs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_catalogs: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          owner_id: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          owner_id?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          owner_id?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content_access_tokens: {
         Row: {
           content_id: string
@@ -898,31 +999,37 @@ export type Database = {
       scan_events: {
         Row: {
           album_id: string | null
+          catalog_item_id: string | null
           created_at: string
           duration_ms: number | null
           event_type: string
           experience_id: string | null
           id: string
+          metadata: Json | null
           session_id: string
           target_index: number | null
         }
         Insert: {
           album_id?: string | null
+          catalog_item_id?: string | null
           created_at?: string
           duration_ms?: number | null
           event_type: string
           experience_id?: string | null
           id?: string
+          metadata?: Json | null
           session_id: string
           target_index?: number | null
         }
         Update: {
           album_id?: string | null
+          catalog_item_id?: string | null
           created_at?: string
           duration_ms?: number | null
           event_type?: string
           experience_id?: string | null
           id?: string
+          metadata?: Json | null
           session_id?: string
           target_index?: number | null
         }
@@ -932,6 +1039,13 @@ export type Database = {
             columns: ["album_id"]
             isOneToOne: false
             referencedRelation: "albums"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scan_events_catalog_item_id_fkey"
+            columns: ["catalog_item_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_items"
             referencedColumns: ["id"]
           },
           {
