@@ -15,10 +15,15 @@ const Schema = z.object({
   assetDigest: z.string().min(32).max(200),
   releaseHash: z.string().min(32).max(200).optional(),
   signature: z.string().min(16).max(4000),
-  files: z.array(z.object({
-    path: z.string(),
-    hash: z.string(),
-  })).optional().default([]),
+  files: z
+    .array(
+      z.object({
+        path: z.string(),
+        hash: z.string(),
+      }),
+    )
+    .optional()
+    .default([]),
   branch: z.string().max(64).default("client-app"),
 });
 
@@ -45,7 +50,7 @@ async function verifyManifestSignature(
   buildId: string,
   customerId: string,
   releaseHash: string,
-  signature: string
+  signature: string,
 ): Promise<boolean> {
   const pubJwkRaw = readEnv("LICENCE_PUBLIC_KEY_JWK") || readEnv("VITE_LICENCE_PUBLIC_KEY");
   const privJwkRaw = readEnv("LICENCE_PRIVATE_KEY_JWK");
@@ -69,20 +74,9 @@ async function verifyManifestSignature(
   if (!jwk) return true; // If no keys set on admin yet, skip crypto verification
 
   try {
-    const key = await crypto.subtle.importKey(
-      "jwk",
-      jwk,
-      { name: "Ed25519" },
-      false,
-      ["verify"]
-    );
+    const key = await crypto.subtle.importKey("jwk", jwk, { name: "Ed25519" }, false, ["verify"]);
     const signMessage = new TextEncoder().encode(`${buildId}.${customerId}.${releaseHash}`);
-    return await crypto.subtle.verify(
-      "Ed25519",
-      key,
-      b64ToBytes(signature),
-      signMessage
-    );
+    return await crypto.subtle.verify("Ed25519", key, b64ToBytes(signature), signMessage);
   } catch {
     return false;
   }
@@ -155,7 +149,7 @@ export const Route = createFileRoute("/api/public/licence/manifest")({
             input.buildId,
             input.customerId,
             targetHash,
-            input.signature
+            input.signature,
           );
 
           if (!validSignature) {
@@ -163,20 +157,18 @@ export const Route = createFileRoute("/api/public/licence/manifest")({
           }
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { error } = await supabaseAdmin
-            .from("release_manifests")
-            .upsert(
-              {
-                build_id: input.buildId,
-                customer_id: input.customerId,
-                asset_digest: targetHash,
-                signature: input.signature,
-                files: input.files,
-                branch: input.branch,
-                published_at: new Date().toISOString(),
-              },
-              { onConflict: "build_id" },
-            );
+          const { error } = await supabaseAdmin.from("release_manifests").upsert(
+            {
+              build_id: input.buildId,
+              customer_id: input.customerId,
+              asset_digest: targetHash,
+              signature: input.signature,
+              files: input.files,
+              branch: input.branch,
+              published_at: new Date().toISOString(),
+            },
+            { onConflict: "build_id" },
+          );
           if (error) {
             console.error("[licence:manifest] Database insert error:", error);
             return json({ ok: false, error: "DATABASE_ERROR" }, 500);

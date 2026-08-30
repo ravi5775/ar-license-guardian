@@ -2,10 +2,10 @@
  * ============================================================================
  * AETHER AR — ENTERPRISE DTO SANITIZER & LEAST-PRIVILEGE SERIALIZER
  * ============================================================================
- * 
+ *
  * Guarantees that internal hashes, secrets, and private metadata are stripped
  * before any database entity is serialized and sent to the client frontend.
- * 
+ *
  * Fields NEVER allowed to leave the server:
  *  - `pin_hash`
  *  - `device_secret_hash`
@@ -45,13 +45,21 @@ export type ActivationDTO = Omit<RawActivation, "device_secret_hash">;
 /** Sanitized User Profile DTO */
 export type ProfileDTO = Pick<
   RawProfile,
-  "id" | "email" | "display_name" | "avatar_url" | "approval_status" | "storage_quota_bytes" | "created_at"
+  | "id"
+  | "email"
+  | "display_name"
+  | "avatar_url"
+  | "approval_status"
+  | "storage_quota_bytes"
+  | "created_at"
 >;
 
 /**
  * Sanitizes an AR experience entity, removing internal bcrypt pin_hash.
  */
-export function sanitizeExperience(row: Partial<RawExperience> & Record<string, any>): ExperienceDTO {
+export function sanitizeExperience(
+  row: Partial<RawExperience> & Record<string, any>,
+): ExperienceDTO {
   const { pin_hash, ...safe } = row;
   return {
     ...safe,
@@ -73,7 +81,9 @@ export function sanitizeAlbum(row: Partial<RawAlbum> & Record<string, any>): Alb
 /**
  * Sanitizes a License Activation entity, removing device_secret_hash.
  */
-export function sanitizeActivation(row: Partial<RawActivation> & Record<string, any>): ActivationDTO {
+export function sanitizeActivation(
+  row: Partial<RawActivation> & Record<string, any>,
+): ActivationDTO {
   const { device_secret_hash, ...safe } = row;
   return safe as ActivationDTO;
 }
@@ -95,5 +105,3 @@ export function sanitizeProfile(row: Partial<RawProfile> & Record<string, any>):
 
 export const sanitizeLicenseActivation = sanitizeActivation;
 export const sanitizeProfilePublic = sanitizeProfile;
-
-

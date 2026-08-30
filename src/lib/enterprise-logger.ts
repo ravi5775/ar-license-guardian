@@ -2,7 +2,7 @@
  * ============================================================================
  * AETHER AR — ENTERPRISE STRUCTURED LOGGER & OBSERVABILITY
  * ============================================================================
- * 
+ *
  * Provides structured JSON logging with Request ID correlation, automatic
  * sensitive data redaction (passwords, tokens, private keys), and user-safe
  * error normalization.
@@ -120,7 +120,11 @@ export const logger = new EnterpriseLogger();
 export function normalizeUserError(error: unknown): { ok: false; error: string; code?: string } {
   if (error instanceof Error) {
     // Known user-safe messages
-    if (error.message.includes("PIN") || error.message.includes("limit") || error.message.includes("Unauthorized")) {
+    if (
+      error.message.includes("PIN") ||
+      error.message.includes("limit") ||
+      error.message.includes("Unauthorized")
+    ) {
       return { ok: false, error: error.message };
     }
     logger.error("internal_unhandled_error", error);
@@ -128,4 +132,3 @@ export function normalizeUserError(error: unknown): { ok: false; error: string; 
   }
   return { ok: false, error: "Bad request" };
 }
-

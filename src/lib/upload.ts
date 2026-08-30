@@ -55,7 +55,10 @@ export async function uploadToArMedia(
     data: { path, upsert: true, size: payload.size },
   });
 
-  if ((signed as any).provider === "r2" || (signed as any).signedUrl?.includes(".r2.cloudflarestorage.com")) {
+  if (
+    (signed as any).provider === "r2" ||
+    (signed as any).signedUrl?.includes(".r2.cloudflarestorage.com")
+  ) {
     const res = await fetch((signed as any).signedUrl, {
       method: "PUT",
       headers: {

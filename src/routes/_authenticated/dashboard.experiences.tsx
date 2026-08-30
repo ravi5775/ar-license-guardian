@@ -92,7 +92,7 @@ function ExperiencesPage() {
         JSON.stringify(e);
       setSaveError(String(detail));
       toast.error(String(detail).slice(0, 160));
-      // eslint-disable-next-line no-console
+
       console.error("[experiences] save failed", e);
     },
   });

@@ -72,18 +72,15 @@ function DiagnosticsPage() {
       <div>
         <h1 className="text-3xl font-serif italic mb-1">System Diagnostics & Telemetry</h1>
         <p className="text-sm text-muted-foreground">
-          Real-time visibility into gate decisions, client device AR capability tiers, and monthly egress quotas.
+          Real-time visibility into gate decisions, client device AR capability tiers, and monthly
+          egress quotas.
         </p>
       </div>
 
       {/* Section 1: Monthly Egress & Bandwidth Caps */}
       <div className="space-y-4">
         <h2 className="text-xl font-medium">Monthly Project Bandwidth & Quota Usage</h2>
-        <QueryState
-          isLoading={bandwidthLoading}
-          error={bandwidthError}
-          label="bandwidth usage"
-        />
+        <QueryState isLoading={bandwidthLoading} error={bandwidthError} label="bandwidth usage" />
         <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
@@ -116,7 +113,9 @@ function DiagnosticsPage() {
                       <span className="text-xs font-mono">{b.percentUsed}%</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{b.totalRequests}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground font-mono">
+                    {b.totalRequests}
+                  </td>
                 </tr>
               ))}
               {bandwidthRows.length === 0 && (
@@ -134,11 +133,7 @@ function DiagnosticsPage() {
       {/* Section 2: Real-Device AR Capability Telemetry */}
       <div className="space-y-4">
         <h2 className="text-xl font-medium">Active Devices & AR Capability Tiers</h2>
-        <QueryState
-          isLoading={telemetryLoading}
-          error={telemetryError}
-          label="device telemetry"
-        />
+        <QueryState isLoading={telemetryLoading} error={telemetryError} label="device telemetry" />
         <div className="rounded-2xl border border-border/60 bg-card/40 overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
@@ -161,13 +156,16 @@ function DiagnosticsPage() {
                   <td className="px-4 py-3">
                     <span
                       className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                        tierStyle[d.capability_tier ?? ""] ?? "border-border/60 text-muted-foreground"
+                        tierStyle[d.capability_tier ?? ""] ??
+                        "border-border/60 text-muted-foreground"
                       }`}
                     >
                       {d.capability_tier ?? "standard"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{d.origin_host ?? "—"}</td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground font-mono">
+                    {d.origin_host ?? "—"}
+                  </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground font-mono truncate max-w-[150px]">
                     {d.build_id ?? "—"}
                   </td>

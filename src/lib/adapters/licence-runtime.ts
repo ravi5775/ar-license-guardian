@@ -23,7 +23,8 @@ const _envGrace = parseInt(
   (import.meta.env as Record<string, string>)["VITE_LICENCE_GRACE_HOURS"] ?? "",
   10,
 );
-const DEFAULT_GRACE_HOURS = Number.isFinite(_envGrace) && _envGrace > 0 ? Math.min(_envGrace, 48) : 24;
+const DEFAULT_GRACE_HOURS =
+  Number.isFinite(_envGrace) && _envGrace > 0 ? Math.min(_envGrace, 48) : 24;
 
 export interface LicencePayload {
   sub: string;

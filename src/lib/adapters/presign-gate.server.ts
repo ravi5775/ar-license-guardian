@@ -231,7 +231,12 @@ export async function checkPresignLicence(
       const { accountEgress } = await import("@/lib/project-usage.server");
       const usage = await accountEgress(projectId);
       if (!usage.allowed) {
-        await safeViolation("quota_exceeded", { purpose, projectId, usage }, licence.id, licence.license_key);
+        await safeViolation(
+          "quota_exceeded",
+          { purpose, projectId, usage },
+          licence.id,
+          licence.license_key,
+        );
         return deny("QUOTA_EXCEEDED", "Monthly bandwidth quota exceeded for this project.");
       }
     } catch {

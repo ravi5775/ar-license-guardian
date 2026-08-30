@@ -28,9 +28,11 @@ function RoomCatalogRoute() {
   const [selected, setSelected] = useState<any>(items[0] ?? null);
 
   useEffect(() => {
-    const xr = (navigator as Navigator & {
-      xr?: { isSessionSupported: (mode: string) => Promise<boolean> };
-    }).xr;
+    const xr = (
+      navigator as Navigator & {
+        xr?: { isSessionSupported: (mode: string) => Promise<boolean> };
+      }
+    ).xr;
     if (!xr) {
       setSupportsAr(false);
       return;
@@ -73,7 +75,10 @@ function RoomCatalogRoute() {
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Room AR</p>
             <h1 className="text-3xl font-serif italic">Catalog: {catalogSlug}</h1>
           </div>
-          <Link to="/" className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">
+          <Link
+            to="/"
+            className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent"
+          >
             Back home
           </Link>
         </div>
@@ -105,10 +110,12 @@ function RoomCatalogRoute() {
           <section className="rounded-2xl border border-border/60 bg-card/40 p-4 md:p-6">
             {supportsAr === false ? (
               <div className="space-y-4">
-                <h2 className="text-2xl font-serif italic">This browser can’t launch room AR yet</h2>
+                <h2 className="text-2xl font-serif italic">
+                  This browser can’t launch room AR yet
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  WebXR immersive AR is unavailable here. Use a supported Android Chrome device or an
-                  iPhone with Quick Look.
+                  WebXR immersive AR is unavailable here. Use a supported Android Chrome device or
+                  an iPhone with Quick Look.
                 </p>
                 {primary?.usdz_url && (
                   <a
@@ -159,7 +166,8 @@ function RoomCatalogRoute() {
                         <strong className="text-foreground">Placement:</strong> {primary?.placement}
                       </p>
                       <p>
-                        <strong className="text-foreground">Color:</strong> {primary?.color_hex ?? "—"}
+                        <strong className="text-foreground">Color:</strong>{" "}
+                        {primary?.color_hex ?? "—"}
                       </p>
                     </div>
                   </div>

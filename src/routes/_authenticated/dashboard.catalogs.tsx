@@ -85,7 +85,10 @@ function CatalogManagerPage() {
   });
 
   const selectedCatalog = useMemo(
-    () => ((catalogQuery.data ?? []) as any[]).find((catalog: any) => catalog.id === selectedCatalogId) ?? null,
+    () =>
+      ((catalogQuery.data ?? []) as any[]).find(
+        (catalog: any) => catalog.id === selectedCatalogId,
+      ) ?? null,
     [catalogQuery.data, selectedCatalogId],
   );
 
@@ -214,7 +217,8 @@ function CatalogManagerPage() {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (confirm(`Delete "${catalog.name}"?`)) deleteCatalogMutation.mutate(catalog.id);
+                        if (confirm(`Delete "${catalog.name}"?`))
+                          deleteCatalogMutation.mutate(catalog.id);
                       }}
                       className="rounded-md border px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
                     >
@@ -372,7 +376,9 @@ function CatalogManagerPage() {
                 <input
                   type="checkbox"
                   checked={catalogDraft.is_active}
-                  onChange={(e) => setCatalogDraft({ ...catalogDraft, is_active: e.target.checked })}
+                  onChange={(e) =>
+                    setCatalogDraft({ ...catalogDraft, is_active: e.target.checked })
+                  }
                 />
                 Active
               </label>

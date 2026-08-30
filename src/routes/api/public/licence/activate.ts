@@ -30,7 +30,12 @@ export const Route = createFileRoute("/api/public/licence/activate")({
         try {
           input = Schema.parse(await request.json());
         } catch (e) {
-          return json({ ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" }, 400, {}, request);
+          return json(
+            { ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" },
+            400,
+            {},
+            request,
+          );
         }
 
         const ip = clientIp(request);
@@ -67,7 +72,8 @@ export const Route = createFileRoute("/api/public/licence/activate")({
           label: input.label ?? null,
         });
 
-        if (!result.ok) return json({ ok: false, error: result.error }, result.status, {}, request, originHost);
+        if (!result.ok)
+          return json({ ok: false, error: result.error }, result.status, {}, request, originHost);
         return json(
           {
             ok: true,
@@ -89,4 +95,3 @@ export const Route = createFileRoute("/api/public/licence/activate")({
     },
   },
 });
-

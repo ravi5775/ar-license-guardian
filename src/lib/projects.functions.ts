@@ -61,9 +61,7 @@ export const createProject = createServerFn({ method: "POST" })
 export const renameProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((raw) =>
-    z
-      .object({ id: z.string().uuid(), name: z.string().min(1).max(120) })
-      .parse(raw),
+    z.object({ id: z.string().uuid(), name: z.string().min(1).max(120) }).parse(raw),
   )
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase

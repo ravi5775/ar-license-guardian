@@ -2,10 +2,10 @@
  * ============================================================================
  * AETHER AR — ENTERPRISE RATE LIMITING & ABUSE PREVENTION MIDDLEWARE
  * ============================================================================
- * 
+ *
  * Protects every public API route, authentication step, and server function
  * with sliding-window throttles and standard HTTP 429 Retry-After responses.
- * 
+ *
  * Tiers:
  *  - Anonymous Public (e.g. PIN submit, Media redemption): 30 req/min
  *  - Authenticated Editor: 120 req/min
@@ -49,12 +49,9 @@ export async function enforceRateLimit(
   const bucket = config.bucket || "api";
   const key = `${bucket}:${ip}`;
 
-  const { allowed, remaining, degraded } = await check(
-    key,
-    config.limit,
-    config.windowSec,
-    { failMode: config.failMode || "open" },
-  );
+  const { allowed, remaining, degraded } = await check(key, config.limit, config.windowSec, {
+    failMode: config.failMode || "open",
+  });
 
   if (!allowed) {
     return new Response(
@@ -87,7 +84,9 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
     if (request) {
       const throttled = await enforceRateLimit(request, config);
       if (throttled) {
-        throw new Error(`Rate limit exceeded (${config.limit} req / ${config.windowSec}s). Please wait.`);
+        throw new Error(
+          `Rate limit exceeded (${config.limit} req / ${config.windowSec}s). Please wait.`,
+        );
       }
     }
     return next();

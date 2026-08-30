@@ -2,7 +2,7 @@
  * ============================================================================
  * AETHER AR — ENTERPRISE UPLOAD SECURITY & MAGIC-BYTE VALIDATOR
  * ============================================================================
- * 
+ *
  * Verifies file signatures (magic bytes), strictly whitelists MIME types
  * and file extensions, checks max payload sizes, and sanitizes filenames
  * to prevent malicious executable injection, polyglot files, and directory traversal.
@@ -57,23 +57,13 @@ export function validateMagicBytes(buffer: Uint8Array, extension: string): boole
     case "glb":
       // GLB (Binary glTF 2.0): magic = 0x67 0x6C 0x54 0x46 ("glTF")
       // Spec: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#binary-gltf-layout
-      return (
-        buffer[0] === 0x67 &&
-        buffer[1] === 0x6c &&
-        buffer[2] === 0x54 &&
-        buffer[3] === 0x46
-      );
+      return buffer[0] === 0x67 && buffer[1] === 0x6c && buffer[2] === 0x54 && buffer[3] === 0x46;
 
     case "mind":
       // MindAR compiled target (.mind): the format begins with the ASCII
       // string "MIND" (0x4D 0x49 0x4E 0x44) followed by a version varint.
       // Source: https://github.com/hiukim/mind-ar-js internal format docs.
-      return (
-        buffer[0] === 0x4d &&
-        buffer[1] === 0x49 &&
-        buffer[2] === 0x4e &&
-        buffer[3] === 0x44
-      );
+      return buffer[0] === 0x4d && buffer[1] === 0x49 && buffer[2] === 0x4e && buffer[3] === 0x44;
 
     case "bin":
       // Generic binary — no magic defined; accept without check.
@@ -109,13 +99,19 @@ export async function validateUploadPayload(
 ): Promise<{ ok: true; sanitizedName: string } | { ok: false; error: string }> {
   // 1. Size check
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    return { ok: false, error: `File size exceeds the 50 MB limit (${(file.size / (1024 * 1024)).toFixed(1)} MB)` };
+    return {
+      ok: false,
+      error: `File size exceeds the 50 MB limit (${(file.size / (1024 * 1024)).toFixed(1)} MB)`,
+    };
   }
 
   // 2. Extension check
   const ext = file.name.split(".").pop()?.toLowerCase() || "";
   if (!ALLOWED_EXTENSIONS.has(ext)) {
-    return { ok: false, error: `Disallowed file extension: .${ext}. Allowed: ${Array.from(ALLOWED_EXTENSIONS).join(", ")}` };
+    return {
+      ok: false,
+      error: `Disallowed file extension: .${ext}. Allowed: ${Array.from(ALLOWED_EXTENSIONS).join(", ")}`,
+    };
   }
 
   // 3. MIME type check

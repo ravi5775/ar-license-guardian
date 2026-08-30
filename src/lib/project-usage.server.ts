@@ -33,7 +33,7 @@ function currentMonthYear(): string {
  */
 export async function accountEgress(
   projectId: string,
-  estimatedBytes = 5 * 1024 * 1024
+  estimatedBytes = 5 * 1024 * 1024,
 ): Promise<EgressCheckResult> {
   if (!projectId) {
     return { allowed: true, usedBytes: 0, capBytes: 0, percent: 0, status: "ok" };
@@ -76,7 +76,7 @@ export async function accountEgress(
       request_count: 1, // trigger or default increment
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "project_id,month_year" }
+    { onConflict: "project_id,month_year" },
   );
 
   // 4. Soft Warning at 80%
@@ -129,7 +129,9 @@ export async function getAdminUsageSummary() {
 
   const { data: usageList } = await supabaseAdmin
     .from("project_usage")
-    .select("project_id, egress_bytes, egress_cap_bytes, request_count, month_year, projects(title, owner_id)")
+    .select(
+      "project_id, egress_bytes, egress_cap_bytes, request_count, month_year, projects(title, owner_id)",
+    )
     .eq("month_year", monthYear);
 
   return (usageList ?? []).map((u: any) => ({

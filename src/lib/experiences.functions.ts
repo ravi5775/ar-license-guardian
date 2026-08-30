@@ -68,9 +68,7 @@ export const createExperience = createServerFn({ method: "POST" })
 
 export const updateExperience = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((raw) =>
-    ExperienceInput.partial().extend({ id: z.string().uuid() }).parse(raw),
-  )
+  .validator((raw) => ExperienceInput.partial().extend({ id: z.string().uuid() }).parse(raw))
   .handler(async ({ data, context }) => {
     const { id, ...patch } = data;
     const { data: row, error } = await context.supabase
@@ -106,9 +104,7 @@ export const getMyRoles = createServerFn({ method: "GET" })
 // Restricted experiences require a valid QR token or a live PIN session.
 export const getPublicExperience = createServerFn({ method: "GET" })
   .validator((raw) =>
-    z
-      .object({ slug: z.string(), tok: z.string().max(200).optional().nullable() })
-      .parse(raw),
+    z.object({ slug: z.string(), tok: z.string().max(200).optional().nullable() }).parse(raw),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -186,12 +182,12 @@ export const signMediaUpload = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const ext = data.path.split(".").pop()?.toLowerCase() || "";
     if (!ALLOWED_EXTENSIONS.has(ext)) {
-      throw new Error(`Disallowed file extension .${ext}. Allowed formats: ${Array.from(ALLOWED_EXTENSIONS).join(", ")}`);
+      throw new Error(
+        `Disallowed file extension .${ext}. Allowed formats: ${Array.from(ALLOWED_EXTENSIONS).join(", ")}`,
+      );
     }
 
-    const { authorizeUploader, scopeUploadPath } = await import(
-      "@/lib/uploader-guard.server"
-    );
+    const { authorizeUploader, scopeUploadPath } = await import("@/lib/uploader-guard.server");
     const uploader = await authorizeUploader(context.supabase, context.userId);
     const scopedPath = scopeUploadPath(uploader, data.path);
 
