@@ -238,7 +238,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
-          owner_id: string | null
+          owner_id: string
           placement: string
           sku: string
           sort_order: number
@@ -258,7 +258,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
-          owner_id?: string | null
+          owner_id: string
           placement: string
           sku: string
           sort_order?: number
@@ -278,7 +278,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
-          owner_id?: string | null
+          owner_id?: string
           placement?: string
           sku?: string
           sort_order?: number
@@ -296,36 +296,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      design_catalogs: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          name: string
-          owner_id: string | null
-          slug: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name: string
-          owner_id?: string | null
-          slug: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          name?: string
-          owner_id?: string | null
-          slug?: string
-          updated_at?: string
-        }
-        Relationships: []
       }
       content_access_tokens: {
         Row: {
@@ -366,6 +336,36 @@ export type Database = {
           revoked_at?: string | null
           slug?: string
           token_hash?: string
+        }
+        Relationships: []
+      }
+      design_catalogs: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          owner_id: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          owner_id: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          owner_id?: string
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }

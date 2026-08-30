@@ -103,9 +103,7 @@ export const deleteAlbum = createServerFn({ method: "POST" })
  */
 export const setAlbumGalleryVisibility = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((raw) =>
-    z.object({ id: z.string().uuid(), show: z.boolean() }).parse(raw),
-  )
+  .validator((raw) => z.object({ id: z.string().uuid(), show: z.boolean() }).parse(raw))
   .handler(async ({ data, context }) => {
     const { data: row, error: readErr } = await context.supabase
       .from("albums")
@@ -128,9 +126,7 @@ export const setAlbumGalleryVisibility = createServerFn({ method: "POST" })
 
 export const setAlbumPublished = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((raw) =>
-    z.object({ id: z.string().uuid(), published: z.boolean() }).parse(raw),
-  )
+  .validator((raw) => z.object({ id: z.string().uuid(), published: z.boolean() }).parse(raw))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("albums")
@@ -144,9 +140,7 @@ export const setAlbumPublished = createServerFn({ method: "POST" })
 // Restricted albums require a valid QR token or a live PIN session cookie.
 export const getPublicAlbum = createServerFn({ method: "GET" })
   .validator((raw) =>
-    z
-      .object({ slug: z.string(), tok: z.string().max(200).optional().nullable() })
-      .parse(raw),
+    z.object({ slug: z.string(), tok: z.string().max(200).optional().nullable() }).parse(raw),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

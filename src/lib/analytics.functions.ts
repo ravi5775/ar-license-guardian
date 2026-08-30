@@ -101,9 +101,7 @@ export type PhotoStat = {
 export const getAnalytics = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .validator((raw) =>
-    z
-      .object({ days: z.number().int().min(1).max(365).default(30) })
-      .parse(raw ?? {}),
+    z.object({ days: z.number().int().min(1).max(365).default(30) }).parse(raw ?? {}),
   )
   .handler(async ({ data, context }) => {
     const since = new Date(Date.now() - data.days * 24 * 60 * 60 * 1000).toISOString();

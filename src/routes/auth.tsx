@@ -106,9 +106,14 @@ function AuthPage() {
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
-      if (msg.includes("Failed to fetch") || msg.includes("ERR_NAME_NOT_RESOLVED") || msg.includes("NetworkError")) {
+      if (
+        msg.includes("Failed to fetch") ||
+        msg.includes("ERR_NAME_NOT_RESOLVED") ||
+        msg.includes("NetworkError")
+      ) {
         toast.error("Database / Auth Service Unreachable", {
-          description: "Please configure your live Supabase URL and Publishable Key in .env to enable authentication.",
+          description:
+            "Please configure your live Supabase URL and Publishable Key in .env to enable authentication.",
           duration: 8000,
         });
       } else {

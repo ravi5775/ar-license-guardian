@@ -34,7 +34,9 @@ function ClientSetupWizardPage() {
       {
         key: "VITE_LICENCE_API_URL",
         category: "licensing",
-        configured: Boolean(env.VITE_LICENCE_API_URL && env.VITE_LICENCE_API_URL.startsWith("http")),
+        configured: Boolean(
+          env.VITE_LICENCE_API_URL && env.VITE_LICENCE_API_URL.startsWith("http"),
+        ),
         message: env.VITE_LICENCE_API_URL
           ? "License authority endpoint specified."
           : "Missing central license authority URL.",
@@ -69,9 +71,10 @@ function ClientSetupWizardPage() {
         key: "VITE_SUPABASE_URL",
         category: "database",
         configured: Boolean(env.VITE_SUPABASE_URL || env.DATABASE_URL),
-        message: (env.VITE_SUPABASE_URL || env.DATABASE_URL)
-          ? "Database endpoint connected."
-          : "Missing Supabase URL or DATABASE_URL.",
+        message:
+          env.VITE_SUPABASE_URL || env.DATABASE_URL
+            ? "Database endpoint connected."
+            : "Missing Supabase URL or DATABASE_URL.",
       },
     ];
 
@@ -97,7 +100,9 @@ function ClientSetupWizardPage() {
             </div>
             <div>
               <h1 className="text-2xl font-serif font-semibold">Client Environment Setup Wizard</h1>
-              <p className="text-xs text-muted-foreground">Pre-flight configuration validation for Aether AR</p>
+              <p className="text-xs text-muted-foreground">
+                Pre-flight configuration validation for Aether AR
+              </p>
             </div>
           </div>
           <button
@@ -118,7 +123,11 @@ function ClientSetupWizardPage() {
               : "bg-amber-500/10 border-amber-500/30 text-amber-300"
           }`}
         >
-          {allPassed ? <CheckCircle2 className="w-6 h-6 flex-shrink-0" /> : <AlertCircle className="w-6 h-6 flex-shrink-0" />}
+          {allPassed ? (
+            <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
+          ) : (
+            <AlertCircle className="w-6 h-6 flex-shrink-0" />
+          )}
           <div>
             <p className="font-semibold text-sm">
               {allPassed
@@ -165,7 +174,9 @@ function ClientSetupWizardPage() {
         </div>
 
         <div className="pt-2 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
-          <p>Need help? Refer to <code>CLIENT_README.md</code> in your project root.</p>
+          <p>
+            Need help? Refer to <code>CLIENT_README.md</code> in your project root.
+          </p>
           {allPassed && (
             <a
               href="/"

@@ -24,13 +24,23 @@ export const Route = createFileRoute("/api/public/licence/release")({
         try {
           input = Schema.parse(await request.json());
         } catch (e) {
-          return json({ ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" }, 400, {}, request);
+          return json(
+            { ok: false, error: e instanceof Error ? e.message : "BAD_REQUEST" },
+            400,
+            {},
+            request,
+          );
         }
 
         // Mutation → fail closed.
-        const { allowed } = await check(`licence:release:${clientIp(request) ?? "unknown"}`, 5, 3600, {
-          failMode: "closed",
-        });
+        const { allowed } = await check(
+          `licence:release:${clientIp(request) ?? "unknown"}`,
+          5,
+          3600,
+          {
+            failMode: "closed",
+          },
+        );
         if (!allowed) return json({ ok: false, error: "RATE_LIMITED" }, 429, {}, request);
 
         const result = await releaseDevice(input.licenceKey, input.deviceSecret);
@@ -40,4 +50,3 @@ export const Route = createFileRoute("/api/public/licence/release")({
     },
   },
 });
-

@@ -9,18 +9,21 @@
  * Evaluates CORS headers dynamically against the incoming request origin.
  * Never returns a blanket '*' wildcard on sensitive licensing endpoints.
  */
-export function getCorsHeaders(request?: Request, allowedOriginHost?: string | null): Record<string, string> {
+export function getCorsHeaders(
+  request?: Request,
+  allowedOriginHost?: string | null,
+): Record<string, string> {
   if (!request) {
     return {
       "cache-control": "no-store",
-      "vary": "Origin",
+      vary: "Origin",
     };
   }
 
   const origin = request.headers.get("origin");
   const headers: Record<string, string> = {
     "cache-control": "no-store",
-    "vary": "Origin",
+    vary: "Origin",
     "access-control-allow-methods": "POST,OPTIONS",
     "access-control-allow-headers": "content-type,authorization,x-aether-licence,x-request-id",
     "access-control-max-age": "86400",
@@ -71,7 +74,6 @@ export function json(
     },
   });
 }
-
 
 export function clientIp(request: Request) {
   return (

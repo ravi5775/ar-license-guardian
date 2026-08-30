@@ -187,7 +187,6 @@ function QrScan() {
       cancelled = true;
       controlsRef.current?.stop();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleDecoded(text: string, ctl: IScannerControls) {

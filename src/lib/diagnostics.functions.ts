@@ -83,7 +83,9 @@ export const listDeviceTelemetry = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("license_activations")
-      .select("id, device_class, capability_tier, origin_host, build_id, last_seen_at, licenses(license_key)")
+      .select(
+        "id, device_class, capability_tier, origin_host, build_id, last_seen_at, licenses(license_key)",
+      )
       .order("last_seen_at", { ascending: false })
       .limit(100);
 
@@ -98,4 +100,3 @@ export const listDeviceTelemetry = createServerFn({ method: "GET" })
       license_key: r.licenses?.license_key ?? "unknown",
     }));
   });
-

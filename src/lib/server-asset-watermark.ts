@@ -25,13 +25,19 @@ export interface WatermarkMetadata {
  * Prepends a non-destructive custom magic chunk:
  *   [0x41, 0x45, 0x54, 0x48] ("AETH") + [payloadLength (4 bytes)] + JSON string
  */
-export function embedMindWatermark(mindBuffer: Buffer | Uint8Array, meta: WatermarkMetadata): Buffer {
+export function embedMindWatermark(
+  mindBuffer: Buffer | Uint8Array,
+  meta: WatermarkMetadata,
+): Buffer {
   const payload = JSON.stringify({
     cid: meta.customerId,
     lic: meta.licenseKey.slice(0, 8) + "***",
     aid: meta.albumId,
     ts: meta.generatedAt || new Date().toISOString(),
-    h: createHash("sha256").update(`${meta.customerId}:${meta.licenseKey}:${meta.albumId}`).digest("hex").slice(0, 16),
+    h: createHash("sha256")
+      .update(`${meta.customerId}:${meta.licenseKey}:${meta.albumId}`)
+      .digest("hex")
+      .slice(0, 16),
   });
 
   const payloadBuf = Buffer.from(payload, "utf-8");

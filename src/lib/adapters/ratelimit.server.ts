@@ -124,7 +124,6 @@ async function getBackend(): Promise<Backend> {
   return backend;
 }
 
-
 /**
  * Returns allowed=false when the caller has exceeded `limit` in the window.
  *

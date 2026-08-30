@@ -106,7 +106,9 @@ export const listCatalogItems = createServerFn({ method: "GET" })
         ...row,
         glb_url: row.glb_path ? await createPresignedDownloadUrl(row.glb_path, 15 * 60) : null,
         usdz_url: row.usdz_path ? await createPresignedDownloadUrl(row.usdz_path, 15 * 60) : null,
-        thumb_url: row.thumb_path ? await createPresignedDownloadUrl(row.thumb_path, 15 * 60) : null,
+        thumb_url: row.thumb_path
+          ? await createPresignedDownloadUrl(row.thumb_path, 15 * 60)
+          : null,
       })),
     );
 

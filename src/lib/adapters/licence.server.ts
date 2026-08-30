@@ -638,4 +638,3 @@ export async function getLicenceStatus(licenceKey: string) {
 }
 
 export const __internals = { verifyAttestation, attestationAllows, originAllowed };
-

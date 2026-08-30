@@ -32,9 +32,7 @@ export const Route = createFileRoute("/api/public/licence/status")({
 
         const url = new URL(request.url);
         const licenceKey =
-          url.searchParams.get("key") ||
-          request.headers.get("x-licence-key") ||
-          "";
+          url.searchParams.get("key") || request.headers.get("x-licence-key") || "";
 
         if (!licenceKey || licenceKey.length < 8) {
           return json({ ok: false, error: "MISSING_LICENCE_KEY" }, 400);
@@ -48,10 +46,7 @@ export const Route = createFileRoute("/api/public/licence/status")({
           return json(result, 200);
         } catch (e) {
           console.error("[licence:status] Internal error:", e);
-          return json(
-            { ok: false, error: "INTERNAL_ERROR" },
-            500,
-          );
+          return json({ ok: false, error: "INTERNAL_ERROR" }, 500);
         }
       },
     },
