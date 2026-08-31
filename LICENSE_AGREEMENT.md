@@ -8,6 +8,14 @@
 ## 1. Grant of License
 Licensor ("Vendor") grants Licensee ("Client") a **non-exclusive, non-transferable, single-tenant, single-domain** license to install, operate, and customize the Aether AR client application on infrastructure controlled by the Client, strictly subject to the technical and operational terms herein.
 
+## 1a. Commercial Model — One-Time Fee
+1. **One-time licence fee**: The licence granted in Section 1 is acquired for a **single one-time fee** stated in the Order Schedule. No recurring licence, subscription, or per-seat fee is payable to Vendor for continued use of the delivered release.
+2. **Perpetual for the delivered release**: Payment of the one-time fee grants perpetual use rights to the release delivered at handover, subject to the anti-resale, attestation, and revocation terms below. Future feature releases are not included.
+3. **Client-borne running costs**: All ongoing infrastructure costs (hosting, database, object storage, bandwidth, domains, email) are contracted for and paid by the Client directly to their own providers. Vendor holds no billing relationship for those services.
+4. **Optional support**: Any post-handover support, maintenance, or migration work is a separate, separately-priced engagement and is not implied by the one-time licence fee.
+5. **Non-refundable on delivery**: Because source code is delivered in full at handover, the one-time fee is non-refundable once the delivery package and licence key have been issued.
+
+
 ## 2. Technical Scope & Infrastructure Boundaries
 1. **Registered Domain**: The software may only be hosted on the single production domain specified in the Order Schedule (e.g. `ar.clientstudio.com`). All requests originating from unauthorized domains or reverse proxies are denied media access.
 2. **Device Slots**: Standard licensing permits simultaneous activation on up to **one (1) mobile device** and **one (1) desktop workstation**. Devices may be self-released with a mandatory **12-hour cooldown period**.
