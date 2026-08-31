@@ -1,0 +1,171 @@
+bun test v1.3.3 (274e01c7)
+
+tests/comprehensive-security-regression.test.ts:
+(pass) 1. License Activation & Cryptographic Tokens > verifies constant-time equality comparison for device secrets [58.70ms]
+(pass) 1. License Activation & Cryptographic Tokens > verifies attestation rules: digest mismatch is rejected with high severity [0.42ms]
+(pass) 1. License Activation & Cryptographic Tokens > calculates SHA-256 hex correctly for device secrets and tokens [13.12ms]
+(pass) 2. One-Time Media Nonce Replay Prevention > hashes nonces using SHA-256 so raw nonces are never stored in plaintext [1.48ms]
+(pass) 2. One-Time Media Nonce Replay Prevention > verifies nonce validation bounds (length 20 to 200 characters) [0.27ms]
+(pass) 2. One-Time Media Nonce Replay Prevention > validates media route file enforces no-store and 410 Gone on invalid/consumed nonces [5.49ms]
+(pass) 3. PIN Verification & Brute-Force Throttling > generates cryptographic slugs using safe alphabet without ambiguous chars [7.80ms]
+(pass) 3. PIN Verification & Brute-Force Throttling > verifies client schema contains strict pin and media nonce constraints [0.60ms]
+(pass) 4. HMAC-SHA256 Session Cookies & Tamper Resistance > signs and verifies a valid access cookie within TTL [1.54ms]
+(pass) 4. HMAC-SHA256 Session Cookies & Tamper Resistance > rejects an expired access cookie [2.80ms]
+(pass) 4. HMAC-SHA256 Session Cookies & Tamper Resistance > rejects a tampered slug in cookie payload [0.61ms]
+(pass) 4. HMAC-SHA256 Session Cookies & Tamper Resistance > rejects a tampered timestamp in cookie value [2.80ms]
+(pass) 4. HMAC-SHA256 Session Cookies & Tamper Resistance > rejects a forged or corrupted HMAC signature [0.42ms]
+(pass) 4. HMAC-SHA256 Session Cookies & Tamper Resistance > handles malformed, empty, or undefined cookie values safely [0.20ms]
+(pass) 4. HMAC-SHA256 Session Cookies & Tamper Resistance > generates sanitized access cookie names preventing header injection [0.14ms]
+(pass) 5. Presign Authorization & Delivery Gate > enforces presign gating on client role deployments by default [0.30ms]
+(pass) 5. Presign Authorization & Delivery Gate > disables presign gating on issuer deployments by default [0.07ms]
+(pass) 5. Presign Authorization & Delivery Gate > respects explicit LICENCE_ENFORCE_PRESIGN override [0.06ms]
+(pass) 6. Upload Payload & Size Validation > enforces maximum upload payload size of 50 MB [5.22ms]
+(pass) 6. Upload Payload & Size Validation > rejects disallowed MIME types [0.16ms]
+(pass) 6. Upload Payload & Size Validation > rejects disallowed file extensions [0.25ms]
+(pass) 7. Magic-Byte Inspection & File Spoofing Prevention > validates PNG binary signatures (89 50 4E 47) [0.09ms]
+(pass) 7. Magic-Byte Inspection & File Spoofing Prevention > validates JPEG binary signatures (FF D8 FF) [0.06ms]
+(pass) 7. Magic-Byte Inspection & File Spoofing Prevention > validates MP4 ISO ftyp box signature at offset 4 [0.13ms]
+(pass) 7. Magic-Byte Inspection & File Spoofing Prevention > validates WebM EBML header signature (1A 45 DF A3) [0.05ms]
+(pass) 7. Magic-Byte Inspection & File Spoofing Prevention > validates GLB glTF 2.0 binary header (0x67 0x6C 0x54 0x46) [0.06ms]
+(pass) 7. Magic-Byte Inspection & File Spoofing Prevention > validates MindAR compiled target MIND header (0x4D 0x49 0x4E 0x44) [0.04ms]
+(pass) 7. Magic-Byte Inspection & File Spoofing Prevention > rejects buffers smaller than 4 bytes [0.02ms]
+(pass) 8. Path Traversal & Filename Sanitization > sanitizes filenames and assigns UUIDs preventing path traversal [0.09ms]
+(pass) 8. Path Traversal & Filename Sanitization > strips Windows path separators and control characters [0.10ms]
+(pass) 8. Path Traversal & Filename Sanitization > throws on disallowed extensions during sanitization [6.71ms]
+(pass) 9. Multi-Tenant Namespace & DTO Data Isolation > scopes user uploads strictly inside u/<userId>/ prefix [0.31ms]
+(pass) 9. Multi-Tenant Namespace & DTO Data Isolation > prevents user from escaping their namespace by passing foreign u/ prefixes [0.06ms]
+(pass) 9. Multi-Tenant Namespace & DTO Data Isolation > neutralizes path traversal attempts within scopeUploadPath and scopes strictly [0.10ms]
+(pass) 9. Multi-Tenant Namespace & DTO Data Isolation > allows admins to manage un-prefixed flat storage paths [0.02ms]
+(pass) 9. Multi-Tenant Namespace & DTO Data Isolation > enforces path ownership verification (ownsUploadPath) [0.05ms]
+(pass) 9. Multi-Tenant Namespace & DTO Data Isolation > sanitizes experience DTOs: removes pin_hash and exposes has_pin boolean [0.09ms]
+(pass) 9. Multi-Tenant Namespace & DTO Data Isolation > sanitizes album DTOs: removes pin_hash and preserves target indexes [0.05ms]
+(pass) 9. Multi-Tenant Namespace & DTO Data Isolation > sanitizes license activation entities: removes device_secret_hash [0.06ms]
+(pass) 9. Multi-Tenant Namespace & DTO Data Isolation > sanitizes public profiles: allowlists safe fields only [0.06ms]
+(pass) 10. Rate Limiting & Fail-Closed Mutation Mechanics > enforces sliding-window rate limits and returns remaining count [2.10ms]
+[ratelimit] backend error, failing closed for mutation_key: 111 |     const isAdminBuild = role === "issuer";
+112 |     const isEdge = rt === "edge";
+113 |     const isProduction = (readEnv("NODE_ENV") ?? "development") === "production";
+114 | 
+115 |     if (isAdminBuild || isEdge || isProduction) {
+116 |       throw new Error(
+                      ^
+error: RATELIMIT_DRIVER=memory is a development-only driver and cannot start on this deployment (LICENCE_ROLE=issuer, RUNTIME=node, NODE_ENV=test). Set RATELIMIT_DRIVER to upstash, redis, or postgres.
+      at getBackend (/dev-server/src/lib/adapters/ratelimit.server.ts:116:17)
+      at getBackend (/dev-server/src/lib/adapters/ratelimit.server.ts:94:26)
+      at check (/dev-server/src/lib/adapters/ratelimit.server.ts:146:23)
+      at check (/dev-server/src/lib/adapters/ratelimit.server.ts:139:3)
+      at <anonymous> (/dev-server/tests/comprehensive-security-regression.test.ts:590:26)
+      at <anonymous> (/dev-server/tests/comprehensive-security-regression.test.ts:584:75)
+
+(pass) 10. Rate Limiting & Fail-Closed Mutation Mechanics > fails CLOSED on backend error when failMode is closed (mutations) [2.13ms]
+[ratelimit] backend error, failing open for read_only_key: 111 |     const isAdminBuild = role === "issuer";
+112 |     const isEdge = rt === "edge";
+113 |     const isProduction = (readEnv("NODE_ENV") ?? "development") === "production";
+114 | 
+115 |     if (isAdminBuild || isEdge || isProduction) {
+116 |       throw new Error(
+                      ^
+error: RATELIMIT_DRIVER=memory is a development-only driver and cannot start on this deployment (LICENCE_ROLE=issuer, RUNTIME=node, NODE_ENV=test). Set RATELIMIT_DRIVER to upstash, redis, or postgres.
+      at getBackend (/dev-server/src/lib/adapters/ratelimit.server.ts:116:17)
+      at getBackend (/dev-server/src/lib/adapters/ratelimit.server.ts:94:26)
+      at check (/dev-server/src/lib/adapters/ratelimit.server.ts:146:23)
+      at check (/dev-server/src/lib/adapters/ratelimit.server.ts:139:3)
+      at <anonymous> (/dev-server/tests/comprehensive-security-regression.test.ts:601:26)
+      at <anonymous> (/dev-server/tests/comprehensive-security-regression.test.ts:596:82)
+
+(pass) 10. Rate Limiting & Fail-Closed Mutation Mechanics > fails OPEN on backend error when failMode is open (read-only heartbeats) [0.50ms]
+(pass) 11. Strict allowed_origins Enforcement > strictly DENIES when allowed_origins is empty array or null (deny-by-default) [0.24ms]
+(pass) 11. Strict allowed_origins Enforcement > strictly DENIES when caller host is null or empty [0.05ms]
+(pass) 11. Strict allowed_origins Enforcement > allows exact origin match (case-insensitive) [0.42ms]
+(pass) 11. Strict allowed_origins Enforcement > allows subdomain when root domain is allowlisted [0.08ms]
+(pass) 11. Strict allowed_origins Enforcement > strictly DENIES unlisted domains and attacker suffix lookalikes [0.07ms]
+(pass) 11. Strict allowed_origins Enforcement > handles port numbers in origins and host headers correctly [0.07ms]
+(pass) 12. Legacy Endpoint Tombstone & Deactivation > verifies legacy /api/public/license/activate route is a pure 410 Gone tombstone [1.80ms]
+(pass) 13. Environment Configuration & Least-Privilege Role Defaults > defaults LICENCE_ROLE to 'client' (least privilege) [0.50ms]
+(pass) 13. Environment Configuration & Least-Privilege Role Defaults > throws descriptive error when required env variable is missing [0.16ms]
+(pass) 13. Environment Configuration & Least-Privilege Role Defaults > reads optional env variables with fallback support [0.05ms]
+(pass) 13. Environment Configuration & Least-Privilege Role Defaults > correctly derives deployment profile features based on roles [0.30ms]
+
+tests/rate-limiter.test.ts:
+(pass) Enterprise Rate Limiting Middleware > correctly extracts IP from Cloudflare and proxy headers [0.29ms]
+(pass) Enterprise Rate Limiting Middleware > allows initial requests under the configured threshold [0.46ms]
+(pass) Enterprise Rate Limiting Middleware > returns HTTP 429 and Retry-After header when rate limit is exceeded [1.16ms]
+
+tests/security-critical-fixes.test.ts:
+(pass) FIX-3: GLB magic-byte validation is no longer a no-op > accepts a valid GLB file (gltF magic) [0.16ms]
+(pass) FIX-3: GLB magic-byte validation is no longer a no-op > rejects a file with a spoofed .glb extension (PHP content) [0.08ms]
+(pass) FIX-3: GLB magic-byte validation is no longer a no-op > rejects a PNG file renamed to .glb [0.06ms]
+(pass) FIX-3: GLB magic-byte validation is no longer a no-op > rejects a JPEG file renamed to .glb [0.04ms]
+(pass) FIX-3: GLB magic-byte validation is no longer a no-op > rejects an <script> payload renamed to .glb [0.06ms]
+(pass) FIX-3: MIND magic-byte validation is no longer a no-op > accepts a valid MIND file (MIND magic) [0.04ms]
+(pass) FIX-3: MIND magic-byte validation is no longer a no-op > rejects a file with a spoofed .mind extension (HTML content) [0.05ms]
+(pass) FIX-3: MIND magic-byte validation is no longer a no-op > rejects a GLB file renamed to .mind [0.05ms]
+(pass) FIX-3: MIND magic-byte validation is no longer a no-op > rejects a ZIP bomb renamed to .mind [0.14ms]
+(pass) FIX-3: MIND magic-byte validation is no longer a no-op > rejects an all-zeros buffer renamed to .mind [0.05ms]
+(pass) FIX-4: LICENCE_ROLE defaults to least privilege (client) > returns 'client' when LICENCE_ROLE is not set [0.22ms]
+(pass) FIX-4: LICENCE_ROLE defaults to least privilege (client) > returns 'issuer' when LICENCE_ROLE=issuer is explicitly set [0.14ms]
+(pass) FIX-4: LICENCE_ROLE defaults to least privilege (client) > returns 'client' when LICENCE_ROLE=client is explicitly set [0.21ms]
+(pass) FIX-5: originAllowed denies empty / null allowed_origins > denies when allowed_origins is null [0.13ms]
+(pass) FIX-5: originAllowed denies empty / null allowed_origins > denies when allowed_origins is an empty array [0.09ms]
+(pass) FIX-5: originAllowed denies empty / null allowed_origins > denies when allowed_origins is empty and host is also null [0.09ms]
+(pass) FIX-5: originAllowed denies empty / null allowed_origins > allows when the host exactly matches an allowed origin [0.10ms]
+(pass) FIX-5: originAllowed denies empty / null allowed_origins > allows when the host is a subdomain of an allowed origin [0.09ms]
+(pass) FIX-5: originAllowed denies empty / null allowed_origins > denies when the host does NOT match any allowed origin [0.59ms]
+(pass) FIX-5: originAllowed denies empty / null allowed_origins > denies when host is null even if allowed_origins is configured [0.27ms]
+(pass) FIX-1: legacy /api/public/license/activate returns 410 Gone > tombstone route module exports a route pointing to the legacy path [1.24ms]
+[ratelimit] backend error, failing closed for test_admin_block: 111 |     const isAdminBuild = role === "issuer";
+112 |     const isEdge = rt === "edge";
+113 |     const isProduction = (readEnv("NODE_ENV") ?? "development") === "production";
+114 | 
+115 |     if (isAdminBuild || isEdge || isProduction) {
+116 |       throw new Error(
+                      ^
+error: RATELIMIT_DRIVER=memory is a development-only driver and cannot start on this deployment (LICENCE_ROLE=issuer, RUNTIME=node, NODE_ENV=development). Set RATELIMIT_DRIVER to upstash, redis, or postgres.
+      at getBackend (/dev-server/src/lib/adapters/ratelimit.server.ts:116:17)
+      at getBackend (/dev-server/src/lib/adapters/ratelimit.server.ts:94:26)
+      at check (/dev-server/src/lib/adapters/ratelimit.server.ts:146:23)
+      at check (/dev-server/src/lib/adapters/ratelimit.server.ts:139:3)
+      at <anonymous> (/dev-server/tests/security-critical-fixes.test.ts:204:26)
+
+(pass) FIX-2: memory rate-limiter blocked on admin and edge builds > denies (allowed=false, degraded=true) when RATELIMIT_DRIVER=memory on an admin build [0.48ms]
+[ratelimit] backend error, failing closed for test_edge_block: 111 |     const isAdminBuild = role === "issuer";
+112 |     const isEdge = rt === "edge";
+113 |     const isProduction = (readEnv("NODE_ENV") ?? "development") === "production";
+114 | 
+115 |     if (isAdminBuild || isEdge || isProduction) {
+116 |       throw new Error(
+                      ^
+error: RATELIMIT_DRIVER=memory is a development-only driver and cannot start on this deployment (LICENCE_ROLE=client, RUNTIME=edge, NODE_ENV=development). Set RATELIMIT_DRIVER to upstash, redis, or postgres.
+      at getBackend (/dev-server/src/lib/adapters/ratelimit.server.ts:116:17)
+      at getBackend (/dev-server/src/lib/adapters/ratelimit.server.ts:94:26)
+      at check (/dev-server/src/lib/adapters/ratelimit.server.ts:146:23)
+      at check (/dev-server/src/lib/adapters/ratelimit.server.ts:139:3)
+      at <anonymous> (/dev-server/tests/security-critical-fixes.test.ts:229:26)
+
+(pass) FIX-2: memory rate-limiter blocked on admin and edge builds > denies (allowed=false, degraded=true) when RATELIMIT_DRIVER=memory on an edge runtime [0.96ms]
+(pass) FIX-2: memory rate-limiter blocked on admin and edge builds > allows memory driver on a client/node development build [0.35ms]
+(pass) FIX-6: client-schema.sql does not reinstall weak RLS policies > does not contain albums_public_read policy granting access to authenticated role [0.45ms]
+(pass) FIX-6: client-schema.sql does not reinstall weak RLS policies > does not contain CREATE POLICY for albums that targets authenticated without owner_id check [0.97ms]
+(pass) FIX-6: client-schema.sql does not reinstall weak RLS policies > does not contain CREATE POLICY for ar_experiences targeting authenticated without owner_id [1.03ms]
+(pass) FIX-6: client-schema.sql does not reinstall weak RLS policies > contains a warning comment directing maintainers to use migrations [0.40ms]
+
+tests/security-headers.test.ts:
+(pass) Security Headers & Defense-in-Depth Verification > applies all enterprise security headers to real HTTP Response objects [0.36ms]
+(pass) Security Headers & Defense-in-Depth Verification > verifies CSP policy structure on live response [0.12ms]
+(pass) Security Headers & Defense-in-Depth Verification > verifies Permissions-Policy restricts camera to self and disables geolocation [0.07ms]
+(pass) Security Headers & Defense-in-Depth Verification > verifies frame busting and anti-MIME sniffing headers [0.07ms]
+
+tests/upload-security.test.ts:
+(pass) Upload Security & Magic-Byte Validation > recognizes valid PNG magic bytes [0.18ms]
+(pass) Upload Security & Magic-Byte Validation > recognizes valid JPEG magic bytes [0.09ms]
+(pass) Upload Security & Magic-Byte Validation > recognizes MP4 ftyp box signature [0.06ms]
+(pass) Upload Security & Magic-Byte Validation > recognizes WebM EBML header [0.03ms]
+(pass) Upload Security & Magic-Byte Validation > rejects malicious file with spoofed extension [0.07ms]
+(pass) Upload Security & Magic-Byte Validation > sanitizes filename and prevents directory traversal attacks [0.87ms]
+(pass) Upload Security & Magic-Byte Validation > rejects disallowed file extensions [0.16ms]
+(pass) Upload Security & Magic-Byte Validation > validates full upload payload correctly [0.27ms]
+
+ 97 pass
+ 0 fail
+ 250 expect() calls
+Ran 97 tests across 5 files. [530.00ms]

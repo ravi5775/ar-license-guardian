@@ -1,0 +1,11 @@
+{
+  "stage": "p17",
+  "name": "CPU Profile & Bundle Treemap",
+  "status": "NOT_VERIFIED",
+  "commit": "de591708e8a3583327ae5e8e01410cd80207b899",
+  "startedAt": "2026-08-31T05:50:05Z",
+  "durationMs": 93,
+  "metrics": {},
+  "blockers": ["no build output found - run 'bun run build' before this stage"],
+  "artifacts": []
+}
