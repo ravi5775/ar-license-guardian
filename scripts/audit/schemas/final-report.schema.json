@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aether-ar.local/schemas/final-report.schema.json",
+  "title": "P20 aggregated audit verdict",
+  "type": "object",
+  "required": ["stage", "status", "metrics"],
+  "properties": {
+    "stage": { "const": "p20" },
+    "status": { "enum": ["PASS", "FAIL", "NOT_VERIFIED"] },
+    "metrics": {
+      "type": "object",
+      "required": ["total", "pass", "fail", "notVerified", "score", "verdict"],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "const": 21,
+          "description": "P00-P19 plus P09b. P20 is the aggregator and is excluded from its own denominator."
+        },
+        "pass": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 },
+        "notVerified": { "type": "integer", "minimum": 0 },
+        "notRun": { "type": "integer", "minimum": 0 },
+        "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "verdict": { "enum": ["PASS", "CONDITIONAL_PASS", "FAIL"] }
+      }
+    }
+  }
+}
