@@ -121,6 +121,19 @@ export const listCatalogItems = createServerFn({ method: "GET" })
     }));
   });
 
+export const listMyCatalogItems = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((raw) => z.object({ catalogId: z.string().uuid() }).parse(raw ?? {}))
+  .handler(async ({ data, context }) => {
+    const { data: items, error } = await context.supabase
+      .from("catalog_items" as any)
+      .select("*")
+      .eq("catalog_id", data.catalogId)
+      .order("sort_order", { ascending: true });
+    if (error) throw new Error(error.message);
+    return items ?? [];
+  });
+
 export const saveCatalogItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((raw) => CatalogItemInput.parse(raw))

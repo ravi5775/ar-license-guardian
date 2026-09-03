@@ -13,7 +13,7 @@ import {
   deleteCatalog,
   saveCatalogItem,
   deleteCatalogItem,
-  listCatalogItems,
+  listMyCatalogItems,
   signCatalogUpload,
 } from "@/lib/catalog.functions";
 
@@ -72,7 +72,7 @@ function CatalogManagerPage() {
   const deleteCatalogFn = useServerFn(deleteCatalog);
   const saveItemFn = useServerFn(saveCatalogItem);
   const deleteItemFn = useServerFn(deleteCatalogItem);
-  const listCatalogItemsFn = useServerFn(listCatalogItems);
+  const listMyCatalogItemsFn = useServerFn(listMyCatalogItems);
 
   const [catalogDraft, setCatalogDraft] = useState<CatalogDraft | null>(null);
   const [selectedCatalogId, setSelectedCatalogId] = useState<string | null>(null);
@@ -95,8 +95,8 @@ function CatalogManagerPage() {
   const itemsQuery = useQuery({
     queryKey: ["catalog-items", selectedCatalogId],
     queryFn: () =>
-      selectedCatalogId && selectedCatalog?.slug
-        ? listCatalogItemsFn({ data: { catalogSlug: selectedCatalog.slug } })
+      selectedCatalogId
+        ? listMyCatalogItemsFn({ data: { catalogId: selectedCatalogId } })
         : Promise.resolve([]),
     enabled: !!selectedCatalogId && !!selectedCatalog?.slug,
     staleTime: 30_000,
@@ -287,6 +287,8 @@ function CatalogManagerPage() {
                     {(itemsQuery.data ?? []).map((item: any) => (
                       <div
                         key={item.id}
+                        data-testid="catalog-item-row"
+                        data-active={item.is_active ? "true" : "false"}
                         className="rounded-xl border border-border/60 bg-background/60 p-3"
                       >
                         <div className="flex items-center justify-between gap-3">
@@ -299,6 +301,7 @@ function CatalogManagerPage() {
                           <div className="flex gap-2">
                             <button
                               type="button"
+                              data-testid={`edit-item-${item.id}`}
                               onClick={() =>
                                 setItemDraft({
                                   id: item.id,
@@ -321,6 +324,32 @@ function CatalogManagerPage() {
                               className="rounded-md border px-2 py-1 text-xs hover:bg-accent"
                             >
                               Edit
+                            </button>
+                            <button
+                              type="button"
+                              data-testid="toggle-active-inactive-item"
+                              onClick={() =>
+                                saveItemMutation.mutate({
+                                  id: item.id,
+                                  catalog_id: item.catalog_id,
+                                  name: item.name,
+                                  sku: item.sku,
+                                  category: item.category,
+                                  glb_path: item.glb_path,
+                                  usdz_path: item.usdz_path,
+                                  thumb_path: item.thumb_path ?? "",
+                                  width_m: Number(item.width_m ?? 1),
+                                  height_m: Number(item.height_m ?? 1),
+                                  depth_m: Number(item.depth_m ?? 0.4),
+                                  color_hex: item.color_hex ?? "#d9b06d",
+                                  placement: item.placement,
+                                  sort_order: Number(item.sort_order ?? 0),
+                                  is_active: !item.is_active,
+                                })
+                              }
+                              className="rounded-md border px-2 py-1 text-xs hover:bg-accent"
+                            >
+                              {item.is_active ? "Deactivate" : "Reactivate"}
                             </button>
                             <button
                               type="button"
@@ -416,6 +445,7 @@ function CatalogManagerPage() {
               <label className="block text-sm md:col-span-2">
                 <span className="mb-1 block text-muted-foreground">Name</span>
                 <input
+                  data-testid="item-name"
                   value={itemDraft.name}
                   onChange={(e) => setItemDraft({ ...itemDraft, name: e.target.value })}
                   className="w-full rounded-md border border-border bg-background px-3 py-2"
@@ -542,6 +572,7 @@ function CatalogManagerPage() {
               </button>
               <button
                 type="button"
+                data-testid="save-item"
                 onClick={() => {
                   if (!itemDraft.name.trim() || !itemDraft.glb_path || !itemDraft.usdz_path) {
                     toast.error("Name, GLB, and USDZ are required");

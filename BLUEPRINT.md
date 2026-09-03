@@ -1,3 +1,266 @@
+# Aether AR End-to-End Blueprint
+
+**Status:** Pre-production reference architecture
+**Version:** 7.0
+**Last reviewed:** September 2026
+**Owner:** Aether AR
+
+## 1. Purpose and Product Contract
+
+Aether AR is a white-label web platform that lets a customer attach video and
+3D content to printed photos, cards, albums, catalog items, and QR codes. A
+guest scans a code, opens a mobile web experience, grants camera access when
+needed, and views the published content through WebAR or a direct-video
+fallback.
+
+The commercial offer is a deployed customer instance with optional branding,
+training, and maintenance. The customer owns its content and operating costs.
+Aether AR owns the product source, release process, licensing authority, and
+security obligations described in this document.
+
+### Product boundaries
+
+- **Guest:** consumes published AR experiences without an account.
+- **Customer operator:** manages content, catalogs, albums, QR codes, and
+   analytics from the authenticated dashboard.
+- **Customer administrator:** manages users, approvals, MFA, and operational
+   settings.
+- **Vendor operator:** provisions customers, signs releases, manages licenses,
+   monitors abuse, and handles revocation.
+
+The authoritative implementation stack is TanStack Start, React, TypeScript,
+Supabase Auth/Postgres/Storage, Cloudflare deployment services, R2-compatible
+media storage, MindAR/A-Frame, and signed license manifests. Any document that
+describes another stack is historical and must be updated or removed.
+
+## 2. System Architecture
+
+```text
+Guest browser
+   -> customer web deployment
+       -> public experience/catalog routes
+       -> authenticated dashboard and server functions
+       -> customer database and media storage
+       -> vendor license authority
+
+Vendor release pipeline
+   -> signed client bundle
+   -> signed release manifest
+   -> customer deployment
+```
+
+### Ownership boundaries
+
+| Boundary | Responsibility |
+|---|---|
+| Vendor authority | License records, build manifests, signing keys, revocation, abuse controls |
+| Customer deployment | Users, projects, experiences, catalogs, media, scans, analytics |
+| Browser client | Rendering, camera lifecycle, local token state, graceful fallback |
+| Database policies | Tenant isolation and row-level authorization |
+| Storage gateway | Short-lived signed upload/download URLs and asset authorization |
+
+The customer deployment must not contain vendor private keys, service-role
+credentials, or unrestricted storage credentials. Runtime configuration must be
+loaded in an edge-compatible way rather than captured accidentally at module
+initialization.
+
+## 3. End-to-End Journeys
+
+### 3.1 Customer provisioning
+
+1. Vendor creates a customer record and license policy.
+2. Vendor provisions the customer repository, deployment, database, storage,
+    domain, and environment configuration.
+3. Database migrations and RLS policies are applied.
+4. A first administrator is created and required to enroll MFA.
+5. Vendor registers the customer ID, build ID, release hash, and asset digest.
+6. Automated smoke tests verify login, dashboard access, upload signing,
+    public delivery, license activation, and revocation behavior.
+7. Vendor hands over the deployment URL, admin instructions, operating limits,
+    backup policy, and support contacts.
+
+### 3.2 Content publishing
+
+1. Operator creates an experience, album, or catalog.
+2. Operator uploads validated GLB, USDZ, video, thumbnail, and marker assets.
+3. The server scopes upload paths to the authorized tenant and returns a
+    short-lived signed upload URL.
+4. Metadata is validated, ownership is recorded, and the item remains inactive
+    until complete.
+5. Operator previews the content, publishes it, and generates a QR code.
+6. Public routes expose active content only.
+
+### 3.3 Guest playback
+
+1. Guest scans a QR code or opens a public URL.
+2. The route resolves the active experience, album, or catalog item.
+3. The client verifies its signed build manifest and activates the license.
+4. The server authorizes the device/build and issues short-lived media URLs.
+5. The guest uses MindAR/WebAR when supported, or direct video/fallback camera
+    mode when tracking or browser support is unavailable.
+6. Playback and scan events are recorded without exposing private customer data.
+
+### 3.4 License lifecycle
+
+1. Vendor issues a license with customer identity, allowed build policy, limits,
+    status, and expiry.
+2. Release automation signs a manifest containing customer ID, build ID, release
+    hash, and asset digest.
+3. Client activation validates the license, device fingerprint, origin, build,
+    and manifest.
+4. Refresh extends a valid session subject to rate limits and policy.
+5. Suspension or revocation prevents new activation and new protected media
+    delivery.
+6. Existing browser state is allowed to expire according to the documented
+    grace policy; no undocumented permanent offline entitlement exists.
+
+## 4. Application Modules
+
+- Public AR experience, album, scan, and catalog routes.
+- Auth, approval, role management, and mandatory administrator MFA.
+- Dashboard for experiences, albums, catalogs, assets, QR codes, activations,
+   analytics, diagnostics, and audit history.
+- Catalog item editing that updates existing rows in place and preserves active
+   and inactive visibility for authorized owners.
+- Server functions for tenant-scoped CRUD, upload signing, event logging, and
+   license-gated media delivery.
+- Vendor worker and scripts for provisioning, key generation, manifest signing,
+   release verification, backup, restore, and deployment smoke testing.
+
+## 5. Data and Authorization Model
+
+Core entities include profiles, user roles, design catalogs, catalog items,
+experiences, albums, media metadata, activations, scan events, audit events,
+licenses, and release manifests.
+
+Required rules:
+
+- Every customer-owned row has an owner or tenant boundary.
+- RLS is enabled on every customer table and tested against both owner and
+   cross-tenant access.
+- Public reads return active, intentionally published content only.
+- Vendor license data is never directly readable by customer browsers.
+- Upload and download paths are tenant-scoped and time-limited.
+- Deletes and status changes are audited.
+- Service-role access is limited to server-side jobs and never shipped to the
+   browser.
+
+## 6. Security and Privacy Controls
+
+- Strict security headers and CSP appropriate for camera, WebAR, media, and
+   approved storage origins.
+- Supabase Auth with approval checks, role separation, and TOTP MFA for admins.
+- Server-side authorization on every mutation; UI hiding is not authorization.
+- Rate limits and abuse detection on activation, refresh, public lookup, and
+   signed URL endpoints.
+- Ed25519-signed manifests and license tokens with default-deny verification.
+- Short-lived signed media URLs, device/session binding, and revocation checks.
+- Input validation for slugs, metadata, asset types, dimensions, and filenames.
+- Append-only audit records for authentication, publishing, licensing, and
+   administrative actions.
+- Data minimization, retention limits, DPA coverage, and documented deletion
+   procedures.
+
+## 7. Release and Deployment Pipeline
+
+Every customer release follows this sequence:
+
+1. Start from a clean, reproducible checkout.
+2. Install locked dependencies and validate required environment variables.
+3. Run typecheck, lint, unit tests, security tests, RLS tests, and Playwright
+    tests.
+4. Build with customer ID, build ID, release hash, and asset digest injected.
+5. Verify the client bundle contains no issuer secrets or forbidden server code.
+6. Generate and sign the release manifest.
+7. Publish the immutable artifact and manifest.
+8. Run smoke tests for authentication, activation, refresh, upload signing,
+    public delivery, revocation, and rollback.
+9. Record release metadata and retain the previous known-good artifact.
+
+Required deployment variables must be documented and checked before build.
+Missing signing keys, customer identity, release identity, or manifest data are
+hard failures, never warnings.
+
+## 8. Operations and Recovery
+
+- Structured logs for auth, license, upload, media, and public-route failures.
+- Alerts for activation spikes, presign denials, quota exhaustion, auth abuse,
+   storage failures, and signature/configuration errors.
+- Daily encrypted backups with retention and access review.
+- Scheduled restore verification with measured RTO and RPO.
+- Key rotation, emergency revocation, compromised-device, and customer-offline
+   runbooks.
+- Staged deployments, health checks, rollback instructions, and incident review.
+- Customer handover includes ownership, billing, domains, secrets, backups,
+   support boundaries, and upgrade responsibilities.
+
+## 9. Verification Plan
+
+### Automated gates
+
+- TypeScript compilation and lint.
+- Unit and security regression tests.
+- Mandatory RLS tests with a real isolated database.
+- API contract tests for activation, manifest, presigning, and revocation.
+- Browser tests for login, MFA, publishing, catalog editing, inactive-item
+   recovery, QR navigation, and media access.
+- Clean client build and secret-scanning verification.
+
+### Device and deployment gates
+
+- iOS Safari and Android Chrome camera permission flows.
+- WebAR tracking, direct-video fallback, autoplay, fullscreen, and lifecycle.
+- Offline, reconnect, token expiry, and revoked-license behavior.
+- Fresh customer provisioning from empty infrastructure.
+- Backup restore and rollback from a failed release.
+
+No release is production-ready when any mandatory gate is skipped. A test that
+depends on unavailable credentials must be reported as not run, not counted as
+passing.
+
+## 10. Current Status and Priorities
+
+### Working foundation
+
+- TanStack Start application, public AR routes, dashboard, authentication,
+   catalog/album/experience flows, storage signing, license runtime, security
+   headers, and substantial security regression coverage.
+- Customer-owned catalog editing and active/inactive item workflows are covered
+   by focused E2E tests, pending configured Supabase credentials.
+
+### P0 before commercial release
+
+- Select and enforce one deployment topology across code and documentation.
+- Fix release-time build identity and manifest injection.
+- Make manifest verification fail closed.
+- Remove edge-unsafe module-scope secret reads.
+- Make RLS and end-to-end deployment tests mandatory in CI.
+- Prove one clean customer deployment from provisioning through revocation.
+
+### P1 before scaling beyond pilot customers
+
+- Complete measured restore and rollback drills.
+- Finish real-device AR and offline behavior testing.
+- Add tenant-level usage limits, alerting, and support diagnostics.
+- Complete attorney review of license, privacy, DPA, and handover documents.
+- Automate customer provisioning and release promotion.
+
+### P2 product expansion
+
+- White-label theme configuration.
+- Multi-target analytics and richer catalog workflows.
+- Reseller tools, mobile wrappers, and additional AR authoring features.
+
+## 11. Definition of Done
+
+Aether AR is ready for a paid customer only when a new tenant can be provisioned
+from documented inputs, an administrator can securely publish content, a guest
+can consume it on supported devices, license revocation works, backups restore,
+rollback succeeds, and all mandatory automated gates pass in a clean
+environment.
+
+Until then, the project is a strong pre-production platform, not a fully proven
+commercial handover system.
 # Aether AR — Commercial Blueprint
 ## Zero-Investment → ₹30 Lakh/Year AR Photo Platform
 
