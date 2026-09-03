@@ -1,0 +1,136 @@
+name: Audit Stages
+
+# Evidence-gated audit pipeline (P00-P20).
+# Stage contract: exit 0 = PASS, 1 = FAIL, 2 = NOT_VERIFIED.
+# CI intentionally cannot reach a full PASS: stages needing local-only
+# credentials or disposable infrastructure stay NOT_VERIFIED.
+# See docs/audit-ci-scope.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Staging BASE_URL for live stages (leave blank to skip them)"
+        required: false
+        default: ""
+      allow_heavy_load:
+        description: "Authorise heavy load stages (P04-P08) against that staging target"
+        required: false
+        default: "false"
+  push:
+    branches: [main]
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  BASE_URL: ${{ github.event.inputs.base_url }}
+  AUDIT_ALLOW_HEAVY_LOAD: ${{ github.event.inputs.allow_heavy_load == 'true' && '1' || '' }}
+
+jobs:
+  # Group 1 — repository + static quality. No external dependencies.
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bash scripts/audit/p00-repository-integrity.sh || true
+      - run: bash scripts/audit/p01-build-quality.sh || true
+      - run: bun run build
+      - run: bash scripts/audit/p17-cpu-profile.sh || true
+      - uses: actions/upload-artifact@v4
+        with: { name: audit-static, path: artifacts/ }
+
+  # Group 2 — security, supply chain, delivery, contracts. Repo-local evidence.
+  assurance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bash scripts/audit/p11-security-abuse.sh || true
+      - run: bash scripts/audit/p16-delivery-package.sh || true
+      - run: bash scripts/audit/p18-supply-chain.sh || true
+      - run: bash scripts/audit/p19-contract-alignment.sh || true
+      - uses: actions/upload-artifact@v4
+        with: { name: audit-assurance, path: artifacts/ }
+
+  # Group 3 — live smoke + licence lifecycle. Requires BASE_URL.
+  live-smoke:
+    runs-on: ubuntu-latest
+    needs: [static]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bash scripts/audit/p02-api-smoke.sh || true
+      - run: bash scripts/audit/p03-licence-lifecycle.sh || true
+      - uses: actions/upload-artifact@v4
+        with: { name: audit-live-smoke, path: artifacts/ }
+
+  # Group 4 — load, stress, spike, soak. Requires BASE_URL and explicit
+  # AUDIT_ALLOW_HEAVY_LOAD authorisation; otherwise each stage self-reports
+  # NOT_VERIFIED without generating traffic.
+  load:
+    runs-on: ubuntu-latest
+    needs: [live-smoke]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bash scripts/audit/p04-k6-load.sh || true
+      - run: bash scripts/audit/p05-autocannon-bench.sh || true
+      - run: bash scripts/audit/p06-stress-test.sh || true
+      - run: bash scripts/audit/p07-spike-test.sh || true
+      - run: bash scripts/audit/p08-soak-test.sh || true
+      - uses: actions/upload-artifact@v4
+        with: { name: audit-load, path: artifacts/ }
+
+  # Group 5 — database capacity, RLS overhead, RLS correctness.
+  # NOT_VERIFIED in CI by design: database credentials stay local-only.
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bash scripts/audit/p09-db-capacity.sh || true
+      - run: bash scripts/audit/p09b-rls-overhead.sh || true
+      - run: bash scripts/audit/p10-rls-correctness.sh || true
+      - uses: actions/upload-artifact@v4
+        with: { name: audit-database, path: artifacts/ }
+
+  # Group 6 — anti-clone, presign, Cloudflare gate, disaster recovery.
+  platform:
+    runs-on: ubuntu-latest
+    needs: [live-smoke]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bash scripts/audit/p12-device-clone-detection.sh || true
+      - run: bash scripts/audit/p13-r2-presign.sh || true
+      - run: bash scripts/audit/p14-cf-pages-gate.sh || true
+      - run: bash scripts/audit/p15-disaster-recovery.sh || true
+      - uses: actions/upload-artifact@v4
+        with: { name: audit-platform, path: artifacts/ }
+
+  # Group 7 — aggregation. Collects every stage artifact and computes the verdict.
+  report:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [static, assurance, live-smoke, load, database, platform]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/download-artifact@v4
+        with: { path: /tmp/audit-artifacts, merge-multiple: true }
+      - run: mkdir -p artifacts && cp -r /tmp/audit-artifacts/. artifacts/ || true
+      - id: aggregate
+        run: bash scripts/audit/p20-final-report.sh || true
+      - run: cat artifacts/p20-executive-report.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with: { name: audit-final-report, path: artifacts/ }
