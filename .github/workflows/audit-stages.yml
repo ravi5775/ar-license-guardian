@@ -41,7 +41,7 @@ jobs:
       - run: bash scripts/audit/p01-build-quality.sh || true
       - run: bun run build
       - run: bash scripts/audit/p17-cpu-profile.sh || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: audit-static, path: artifacts/ }
 
   # Group 2 — security, supply chain, delivery, contracts. Repo-local evidence.
@@ -55,7 +55,7 @@ jobs:
       - run: bash scripts/audit/p16-delivery-package.sh || true
       - run: bash scripts/audit/p18-supply-chain.sh || true
       - run: bash scripts/audit/p19-contract-alignment.sh || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: audit-assurance, path: artifacts/ }
 
   # Group 3 — live smoke + licence lifecycle. Requires BASE_URL.
@@ -68,7 +68,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bash scripts/audit/p02-api-smoke.sh || true
       - run: bash scripts/audit/p03-licence-lifecycle.sh || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: audit-live-smoke, path: artifacts/ }
 
   # Group 4 — load, stress, spike, soak. Requires BASE_URL and explicit
@@ -86,7 +86,7 @@ jobs:
       - run: bash scripts/audit/p06-stress-test.sh || true
       - run: bash scripts/audit/p07-spike-test.sh || true
       - run: bash scripts/audit/p08-soak-test.sh || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: audit-load, path: artifacts/ }
 
   # Group 5 — database capacity, RLS overhead, RLS correctness.
@@ -100,7 +100,7 @@ jobs:
       - run: bash scripts/audit/p09-db-capacity.sh || true
       - run: bash scripts/audit/p09b-rls-overhead.sh || true
       - run: bash scripts/audit/p10-rls-correctness.sh || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: audit-database, path: artifacts/ }
 
   # Group 6 — anti-clone, presign, Cloudflare gate, disaster recovery.
@@ -115,7 +115,7 @@ jobs:
       - run: bash scripts/audit/p13-r2-presign.sh || true
       - run: bash scripts/audit/p14-cf-pages-gate.sh || true
       - run: bash scripts/audit/p15-disaster-recovery.sh || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: audit-platform, path: artifacts/ }
 
   # Group 7 — aggregation. Collects every stage artifact and computes the verdict.
@@ -132,5 +132,5 @@ jobs:
       - id: aggregate
         run: bash scripts/audit/p20-final-report.sh || true
       - run: cat artifacts/p20-executive-report.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: audit-final-report, path: artifacts/ }

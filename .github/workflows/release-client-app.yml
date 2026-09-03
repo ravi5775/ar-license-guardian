@@ -59,7 +59,7 @@ jobs:
           LICENCE_API_URL: ${{ vars.LICENCE_API_URL }}
           RELEASE_MANIFEST_SECRET: ${{ secrets.RELEASE_MANIFEST_SECRET }}
       - name: Upload Client Distribution Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: client-app-${{ github.sha }}
           path: dist

@@ -40,7 +40,7 @@ jobs:
           TARGET_URL: ${{ inputs.target_url }}
           R2_TEST_BUCKET: ${{ secrets.STAGING_R2_BUCKET }}
         run: bun run audit:v22
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: audit-v22-artifacts
           path: artifacts/**
