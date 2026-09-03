@@ -4,7 +4,7 @@ stage_init p17 "CPU Profile & Bundle Treemap"
 cd "$AUDIT_ROOT"
 require_cmd node "profiler host"
 dir=""
-for c in .output/public/_build dist/_build dist .output/public; do [ -d "$c" ] && { dir="$c"; break; }; done
+for c in dist/client .output/public/_build dist/_build .output/public dist; do [ -d "$c" ] && { dir="$c"; break; }; done
 [ -n "$dir" ] || not_verified "no build output found - run 'bun run build' before this stage"
 out="$ARTIFACT_DIR/p17-bundle.json"
 node -e '

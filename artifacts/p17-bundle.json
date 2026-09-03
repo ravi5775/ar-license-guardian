@@ -1,0 +1,106 @@
+{
+  "totalBytes": 8549965,
+  "jsBytes": 8006439,
+  "largest": [
+    {
+      "file": "dist/client/vendor/ar/controller-mGt1s8dJ.js",
+      "bytes": 2199370
+    },
+    {
+      "file": "dist/client/vendor/ar/mindar-image-aframe-1.2.5.prod.js",
+      "bytes": 1758446
+    },
+    {
+      "file": "dist/client/vendor/ar/aframe-1.5.0.min.js",
+      "bytes": 1390001
+    },
+    {
+      "file": "dist/client/assets/use-three-texture-0i-YR2GH.js",
+      "bytes": 880578
+    },
+    {
+      "file": "dist/client/assets/index-Cq5puopQ.js",
+      "bytes": 603557
+    },
+    {
+      "file": "dist/client/assets/scan-B3t1bcfr.js",
+      "bytes": 491580
+    },
+    {
+      "file": "dist/client/assets/routes-BZoNyXQa.js",
+      "bytes": 332938
+    },
+    {
+      "file": "dist/client/favicon.png",
+      "bytes": 274240
+    },
+    {
+      "file": "dist/client/assets/phone-scan-CEGEXJhU.jpg",
+      "bytes": 155413
+    },
+    {
+      "file": "dist/client/assets/styles-DuLWONJR.css",
+      "bytes": 111154
+    },
+    {
+      "file": "dist/client/assets/createServerFn-zmAL35M3.js",
+      "bytes": 35337
+    },
+    {
+      "file": "dist/client/assets/browser-KJbuso6U.js",
+      "bytes": 23771
+    },
+    {
+      "file": "dist/client/assets/auth-D2KTNvDq.js",
+      "bytes": 15568
+    },
+    {
+      "file": "dist/client/assets/ar.album._slug-BGuPs6V-.js",
+      "bytes": 15262
+    },
+    {
+      "file": "dist/client/assets/dashboard.catalogs-BO_d1fEG.js",
+      "bytes": 14026
+    },
+    {
+      "file": "dist/client/assets/VrStage-DY3yCxhW.js",
+      "bytes": 13888
+    },
+    {
+      "file": "dist/client/assets/ar._slug-CY_wBCPh.js",
+      "bytes": 13690
+    },
+    {
+      "file": "dist/client/assets/dashboard.albums.new-fy0U4dCM.js",
+      "bytes": 13609
+    },
+    {
+      "file": "dist/client/assets/ClientOnly-BIs3H59t.js",
+      "bytes": 13214
+    },
+    {
+      "file": "dist/client/assets/dashboard.experiences-D2mmchjy.js",
+      "bytes": 11337
+    },
+    {
+      "file": "dist/client/assets/dashboard.marker-tests-DYjWoocB.js",
+      "bytes": 10360
+    },
+    {
+      "file": "dist/client/assets/useQuery-CifvDoS2.js",
+      "bytes": 8818
+    },
+    {
+      "file": "dist/client/assets/QRCodeDialog-Cy8s3Nie.js",
+      "bytes": 8065
+    },
+    {
+      "file": "dist/client/assets/react-Dps3yNUO.js",
+      "bytes": 7527
+    },
+    {
+      "file": "dist/client/assets/dashboard.diagnostics-aZ0IaQ-d.js",
+      "bytes": 7506
+    }
+  ]
+}
