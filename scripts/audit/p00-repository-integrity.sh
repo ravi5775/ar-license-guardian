@@ -12,5 +12,5 @@ dirty=$(git status --porcelain | wc -l | tr -d ' ')
 metric trackedFiles "$(git ls-files | wc -l | tr -d ' ')"
 metric dirtyPaths "$dirty"
 metric_str branch "$(git rev-parse --abbrev-ref HEAD)"
-metric largeFiles "$(echo "$big" | grep -c . || echo 0)"
+metric largeFiles "$(printf "%s" "$big" | grep -c . | head -1)"
 [ "$fail" -eq 0 ] && emit PASS || emit FAIL

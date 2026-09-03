@@ -1,11 +1,11 @@
 {
   "stage": "p17",
   "name": "CPU Profile & Bundle Treemap",
-  "status": "NOT_VERIFIED",
-  "commit": "de591708e8a3583327ae5e8e01410cd80207b899",
-  "startedAt": "2026-08-31T05:50:05Z",
-  "durationMs": 93,
-  "metrics": {},
-  "blockers": ["no build output found - run 'bun run build' before this stage"],
-  "artifacts": []
+  "status": "PASS",
+  "commit": "d6809877861c2e45e7ba5ca893869582807efd72",
+  "startedAt": "2026-09-03T04:12:50Z",
+  "durationMs": 450,
+  "metrics": {"jsBytes":8006439,"appJsBytes":2653804,"vendorJsBytes":5352635,"totalBytes":8549965},
+  "blockers": [],
+  "artifacts": ["artifacts/p17-bundle.json"]
 }

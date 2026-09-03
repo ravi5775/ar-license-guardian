@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aether-ar.local/schemas/stage-result.schema.json",
+  "title": "Audit stage result",
+  "description": "Every P00-P20 stage writes exactly one of these to artifacts/<stage>-result.json.",
+  "type": "object",
+  "required": ["stage", "name", "status", "commit", "startedAt", "durationMs", "metrics", "blockers", "artifacts"],
+  "additionalProperties": false,
+  "properties": {
+    "stage": { "type": "string", "pattern": "^p(0[0-9]|1[0-9]|20|09b)$" },
+    "name": { "type": "string", "minLength": 1 },
+    "status": { "enum": ["PASS", "FAIL", "NOT_VERIFIED"] },
+    "commit": { "type": "string", "minLength": 7 },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "durationMs": { "type": "integer", "minimum": 0 },
+    "metrics": {
+      "type": "object",
+      "description": "Stage-specific measured evidence. Never populated from assumptions.",
+      "additionalProperties": { "type": ["number", "string", "boolean"] }
+    },
+    "blockers": {
+      "type": "array",
+      "description": "Non-empty whenever status is FAIL or NOT_VERIFIED.",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^artifacts/" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "enum": ["FAIL", "NOT_VERIFIED"] } } },
+      "then": { "properties": { "blockers": { "minItems": 1 } } }
+    }
+  ]
+}
