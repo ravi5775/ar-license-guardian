@@ -14,7 +14,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export async function requireAdmin(context: {
   supabase: SupabaseClient<any, any, any>;
   userId: string;
+  claims?: { aal?: string; [key: string]: unknown };
 }): Promise<void> {
+  if (context.claims?.aal !== "aal2") {
+    throw new Response("MFA required", { status: 403 });
+  }
   const { data, error } = await context.supabase
     .from("user_roles")
     .select("role")
@@ -31,7 +35,9 @@ export async function requireAdmin(context: {
 export async function isAdmin(context: {
   supabase: SupabaseClient<any, any, any>;
   userId: string;
+  claims?: { aal?: string; [key: string]: unknown };
 }): Promise<boolean> {
+  if (context.claims?.aal !== "aal2") return false;
   const { data } = await context.supabase
     .from("user_roles")
     .select("role")

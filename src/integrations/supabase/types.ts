@@ -557,6 +557,10 @@ export type Database = {
           client_name: string
           created_at: string
           customer_id: string | null
+          domain: string | null
+          cloudflare_project_name: string | null
+          supabase_project_ref: string | null
+          release_hash: string | null
           expires_at: string | null
           grace_hours: number
           id: string
@@ -578,6 +582,10 @@ export type Database = {
           client_name: string
           created_at?: string
           customer_id?: string | null
+          domain?: string | null
+          cloudflare_project_name?: string | null
+          supabase_project_ref?: string | null
+          release_hash?: string | null
           expires_at?: string | null
           grace_hours?: number
           id?: string
@@ -599,6 +607,10 @@ export type Database = {
           client_name?: string
           created_at?: string
           customer_id?: string | null
+          domain?: string | null
+          cloudflare_project_name?: string | null
+          supabase_project_ref?: string | null
+          release_hash?: string | null
           expires_at?: string | null
           grace_hours?: number
           id?: string

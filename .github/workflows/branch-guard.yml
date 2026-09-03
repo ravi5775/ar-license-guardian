@@ -16,7 +16,7 @@ jobs:
         run: |
           set -euo pipefail
           case "$REF" in
-            main|self-hosted|client-app|audit/*|fix/*|feat/*|chore/*|dependabot/*) exit 0 ;;
+            main|audit/*|fix/*|feat/*|dependabot/*) exit 0 ;;
             *) echo "::error::Branch '$REF' violates policy."; exit 1 ;;
           esac
 

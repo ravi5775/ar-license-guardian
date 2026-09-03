@@ -12,6 +12,8 @@ import { clientIp, json, serverDerivedOrigin } from "@/lib/licence-http";
  */
 const Schema = z.object({
   licenceKey: z.string().min(10).max(200),
+  customerId: z.string().trim().min(1).max(200),
+  releaseHash: z.string().trim().min(1).max(200),
   platform: z.enum(["mobile", "desktop"]),
   buildId: z.string().max(200).optional(),
   assetDigest: z.string().max(200).optional(),
@@ -44,15 +46,18 @@ export const Route = createFileRoute("/api/public/licence/activate")({
         // Activation is a mutation that allocates a device slot: it fails CLOSED
         // when the limiter store is down, so an outage is never a free-for-all.
         for (const [key, limit, win] of [
-          [`licence:ip:${ip ?? "unknown"}`, 10, 60],
-          [`licence:key:${input.licenceKey}`, 20, 3600],
+          [
+            `licence:activation:${input.deviceFingerprint ?? "unknown"}:${ip ?? "unknown"}`,
+            5,
+            3600,
+          ],
         ] as const) {
           const { allowed, degraded } = await check(key, limit, win, { failMode: "closed" });
           if (!allowed) {
             return json(
               { ok: false, error: degraded ? "RATE_LIMITER_DOWN" : "RATE_LIMITED" },
               429,
-              {},
+              { "Retry-After": String(win) },
               request,
               originHost,
             );
@@ -61,6 +66,8 @@ export const Route = createFileRoute("/api/public/licence/activate")({
 
         const result = await activate({
           licenceKey: input.licenceKey,
+          customerId: input.customerId,
+          releaseHash: input.releaseHash,
           platform: input.platform,
           originHost,
           ip,

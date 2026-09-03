@@ -7,6 +7,7 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 const isProd = process.env.NODE_ENV === "production";
+const profile = process.env.VITE_BUILD_PROFILE ?? "admin";
 
 // Build-time fingerprinting — injected by provision-client.mjs / CI.
 // Client branch builds MUST set VITE_CUSTOMER_ID and VITE_BUILD_ID.
@@ -30,6 +31,9 @@ export default defineConfig({
     build: {
       sourcemap: isProd ? false : "inline",
     },
-    define: buildMeta,
+    define: {
+      ...buildMeta,
+      "import.meta.env.VITE_BUILD_PROFILE": JSON.stringify(profile),
+    },
   },
 });

@@ -13,26 +13,33 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const accountId = process.env.R2_ACCOUNT_ID || "";
-const accessKeyId = process.env.R2_ACCESS_KEY_ID || "";
-const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY || "";
-export const R2_BUCKET = process.env.R2_BUCKET || "aether-ar-media";
-export const R2_PUBLIC_BASE_URL = process.env.R2_PUBLIC_BASE_URL || "";
-
 export type StorageProvider = "r2" | "supabase";
+
+function r2Config() {
+  return {
+    accountId: process.env.R2_ACCOUNT_ID || "",
+    accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
+    bucket: process.env.R2_BUCKET || "aether-ar-media",
+    publicBaseUrl: process.env.R2_PUBLIC_BASE_URL || "",
+  };
+}
 
 export function getStorageProvider(): StorageProvider {
   const customProvider = process.env.STORAGE_PROVIDER as StorageProvider | undefined;
+  const { accountId, accessKeyId, secretAccessKey } = r2Config();
   if (customProvider) return customProvider;
   if (accountId && accessKeyId && secretAccessKey) return "r2";
   return "supabase";
 }
 
 export function isR2Configured(): boolean {
+  const { accountId, accessKeyId, secretAccessKey } = r2Config();
   return Boolean(accountId && accessKeyId && secretAccessKey);
 }
 
 export function getR2Client(): S3Client {
+  const { accountId, accessKeyId, secretAccessKey } = r2Config();
   if (!isR2Configured()) {
     throw new Error(
       "Cloudflare R2 is not fully configured. Please set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY.",
@@ -57,11 +64,12 @@ export async function createPresignedUploadUrl(
   expiresInSeconds = 900,
 ): Promise<{ signedUrl: string; token: string; path: string; provider: StorageProvider }> {
   const provider = getStorageProvider();
+  const { bucket } = r2Config();
 
   if (provider === "r2") {
     const client = getR2Client();
     const command = new PutObjectCommand({
-      Bucket: R2_BUCKET,
+      Bucket: bucket,
       Key: path,
       ContentType: contentType || "application/octet-stream",
     });
@@ -85,16 +93,17 @@ export async function createPresignedDownloadUrl(
   expiresInSeconds = 900,
 ): Promise<string | null> {
   const provider = getStorageProvider();
+  const { bucket, publicBaseUrl } = r2Config();
 
   if (provider === "r2") {
-    if (R2_PUBLIC_BASE_URL) {
-      const cleanBase = R2_PUBLIC_BASE_URL.replace(/\/+$/, "");
+    if (publicBaseUrl) {
+      const cleanBase = publicBaseUrl.replace(/\/+$/, "");
       const cleanPath = path.replace(/^\/+/, "");
       return `${cleanBase}/${cleanPath}`;
     }
     const client = getR2Client();
     const command = new GetObjectCommand({
-      Bucket: R2_BUCKET,
+      Bucket: bucket,
       Key: path,
     });
     return getSignedUrl(client, command, { expiresIn: expiresInSeconds });
@@ -114,12 +123,13 @@ export async function getStorageObjectMetadata(
   path: string,
 ): Promise<{ size: number; contentType?: string } | null> {
   const provider = getStorageProvider();
+  const { bucket } = r2Config();
 
   if (provider === "r2") {
     try {
       const client = getR2Client();
       const command = new HeadObjectCommand({
-        Bucket: R2_BUCKET,
+        Bucket: bucket,
         Key: path,
       });
       const res = await client.send(command);
@@ -149,11 +159,12 @@ export async function getStorageObjectMetadata(
  */
 export async function deleteStorageObject(path: string): Promise<void> {
   const provider = getStorageProvider();
+  const { bucket } = r2Config();
 
   if (provider === "r2") {
     const client = getR2Client();
     const command = new DeleteObjectCommand({
-      Bucket: R2_BUCKET,
+      Bucket: bucket,
       Key: path,
     });
     await client.send(command);

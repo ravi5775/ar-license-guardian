@@ -72,6 +72,9 @@ CREATE TABLE IF NOT EXISTS public.audit_events (
   after jsonb,
   occurred_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE public.audit_events
+  ADD COLUMN IF NOT EXISTS prev_hash text,
+  ADD COLUMN IF NOT EXISTS hash text;
 
 -- Bring the existing scan stream to the canonical privacy-safe shape.
 ALTER TABLE public.scan_events
@@ -81,6 +84,11 @@ ALTER TABLE public.scan_events
   ADD COLUMN IF NOT EXISTS occurred_at timestamptz;
 ALTER TABLE public.album_items
   ADD COLUMN IF NOT EXISTS experience_id uuid REFERENCES public.ar_experiences(id) ON DELETE SET NULL;
+ALTER TABLE public.licenses
+  ADD COLUMN IF NOT EXISTS domain text,
+  ADD COLUMN IF NOT EXISTS cloudflare_project_name text,
+  ADD COLUMN IF NOT EXISTS supabase_project_ref text,
+  ADD COLUMN IF NOT EXISTS release_hash text;
 
 UPDATE public.scan_events
 SET occurred_at = created_at
@@ -185,6 +193,39 @@ BEGIN
     USING ERRCODE = 'restrict_violation';
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION public.chain_audit_event()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  previous_hash text;
+  canonical text;
+BEGIN
+  SELECT ae.hash INTO previous_hash
+  FROM public.audit_events ae
+  WHERE ae.tenant_id = NEW.tenant_id
+  ORDER BY ae.occurred_at DESC, ae.id DESC
+  LIMIT 1;
+  NEW.prev_hash := previous_hash;
+  canonical := jsonb_build_object(
+    'id', NEW.id, 'tenant_id', NEW.tenant_id, 'actor_id', NEW.actor_id,
+    'action', NEW.action, 'entity', NEW.entity, 'entity_id', NEW.entity_id,
+    'before', NEW.before, 'after', NEW.after, 'occurred_at', NEW.occurred_at,
+    'prev_hash', NEW.prev_hash
+  )::text;
+  NEW.hash := encode(digest(COALESCE(NEW.prev_hash, '') || canonical, 'sha256'), 'hex');
+  RETURN NEW;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.chain_audit_event() FROM PUBLIC, anon, authenticated;
+DROP TRIGGER IF EXISTS audit_events_hash_chain ON public.audit_events;
+CREATE TRIGGER audit_events_hash_chain
+  BEFORE INSERT ON public.audit_events
+  FOR EACH ROW EXECUTE FUNCTION public.chain_audit_event();
 
 DROP TRIGGER IF EXISTS audit_events_append_only ON public.audit_events;
 CREATE TRIGGER audit_events_append_only

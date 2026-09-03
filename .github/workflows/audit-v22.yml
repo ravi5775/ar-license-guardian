@@ -33,7 +33,7 @@ jobs:
           bun run lint 2>&1 | tee artifacts/baseline/lint.log
           bun test 2>&1 | tee artifacts/baseline/test.log
           bun run build 2>&1 | tee artifacts/baseline/build.log
-          bun run verify:client 2>&1 | tee artifacts/baseline/verify-client.log
+          bun run build:client 2>&1 | tee artifacts/baseline/build-client.log
       - name: Run audit
         env:
           DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}

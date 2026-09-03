@@ -35,6 +35,8 @@ export interface Attestation {
  */
 export interface ActivateInput {
   licenceKey: string;
+  customerId?: string;
+  releaseHash?: string;
   platform: DeviceClass;
   /** Server-derived from Origin/Host. */
   originHost: string | null;
@@ -67,8 +69,6 @@ const TOKEN_TTL_SEC = 60 * 60 * 24; // 24h
  * The value is embedded in the issued JWT so the client uses the
  * server's authoritative setting, not its own default.
  */
-const _cfgGrace = parseInt(process.env.LICENCE_GRACE_HOURS ?? "", 10);
-const GRACE_HOURS = Number.isFinite(_cfgGrace) && _cfgGrace > 0 ? Math.min(_cfgGrace, 48) : 24; // §4.5
 const RELEASE_COOLDOWN_HOURS = 12; // §4.4
 const NOTIFY_DEDUP_HOURS = 24; // §4.8
 const enc = new TextEncoder();
@@ -328,7 +328,7 @@ async function loadLicence(licenceKey: string) {
   const db = await admin();
   const { data } = await db
     .from("licenses")
-    .select("id, license_key, plan, status, expires_at, allowed_origins, grace_hours")
+    .select("id, license_key, customer_id, domain, cloudflare_project_name, supabase_project_ref, plan, status, expires_at, allowed_origins, grace_hours")
     .eq("license_key", licenceKey)
     .maybeSingle();
   return data;
@@ -357,10 +357,21 @@ async function commonChecks(input: ActivateInput): Promise<Checked> {
   const ctx: ViolationCtx = {
     licenseId: licence.id,
     licenceKey: input.licenceKey,
-    fingerprint: input.fingerprintSignal ?? null,
+    fingerprint: await sha256Hex([
+      input.customerId ?? "",
+      licence.domain ?? input.originHost ?? "",
+      licence.cloudflare_project_name ?? "",
+      licence.supabase_project_ref ?? "",
+      input.releaseHash ?? "",
+    ].join(":")),
     originHost: input.originHost,
     ip: input.ip,
   };
+
+  if (input.customerId && licence.customer_id && licence.customer_id !== input.customerId) {
+    await recordViolation("customer_mismatch", { customerId: input.customerId }, ctx);
+    return { ok: false, failure: fail(403, "CUSTOMER_MISMATCH") };
+  }
 
   const allowedOrigins = licence.allowed_origins as string[] | null;
   if (!originAllowed(allowedOrigins, input.originHost)) {
@@ -428,6 +439,9 @@ async function commonChecks(input: ActivateInput): Promise<Checked> {
 export async function activate(
   input: ActivateInput,
 ): Promise<(IssuedLicence & { ok: true }) | Failure> {
+  if (!input.customerId || !input.releaseHash) {
+    return fail(400, "CUSTOMER_ID_AND_RELEASE_HASH_REQUIRED");
+  }
   const checked = await commonChecks(input);
   if (!checked.ok) return checked.failure;
   const { licence, ctx } = checked;
@@ -489,9 +503,11 @@ export async function activate(
     .from("license_activations")
     .insert({
       license_id: licence.id,
+      customer_id: input.customerId,
+      release_hash: input.releaseHash,
       device_class: input.platform,
       device_secret_hash: await sha256Hex(deviceSecret),
-      fingerprint: input.fingerprintSignal ?? "",
+      fingerprint: ctx.fingerprint ?? "",
       capability_tier: input.capabilityTier ?? null,
       label: input.label ?? null,
       deployment_domain: input.originHost,

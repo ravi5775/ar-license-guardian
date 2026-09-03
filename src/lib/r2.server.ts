@@ -8,6 +8,4 @@ export {
   createPresignedDownloadUrl as createR2PresignedDownloadUrl,
   getStorageObjectMetadata as getR2ObjectMetadata,
   deleteStorageObject as deleteR2Object,
-  R2_BUCKET,
-  R2_PUBLIC_BASE_URL,
 } from "./storage.server";

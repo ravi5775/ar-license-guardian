@@ -42,3 +42,12 @@ dist-ssr
 # Build artefacts
 tsconfig.tsbuildinfo
 package-lock.json
+build
+coverage
+.cache
+.turbo
+*.tmp
+*.temp
+*.bak
+*.old
+artifacts/*

@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "build:admin": "VITE_BUILD_PROFILE=admin vite build --mode production",
+    "build:client": "VITE_BUILD_PROFILE=client vite build --mode production",
+    "build:selfhost": "VITE_BUILD_PROFILE=selfhost vite build --mode production",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
@@ -16,8 +19,8 @@
     "test:rls": "bunx vitest run tests/rls-regression.test.ts",
     "test:coverage": "bun test --coverage",
     "test:e2e": "playwright test",
-    "verify:client": "node scripts/verify-client-branch.mjs",
     "verify:rls": "node scripts/verify-rls-architecture.mjs",
+    "verify:audit-chain": "node scripts/verify-audit-chain.mjs",
     "audit:v22": "node scripts/run-enterprise-v22-audit.mjs"
   },
   "dependencies": {

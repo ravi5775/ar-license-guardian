@@ -2,9 +2,9 @@ name: CI Quality Gate (All Branches & PRs)
 
 on:
   push:
-    branches: [main, self-hosted, client-app]
+    branches: [main]
   pull_request:
-    branches: [main, self-hosted, client-app]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -34,17 +34,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - profile: admin-managed
+          - profile: admin
             RUNTIME: edge
             DB_DRIVER: neon
             RATELIMIT_DRIVER: postgres
             LICENCE_ROLE: issuer
-          - profile: admin-self-hosted
+          - profile: selfhost
             RUNTIME: node
             DB_DRIVER: postgres
             RATELIMIT_DRIVER: postgres
             LICENCE_ROLE: issuer
-          - profile: client-app
+          - profile: client
             RUNTIME: edge
             DB_DRIVER: none
             RATELIMIT_DRIVER: memory
@@ -66,7 +66,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Build Profile
-        run: bun run build
+        run: bun run build:${{ matrix.profile }}
       - name: Unit & Security Tests
         run: bun test tests/api-contract.test.ts tests/dto-sanitizer.test.ts tests/env-and-adapters.test.ts tests/rate-limiter.test.ts tests/security-critical-fixes.test.ts tests/security-headers.test.ts tests/upload-security.test.ts tests/comprehensive-security-regression.test.ts
 

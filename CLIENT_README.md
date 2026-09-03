@@ -18,7 +18,7 @@ Welcome to your dedicated **Aether AR** web experience platform.
 4. Apply the CORS policy provided in your delivery package (`r2-cors.json`).
 
 ### Step 3: Cloudflare Pages Deployment
-1. Connect this repository branch (`client-app`) to Cloudflare Pages.
+1. Build the customer bundle from the canonical branch with `bun run build:client`, then connect the generated deployment to Cloudflare Pages.
 2. Build Settings:
    - **Framework Preset:** None / Vite
    - **Build Command:** `bun run build` (or `npm run build`)

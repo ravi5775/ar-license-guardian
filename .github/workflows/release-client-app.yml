@@ -1,8 +1,6 @@
 name: Production Pipeline — Release Client-App (Signed Manifest & Bundle)
 
 on:
-  push:
-    branches: [client-app]
   workflow_dispatch:
 
 concurrency:
@@ -44,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Build Client Bundle
-        run: bun run build
+        run: bun run build:client
         env:
           LICENCE_ROLE: client
           DB_DRIVER: none

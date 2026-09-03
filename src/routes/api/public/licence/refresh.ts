@@ -37,14 +37,17 @@ export const Route = createFileRoute("/api/public/licence/refresh")({
         // Refresh allocates nothing and every live viewer depends on it, so a
         // limiter outage fails OPEN here — but it is logged and the response
         // says so, rather than pretending the limit was enforced.
-        const { allowed, degraded } = await check(
-          `licence:refresh:${input.deviceSecret.slice(0, 24)}`,
-          60,
-          3600,
-          { failMode: "open" },
-        );
+        const { allowed, degraded } = await check(`licence:refresh:${input.licenceKey}`, 12, 3600, {
+          failMode: "open",
+        });
         if (!allowed)
-          return json({ ok: false, error: "RATE_LIMITED" }, 429, {}, request, originHost);
+          return json(
+            { ok: false, error: "RATE_LIMITED" },
+            429,
+            { "Retry-After": "3600" },
+            request,
+            originHost,
+          );
 
         const result = await refresh({
           licenceKey: input.licenceKey,

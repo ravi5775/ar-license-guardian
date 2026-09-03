@@ -1,12 +1,10 @@
 name: Production Pipeline — Deploy Self-Hosted (GHCR & Coolify)
 
 on:
-  push:
-    branches: [self-hosted]
   workflow_dispatch:
 
 concurrency:
-  group: deploy-self-hosted
+  group: deploy-selfhost-profile
   cancel-in-progress: false
 
 jobs:
