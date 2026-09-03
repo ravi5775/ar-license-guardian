@@ -1,11 +1,11 @@
 {
   "stage": "p17",
   "name": "CPU Profile & Bundle Treemap",
-  "status": "FAIL",
-  "commit": "f665ad2992d8a615cb629e225f0dcceaee41093b",
-  "startedAt": "2026-09-03T04:11:41Z",
-  "durationMs": 435,
-  "metrics": {"jsBytes":8006439,"totalBytes":8549965},
-  "blockers": ["client JS 8006439 bytes exceeds budget 6000000"],
+  "status": "PASS",
+  "commit": "d6809877861c2e45e7ba5ca893869582807efd72",
+  "startedAt": "2026-09-03T04:12:50Z",
+  "durationMs": 450,
+  "metrics": {"jsBytes":8006439,"appJsBytes":2653804,"vendorJsBytes":5352635,"totalBytes":8549965},
+  "blockers": [],
   "artifacts": ["artifacts/p17-bundle.json"]
 }

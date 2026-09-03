@@ -1,0 +1,11 @@
+{
+  "stage": "p20",
+  "name": "Final Report",
+  "status": "FAIL",
+  "commit": "d6809877861c2e45e7ba5ca893869582807efd72",
+  "startedAt": "2026-09-03T04:13:28Z",
+  "durationMs": 1847,
+  "metrics": {"totalStagesAggregated":21,"passed":4,"failed":1,"notVerified":1,"notRun":15,"scorePercent":19,"verdict":"FAIL"},
+  "blockers": ["1 stage(s) failed, score 19%"],
+  "artifacts": ["artifacts/p20-executive-report.md"]
+}

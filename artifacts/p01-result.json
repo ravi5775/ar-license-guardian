@@ -1,11 +1,11 @@
 {
   "stage": "p01",
   "name": "Build & Static Quality",
-  "status": "PASS",
-  "commit": "de591708e8a3583327ae5e8e01410cd80207b899",
-  "startedAt": "2026-08-31T05:49:30Z",
-  "durationMs": 33008,
-  "metrics": {"eslintErrors":0,"eslintWarnings":140,"typecheckExit":0},
-  "blockers": [],
+  "status": "FAIL",
+  "commit": "d6809877861c2e45e7ba5ca893869582807efd72",
+  "startedAt": "2026-09-03T04:12:54Z",
+  "durationMs": 30292,
+  "metrics": {"eslintErrors":1,"eslintWarnings":140,"typecheckExit":0},
+  "blockers": ["eslint reported 1 error(s)"],
   "artifacts": ["artifacts/p01-eslint-raw.json","artifacts/p01-typecheck.txt"]
 }

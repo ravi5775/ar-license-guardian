@@ -1,6 +1,8 @@
 {
   "totalBytes": 8549965,
   "jsBytes": 8006439,
+  "appJsBytes": 2653804,
+  "vendorJsBytes": 5352635,
   "largest": [
     {
       "file": "dist/client/vendor/ar/controller-mGt1s8dJ.js",

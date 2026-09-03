@@ -2,9 +2,9 @@
   "stage": "p11",
   "name": "Security & Abuse Controls",
   "status": "PASS",
-  "commit": "de591708e8a3583327ae5e8e01410cd80207b899",
-  "startedAt": "2026-08-31T05:50:03Z",
-  "durationMs": 918,
+  "commit": "d6809877861c2e45e7ba5ca893869582807efd72",
+  "startedAt": "2026-09-03T04:13:25Z",
+  "durationMs": 801,
   "metrics": {"testsPassed":97,"testsFailed":0,"gitleaksRan":0},
   "blockers": [],
   "artifacts": ["artifacts/p11-security-tests.txt"]
