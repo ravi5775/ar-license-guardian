@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "build:admin": "VITE_BUILD_PROFILE=admin vite build --mode production",
-    "build:client": "VITE_BUILD_PROFILE=client vite build --mode production",
-    "build:selfhost": "VITE_BUILD_PROFILE=selfhost vite build --mode production",
+    "build:admin": "node scripts/build-profile.mjs admin",
+    "build:client": "node scripts/build-profile.mjs client",
+    "build:selfhost": "node scripts/build-profile.mjs selfhost",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",

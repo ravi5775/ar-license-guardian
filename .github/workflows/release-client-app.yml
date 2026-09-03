@@ -52,7 +52,7 @@ jobs:
           VITE_LICENCE_PUBLIC_KEY: ${{ vars.LICENCE_PUBLIC_KEY }}
           NODE_ENV: production
       - name: Sign & Publish Asset Manifest
-        run: node scripts/sign-manifest.mjs dist/client
+        run: node scripts/sign-manifest.mjs .output/public
         env:
           BUILD_ID: ${{ github.sha }}
           LICENCE_PRIVATE_KEY_JWK: ${{ secrets.LICENCE_PRIVATE_KEY_JWK }}
@@ -62,7 +62,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: client-app-${{ github.sha }}
-          path: dist
+          path: .output/public
           retention-days: 90
       - name: Publish Release Summary
         run: |

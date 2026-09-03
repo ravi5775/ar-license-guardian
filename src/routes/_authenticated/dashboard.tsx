@@ -28,6 +28,7 @@ import {
   Package,
 } from "lucide-react";
 import { toast } from "sonner";
+import { features as buildFeatures } from "@/config/features";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardLayout,
@@ -52,8 +53,7 @@ function DashboardLayout() {
     navigate({ to: "/auth", replace: true });
   }
 
-  // Branch-aware features: a customer (client-app) build hides licensing,
-  // approvals and diagnostics entirely, even for an admin account.
+  // Server entitlements further restrict the statically selected build profile.
   const profileFn = useServerFn(getDeploymentProfile);
   const { data: profile } = useQuery({
     queryKey: ["deployment-profile"],
@@ -61,7 +61,13 @@ function DashboardLayout() {
     staleTime: Infinity,
   });
   const features = profile?.features;
-  const can = (flag: keyof NonNullable<typeof features>) => !features || features[flag];
+  const can = (flag: keyof NonNullable<typeof features>) => {
+    if (flag === "licensing" && !buildFeatures.LICENSING_ENABLED) return false;
+    if (flag === "analytics" && !buildFeatures.ANALYTICS_ENABLED) return false;
+    if (flag === "approvals" && !buildFeatures.ADMIN_ENABLED) return false;
+    if (flag === "diagnostics" && !buildFeatures.ADMIN_ENABLED) return false;
+    return !features || features[flag];
+  };
 
   const nav = [
     { to: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
