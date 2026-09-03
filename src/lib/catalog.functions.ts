@@ -131,11 +131,7 @@ export const saveCatalogItem = createServerFn({ method: "POST" })
     if (id) {
       // Update in place. RLS scopes the row to the caller, so a foreign id
       // simply matches nothing instead of silently creating a duplicate.
-      const { data: row, error } = await table()
-        .update(fields)
-        .eq("id", id)
-        .select()
-        .maybeSingle();
+      const { data: row, error } = await table().update(fields).eq("id", id).select().maybeSingle();
       if (error) throw new Error(error.message);
       if (!row) throw new Error("Catalog item not found or not editable by this account");
       return row;

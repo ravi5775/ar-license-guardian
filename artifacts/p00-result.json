@@ -2,11 +2,10 @@
   "stage": "p00",
   "name": "Repository Integrity",
   "status": "PASS",
-  "commit": "07a69325dc536d70094d817fa44aafc6c6984866",
-  "startedAt": "2026-09-03T04:13:38Z",
-  "durationMs": 2998,
-  "metrics": {"trackedFiles":491,"dirtyPaths":0,"branch":"edit/edt-49f2a32b-1b6a-4a84-9b6b-5ed57d0ce1cd","largeFiles":0
-0},
+  "commit": "125b6c974575ae14e579c8f7a798ef7fe0986432",
+  "startedAt": "2026-09-03T04:14:59Z",
+  "durationMs": 2938,
+  "metrics": {"trackedFiles":491,"dirtyPaths":2,"branch":"edit/edt-49f2a32b-1b6a-4a84-9b6b-5ed57d0ce1cd","largeFiles":0},
   "blockers": [],
   "artifacts": []
 }
