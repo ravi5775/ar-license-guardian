@@ -13,6 +13,7 @@ const CatalogInput = z.object({
 });
 
 const CatalogItemInput = z.object({
+  id: z.string().uuid().optional(),
   catalog_id: z.string().uuid(),
   name: z.string().min(1).max(120),
   sku: z.string().min(1).max(80),
