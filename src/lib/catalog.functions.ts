@@ -125,11 +125,26 @@ export const saveCatalogItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((raw) => CatalogItemInput.parse(raw))
   .handler(async ({ data, context }) => {
-    const { data: row, error } = (await context.supabase
-      .from("catalog_items" as any)
-      .upsert({ ...data, owner_id: context.userId }, { onConflict: "id" })
+    const { id, ...fields } = data;
+    const table = () => context.supabase.from("catalog_items" as any) as any;
+
+    if (id) {
+      // Update in place. RLS scopes the row to the caller, so a foreign id
+      // simply matches nothing instead of silently creating a duplicate.
+      const { data: row, error } = await table()
+        .update(fields)
+        .eq("id", id)
+        .select()
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!row) throw new Error("Catalog item not found or not editable by this account");
+      return row;
+    }
+
+    const { data: row, error } = await table()
+      .insert({ ...fields, owner_id: context.userId })
       .select()
-      .single()) as any;
+      .single();
     if (error) throw new Error(error.message);
     return row;
   });
