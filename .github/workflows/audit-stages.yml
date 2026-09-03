@@ -33,7 +33,7 @@ jobs:
   static:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
@@ -48,7 +48,7 @@ jobs:
   assurance:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bash scripts/audit/p11-security-abuse.sh || true
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [static]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bash scripts/audit/p02-api-smoke.sh || true
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [live-smoke]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bash scripts/audit/p04-k6-load.sh || true
@@ -94,7 +94,7 @@ jobs:
   database:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bash scripts/audit/p09-db-capacity.sh || true
@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [live-smoke]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bash scripts/audit/p12-device-clone-detection.sh || true
@@ -124,7 +124,7 @@ jobs:
     if: always()
     needs: [static, assurance, live-smoke, load, database, platform]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
       - uses: actions/download-artifact@v4
         with: { path: /tmp/audit-artifacts, merge-multiple: true }
