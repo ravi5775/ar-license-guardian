@@ -1,16 +1,16 @@
 # Aether AR — Audit Executive Report
 
-- Commit: `d6809877861c2e45e7ba5ca893869582807efd72`
-- Generated: 2026-09-03T04:13:29Z
+- Commit: `483a294478eaea368eb9c2a6a82729c292446a87`
+- Generated: 2026-09-03T04:15:40Z
 - Total stages aggregated: **21** (P00–P19 plus P09b; P20 is the aggregator and is excluded from its own denominator)
-- PASS: 4 · FAIL: 1 · NOT_VERIFIED: 1 · NOT RUN: 15
-- Score: **19%**
+- PASS: 6 · FAIL: 0 · NOT_VERIFIED: 1 · NOT RUN: 14
+- Score: **28%**
 - Verdict: **FAIL**
 
 | Stage | Name | Status |
 | --- | --- | --- |
-| P00 |  | MISSING |
-| P01 | Build & Static Quality | FAIL |
+| P00 | Repository Integrity | PASS |
+| P01 | Build & Static Quality | PASS |
 | P02 |  | MISSING |
 | P03 |  | MISSING |
 | P04 |  | MISSING |

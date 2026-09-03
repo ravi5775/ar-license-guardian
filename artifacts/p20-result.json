@@ -2,10 +2,10 @@
   "stage": "p20",
   "name": "Final Report",
   "status": "FAIL",
-  "commit": "d6809877861c2e45e7ba5ca893869582807efd72",
-  "startedAt": "2026-09-03T04:13:28Z",
-  "durationMs": 1847,
-  "metrics": {"totalStagesAggregated":21,"passed":4,"failed":1,"notVerified":1,"notRun":15,"scorePercent":19,"verdict":"FAIL"},
-  "blockers": ["1 stage(s) failed, score 19%"],
+  "commit": "483a294478eaea368eb9c2a6a82729c292446a87",
+  "startedAt": "2026-09-03T04:15:39Z",
+  "durationMs": 1857,
+  "metrics": {"totalStagesAggregated":21,"passed":6,"failed":0,"notVerified":1,"notRun":14,"scorePercent":28,"verdict":"FAIL"},
+  "blockers": ["0 stage(s) failed, score 28%"],
   "artifacts": ["artifacts/p20-executive-report.md"]
 }
