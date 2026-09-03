@@ -1,0 +1,46 @@
+name: Enterprise audit v2.2
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: Staging base URL for load tests (leave blank to skip load tests)
+        required: false
+        type: string
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - uses: grafana/setup-k6-action@v1
+      - name: Install audit tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz | sudo tar -xz -C /usr/local/bin gitleaks
+      - name: Baseline gates
+        run: |
+          mkdir -p artifacts/baseline
+          bun run typecheck 2>&1 | tee artifacts/baseline/typecheck.log
+          bun run lint 2>&1 | tee artifacts/baseline/lint.log
+          bun test 2>&1 | tee artifacts/baseline/test.log
+          bun run build 2>&1 | tee artifacts/baseline/build.log
+          bun run verify:client 2>&1 | tee artifacts/baseline/verify-client.log
+      - name: Run audit
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          TARGET_URL: ${{ inputs.target_url }}
+          R2_TEST_BUCKET: ${{ secrets.STAGING_R2_BUCKET }}
+        run: bun run audit:v22
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audit-v22-artifacts
+          path: artifacts/**

@@ -1,0 +1,13 @@
+{
+  "runId": "v22-1788459722598",
+  "tooling": {
+    "gitleaks": null,
+    "osv-scanner": null,
+    "k6": null,
+    "autocannon": null,
+    "psql": "psql (PostgreSQL) 16.11",
+    "node": "v24.11.1",
+    "bun": "1.4.0",
+    "git": "git version 2.52.0.windows.1"
+  }
+}

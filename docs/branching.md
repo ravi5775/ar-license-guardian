@@ -73,3 +73,17 @@ modules, byte-identical on Workers and Node.
   (`release-client-app.yml`)
 
 Add `staging` off `main` later if you want a free preview environment.
+
+## Branch hygiene
+
+Long-lived branches are exactly three: `main`, `self-hosted`, `client-app`.
+Anything else is temporary and must be deleted on merge.
+
+Allowed branch name prefixes (enforced by `.github/workflows/branch-guard.yml`):
+`audit/*`, `fix/*`, `feat/*`, `chore/*`, `dependabot/*`.
+
+Dependabot is grouped (`.github/dependabot.yml`): one PR per ecosystem per week,
+maximum three open npm PRs. Branch-per-package churn is a configuration bug.
+
+Audit and QA scripts must never create branches. The branch guard rejects
+`git checkout -b`, `git switch -c`, and `git branch <name>` in `scripts/`.

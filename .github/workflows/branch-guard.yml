@@ -1,0 +1,34 @@
+name: Branch guard
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  name-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce branch naming policy
+        env:
+          REF: ${{ github.head_ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+          case "$REF" in
+            main|self-hosted|client-app|audit/*|fix/*|feat/*|chore/*|dependabot/*) exit 0 ;;
+            *) echo "::error::Branch '$REF' violates policy."; exit 1 ;;
+          esac
+
+  no-branch-creation-in-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Audit scripts must not create branches
+        run: |
+          set -euo pipefail
+          if grep -RInE 'git (checkout -b|switch -c|branch [^-])' scripts/ 2>/dev/null; then
+            echo "::error::scripts/ must not create git branches"
+            exit 1
+          fi
+          echo "ok"

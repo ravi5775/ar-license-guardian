@@ -1,0 +1,84 @@
+{
+  "runId": "v22-1788459722598",
+  "generatedAt": "2026-09-03T18:22:04.056Z",
+  "phases": [
+    {
+      "phase": "S01",
+      "name": "gitleaks evidence check",
+      "tool": "gitleaks",
+      "artifact": "artifacts/gitleaks.json",
+      "status": "NOT_VERIFIED",
+      "reason": "gitleaks not on PATH; cannot produce real measurements",
+      "measuredValues": null
+    },
+    {
+      "phase": "S02",
+      "name": "osv-scanner evidence check",
+      "tool": "osv-scanner",
+      "artifact": "artifacts/osv-scanner.json",
+      "status": "NOT_VERIFIED",
+      "reason": "osv-scanner not on PATH; cannot produce real measurements",
+      "measuredValues": null
+    },
+    {
+      "phase": "S03",
+      "name": "k6 evidence check",
+      "tool": "k6",
+      "artifact": "artifacts/k6.json",
+      "status": "NOT_VERIFIED",
+      "reason": "k6 not on PATH; cannot produce real measurements",
+      "measuredValues": null
+    },
+    {
+      "phase": "S04",
+      "name": "autocannon evidence check",
+      "tool": "autocannon",
+      "artifact": "artifacts/autocannon.json",
+      "status": "NOT_VERIFIED",
+      "reason": "autocannon not on PATH; cannot produce real measurements",
+      "measuredValues": null
+    },
+    {
+      "phase": "S05",
+      "name": "psql evidence check",
+      "tool": "psql",
+      "artifact": "artifacts/psql.json",
+      "status": "NOT_VERIFIED",
+      "reason": "psql produced no artifact at artifacts/psql.json",
+      "measuredValues": null
+    },
+    {
+      "phase": "S06",
+      "name": "node evidence check",
+      "tool": "node",
+      "artifact": "artifacts/node.json",
+      "status": "NOT_VERIFIED",
+      "reason": "node produced no artifact at artifacts/node.json",
+      "measuredValues": null
+    },
+    {
+      "phase": "S07",
+      "name": "bun evidence check",
+      "tool": "bun",
+      "artifact": "artifacts/bun.json",
+      "status": "NOT_VERIFIED",
+      "reason": "bun produced no artifact at artifacts/bun.json",
+      "measuredValues": null
+    },
+    {
+      "phase": "S08",
+      "name": "git evidence check",
+      "tool": "git",
+      "artifact": "artifacts/git.json",
+      "status": "NOT_VERIFIED",
+      "reason": "git produced no artifact at artifacts/git.json",
+      "measuredValues": null
+    }
+  ],
+  "overall": {
+    "score": 0,
+    "verdict": "CONDITIONAL_PASS",
+    "notVerifiedCount": 8,
+    "failedCount": 0
+  }
+}

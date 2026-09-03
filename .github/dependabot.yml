@@ -4,7 +4,20 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+      day: "monday"
+    open-pull-requests-limit: 3
+    groups:
+      production-deps:
+        dependency-type: production
+        update-types: ["minor", "patch"]
+      dev-deps:
+        dependency-type: development
+        update-types: ["minor", "patch"]
+      security-majors:
+        applies-to: security-updates
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(deps)"
     labels:
       - "dependencies"
       - "security"
@@ -12,7 +25,11 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    open-pull-requests-limit: 1
+    groups:
+      actions:
+        patterns: ["*"]
     labels:
       - "ci"
       - "security"
