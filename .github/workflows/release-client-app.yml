@@ -12,7 +12,7 @@ jobs:
     name: Pre-Release Quality Gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -35,7 +35,7 @@ jobs:
     needs: [pre-release-verification]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -59,7 +59,7 @@ jobs:
           LICENCE_API_URL: ${{ vars.LICENCE_API_URL }}
           RELEASE_MANIFEST_SECRET: ${{ secrets.RELEASE_MANIFEST_SECRET }}
       - name: Upload Client Distribution Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: client-app-${{ github.sha }}
           path: .output/public
